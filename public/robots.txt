@@ -1,0 +1,29 @@
+# robots.txt para PERFORMAXIS
+# Permitir acesso completo dos crawlers para indexação
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://performaxis.com.br/sitemap.xml
+
+# Crawl-delay para respeitar recursos do servidor
+Crawl-delay: 1
+
+# Bloquear apenas diretórios administrativos e técnicos (se houver)
+Disallow: /admin/
+Disallow: /api/
+Disallow: /*.json$
+
+# Permitir especificamente bots principais
+User-agent: Googlebot
+Allow: /
+
+User-agent: Googlebot-Image
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /

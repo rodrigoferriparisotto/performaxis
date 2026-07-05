@@ -1,0 +1,8 @@
+export const INACTIVITY_THRESHOLDS = {
+  MARKERS: [20, 40, 80, 120],
+  DEFAULT_FRONTEND_THRESHOLD: 20,
+  CHECK_INTERVAL_MS: 60 * 1000,
+  DEDUPLICATION_WINDOW_MS: 5 * 60 * 1000,
+} as const;
+
+export type InactivityMarkerMinutes = typeof INACTIVITY_THRESHOLDS.MARKERS[number];
