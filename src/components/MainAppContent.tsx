@@ -404,7 +404,9 @@ const MainAppContent: React.FC = () => {
     }
   }
 
-  const renderPublicPage = () => {
+  // Declaração de função (hoisted): é usada acima deste ponto; como const,
+  // abrir #sobre/#blog derrubava o app com ReferenceError.
+  function renderPublicPage() {
     if (currentPage.startsWith('blog-post/')) {
       const slug = currentPage.replace('blog-post/', '');
       return <BlogPostPage slug={slug} />;

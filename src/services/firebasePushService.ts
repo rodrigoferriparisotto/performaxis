@@ -236,12 +236,17 @@ export const sendTestNotification = async (usuarioId: string, title: string, bod
       throw new Error('No active push tokens found for user');
     }
 
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      throw new Error('Sessão expirada — faça login novamente');
+    }
+
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-push-notification`,
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

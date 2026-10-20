@@ -98,17 +98,17 @@ export const historicalCleanupService = {
         tabelasSelecionadas
       }, 'HistoricalCleanup');
 
+      // A função segura deriva empresa e usuário do próprio token (auth.uid());
+      // os parâmetros empresaId/usuarioId acima ficam só para log.
       const { data, error } = await supabase
-        .rpc('executar_limpeza_historico', {
-          p_empresa_id: empresaId,
-          p_usuario_id: usuarioId,
+        .rpc('executar_limpeza_historico_segura', {
           p_periodo_meses: periodoMeses,
           p_tabelas_selecionadas: tabelasSelecionadas,
           p_observacoes: observacoes || null
         });
 
       if (error) {
-        logger.error('Erro ao executar RPC executar_limpeza_historico', error, 'HistoricalCleanup');
+        logger.error('Erro ao executar RPC executar_limpeza_historico_segura', error, 'HistoricalCleanup');
         throw new Error(`Erro ao executar limpeza: ${error.message}`);
       }
 

@@ -1,6 +1,4 @@
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
-import { NetworkFirst } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -23,7 +21,13 @@ function startHeartbeat() {
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activated - starting heartbeat');
   startHeartbeat();
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      // remove o cache antigo de respostas autenticadas do Supabase
+      await caches.delete('supabase-cache').catch(() => {});
+      await self.clients.claim();
+    })()
+  );
 });
 
 /**
@@ -101,12 +105,9 @@ async function sendMessageToApp(message: any): Promise<boolean> {
   }
 }
 
-registerRoute(
-  ({ url }) => url.origin === 'https://supabase.co' || url.hostname.includes('supabase'),
-  new NetworkFirst({
-    cacheName: 'supabase-cache',
-  })
-);
+// Respostas do Supabase NÃO são mais cacheadas: o NetworkFirst antigo gravava
+// dados autenticados (usuários, registros, acessos) em Cache Storage sem
+// expiração, e o logout não limpava — vazamento em aparelho compartilhado.
 
 async function checkRemindersInBackground() {
   try {

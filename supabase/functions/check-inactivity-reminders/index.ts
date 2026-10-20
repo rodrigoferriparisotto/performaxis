@@ -4,8 +4,47 @@ import { createClient } from "npm:@supabase/supabase-js@2.52.0";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey, X-Internal-Secret",
 };
+
+const SUPABASE_URL_ENV = Deno.env.get("SUPABASE_URL")!;
+const SERVICE_ROLE_KEY_ENV = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+// Autorização do chamador: segredo interno (agendador pg_cron), service role,
+// ou usuário real com perfil admin/gestor (botão "forçar verificação" do Diagnóstico).
+async function chamadorAutorizado(req: Request): Promise<boolean> {
+  try {
+    const admin = createClient(SUPABASE_URL_ENV, SERVICE_ROLE_KEY_ENV);
+
+    const secret = req.headers.get("X-Internal-Secret");
+    if (secret) {
+      const { data } = await admin
+        .from("app_config_interna")
+        .select("valor")
+        .eq("chave", "internal_secret")
+        .maybeSingle();
+      return !!data && data.valor === secret;
+    }
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return false;
+    const token = authHeader.replace("Bearer ", "");
+
+    if (token === SERVICE_ROLE_KEY_ENV) return true;
+
+    const { data: { user } } = await admin.auth.getUser(token);
+    if (!user) return false;
+
+    const { data: u } = await admin
+      .from("usuarios")
+      .select("profile, active")
+      .eq("id", user.id)
+      .maybeSingle();
+    return !!u && u.active === true && ["admin", "gestor"].includes(String(u.profile));
+  } catch (_e) {
+    return false;
+  }
+}
 
 interface InactivityMarker {
   minutes: number;
@@ -38,6 +77,13 @@ Deno.serve(async (req: Request) => {
       status: 200,
       headers: corsHeaders,
     });
+  }
+
+  if (!(await chamadorAutorizado(req))) {
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
 
   try {

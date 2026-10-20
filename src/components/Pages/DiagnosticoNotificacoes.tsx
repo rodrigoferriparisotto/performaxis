@@ -170,13 +170,17 @@ export function DiagnosticoNotificacoes() {
 
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        throw new Error('Sessão expirada — faça login novamente');
+      }
 
       const response = await fetch(`${supabaseUrl}/functions/v1/check-inactivity-reminders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseKey}`
+          'Authorization': `Bearer ${session.access_token}`
         }
       });
 

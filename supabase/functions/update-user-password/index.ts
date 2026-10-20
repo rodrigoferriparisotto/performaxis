@@ -12,143 +12,97 @@ interface UpdatePasswordRequest {
   newPassword: string;
 }
 
+function erro(status: number, mensagem: string): Response {
+  return new Response(JSON.stringify({ error: mensagem }), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+const PERFIS_PRIVILEGIADOS = ["admin", "gestor", "super_admin"];
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
+    return new Response(null, { status: 200, headers: corsHeaders });
   }
 
   try {
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized: No authorization header" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    if (!authHeader) return erro(401, "Unauthorized: No authorization header");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") as string;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") as string;
-
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized: Invalid token" }),
-        {
-          status: 401,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    if (authError || !user) return erro(401, "Unauthorized: Invalid token");
 
     const { data: requestingUser, error: userError } = await supabaseAdmin
       .from("usuarios")
-      .select("profile")
+      .select("profile, empresa_id, active")
       .eq("id", user.id)
       .maybeSingle();
 
-    if (userError || !requestingUser) {
-      return new Response(
-        JSON.stringify({ error: "User not found in system" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    if (userError || !requestingUser) return erro(404, "User not found in system");
+    if (!requestingUser.active) return erro(403, "Forbidden: inactive user");
 
-    if (requestingUser.profile !== "admin" && requestingUser.profile !== "gestor") {
-      return new Response(
-        JSON.stringify({ error: "Forbidden: Only admin or gestor can update passwords" }),
-        {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    const perfilChamador = String(requestingUser.profile);
+    if (perfilChamador !== "admin" && perfilChamador !== "gestor") {
+      return erro(403, "Forbidden: Only admin or gestor can update passwords");
     }
 
     const { userId, newPassword }: UpdatePasswordRequest = await req.json();
-
-    if (!userId || !newPassword) {
-      return new Response(
-        JSON.stringify({ error: "Missing userId or newPassword" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
-
-    if (newPassword.length < 6) {
-      return new Response(
-        JSON.stringify({ error: "Password must be at least 6 characters" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
-    }
+    if (!userId || !newPassword) return erro(400, "Missing userId or newPassword");
+    if (newPassword.length < 8) return erro(400, "A senha deve ter pelo menos 8 caracteres");
 
     const { data: targetUser, error: targetError } = await supabaseAdmin
       .from("usuarios")
-      .select("id")
+      .select("id, profile, empresa_id")
       .eq("id", userId)
       .maybeSingle();
 
-    if (targetError || !targetUser) {
-      return new Response(
-        JSON.stringify({ error: "Target user not found" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+    if (targetError || !targetUser) return erro(404, "Target user not found");
+
+    const perfilAlvo = String(targetUser.profile);
+    const ehAdminDeSistema = perfilChamador === "admin" && requestingUser.empresa_id === null;
+
+    // Fora o admin de sistema, só se altera senha de usuário da PRÓPRIA empresa
+    if (!ehAdminDeSistema) {
+      if (!requestingUser.empresa_id || requestingUser.empresa_id !== targetUser.empresa_id) {
+        return erro(403, "Forbidden: usuário de outra empresa");
+      }
     }
 
-    const { data, error } = await supabaseAdmin.auth.admin.updateUserById(
-      userId,
-      { password: newPassword }
-    );
+    // Ninguém redefine a senha do super admin por aqui
+    if (perfilAlvo === "super_admin") {
+      return erro(403, "Forbidden: alvo não permitido");
+    }
+
+    // Gestor não redefine senha de admin nem de outro gestor (exceto a própria)
+    if (
+      perfilChamador === "gestor" &&
+      PERFIS_PRIVILEGIADOS.includes(perfilAlvo) &&
+      targetUser.id !== user.id
+    ) {
+      return erro(403, "Forbidden: gestor não altera senha de admin/gestor");
+    }
+
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, {
+      password: newPassword,
+    });
 
     if (error) {
       console.error("Error updating password:", error);
-      return new Response(
-        JSON.stringify({ error: error.message }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
-      );
+      return erro(500, error.message);
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: "Password updated successfully",
-        user: data.user
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ success: true, message: "Password updated successfully" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Unexpected error:", error);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return erro(500, "Internal server error");
   }
 });

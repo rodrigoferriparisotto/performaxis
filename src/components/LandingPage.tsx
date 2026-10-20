@@ -38,7 +38,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
   const [hasError, setHasError] = useState(false);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
-  const whatsappNumber = '5499955333';
+  const whatsappNumber = '5554999955333';
   const whatsappMessage = encodeURIComponent('Estou no site do PERFORMAXIS e gostaria de maiores informações.');
   const whatsappLink = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
   const whatsappCTALink = `https://wa.me/${whatsappNumber}`;
