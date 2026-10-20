@@ -26,3 +26,6 @@ dist-ssr
 
 # PWA dev artifacts
 dev-dist
+
+# Netlify CLI local state
+.netlify
