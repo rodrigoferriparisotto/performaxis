@@ -68,10 +68,20 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Conteúdo estático de SEO: visível para crawlers sem JS; ocultado
-         instantaneamente quando o app carrega (a classe js é adicionada antes do paint) -->
+    <!-- Conteúdo estático de SEO: fica visível para crawlers e visitantes novos
+         até o app React assumir. Só é ocultado de imediato para quem já tem
+         sessão (funcionários logados), que vão direto para a tela de login/app. -->
     <style>html.js #seo-static { display: none; }</style>
-    <script>document.documentElement.classList.add('js');</script>
+    <script>
+      (function () {
+        try {
+          var logado = Object.keys(localStorage).some(function (k) {
+            return k.indexOf('auth-token') !== -1;
+          });
+          if (logado) document.documentElement.classList.add('js');
+        } catch (e) { /* sem localStorage: mantém conteúdo visível */ }
+      })();
+    </script>
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3X8XG2K7VL"></script>
@@ -225,7 +235,13 @@
           <header style="text-align: center; margin-bottom: 60px;">
             <img src="/logo_oficial_performaxis.png" alt="Performaxis - Sistema de Gestão de Equipes para Hotéis, Pousadas, Hospitais e Salões de Beleza" style="max-width: 320px; width: 100%; height: auto; margin-bottom: 20px;" />
             <h1 style="color: #1e40af; font-size: 2.25rem; margin: 20px 0 10px;">Sistema de Gestão de Equipes para Hotéis, Pousadas, Hospitais e Salões de Beleza</h1>
-            <p style="color: #64748b; font-size: 1.5rem; font-weight: 400; margin: 0;">Gestão Inteligente, Resultados Reais</p>
+            <p style="color: #64748b; font-size: 1.5rem; font-weight: 400; margin: 0 0 20px;">Gestão Inteligente, Resultados Reais</p>
+            <nav style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+              <a href="/hoteis-e-pousadas/" style="color: #1e40af; font-weight: 600; text-decoration: none; padding: 8px 14px; border: 1px solid #bfdbfe; border-radius: 8px;">Para Hotéis e Pousadas</a>
+              <a href="/hospitais-e-clinicas/" style="color: #1e40af; font-weight: 600; text-decoration: none; padding: 8px 14px; border: 1px solid #bfdbfe; border-radius: 8px;">Para Hospitais e Clínicas</a>
+              <a href="/saloes-de-beleza/" style="color: #1e40af; font-weight: 600; text-decoration: none; padding: 8px 14px; border: 1px solid #bfdbfe; border-radius: 8px;">Para Salões de Beleza</a>
+              <a href="/demonstracao/" style="color: #ffffff; background: #1e40af; font-weight: 600; text-decoration: none; padding: 8px 14px; border-radius: 8px;">Agendar demonstração</a>
+            </nav>
           </header>
 
           <main>
