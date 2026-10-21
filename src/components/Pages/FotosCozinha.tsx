@@ -331,7 +331,7 @@ const FotosCozinha: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
       </div>
     );
   }
@@ -352,14 +352,14 @@ const FotosCozinha: React.FC = () => {
               placeholder="Buscar fotos..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
 
           <select
             value={filterTipoCozinha}
             onChange={(e) => setFilterTipoCozinha(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
           >
             <option value="">Todos os tipos</option>
             {tiposCozinha.map(tipo => (
@@ -382,7 +382,7 @@ const FotosCozinha: React.FC = () => {
 
         <button
           onClick={handleNewFoto}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 transition-colors duration-200"
+          className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center space-x-2 transition-colors duration-200"
         >
           <Plus className="w-4 h-4" />
           <span>Nova Foto</span>
@@ -392,8 +392,8 @@ const FotosCozinha: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Camera className="w-6 h-6 text-blue-600" />
+            <div className="p-2 bg-teal-100 rounded-lg">
+              <Camera className="w-6 h-6 text-teal-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Galeria de Fotos</h2>
@@ -430,7 +430,7 @@ const FotosCozinha: React.FC = () => {
                         </span>
                         <button
                           onClick={() => handleEditFoto(foto)}
-                          className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors duration-200"
+                          className="p-1 text-teal-600 hover:bg-teal-100 rounded transition-colors duration-200"
                           title="Editar foto"
                         >
                           <Edit className="w-3 h-3" />
@@ -464,7 +464,7 @@ const FotosCozinha: React.FC = () => {
                     <h4 className="font-medium text-gray-800 text-sm mb-1 line-clamp-2">{foto.titulo}</h4>
                     {foto.tipos_cozinha && (
                       <div className="mb-2">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-800">
                           {foto.tipos_cozinha.nome}
                         </span>
                       </div>
@@ -476,7 +476,7 @@ const FotosCozinha: React.FC = () => {
                       href={foto.url_externa}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                      className="inline-flex items-center space-x-1 text-xs text-teal-600 hover:text-teal-800 transition-colors"
                     >
                       <ExternalLink className="w-3 h-3" />
                       <span>Ver original</span>
@@ -500,7 +500,7 @@ const FotosCozinha: React.FC = () => {
               {!searchTerm && (
                 <button
                   onClick={handleNewFoto}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
+                  className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Nova Foto</span>
@@ -537,7 +537,7 @@ const FotosCozinha: React.FC = () => {
                   type="text"
                   name="titulo"
                   defaultValue={editingFoto?.titulo || ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Ex: Organização da bancada, Limpeza de equipamentos..."
                   required
                 />
@@ -551,7 +551,7 @@ const FotosCozinha: React.FC = () => {
                   type="url"
                   name="url_externa"
                   defaultValue={editingFoto?.url_externa || ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="https://exemplo.com/foto.jpg"
                   required
                 />
@@ -561,7 +561,7 @@ const FotosCozinha: React.FC = () => {
                     href="https://i.postimg.cc/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline font-medium"
+                    className="text-teal-600 hover:text-teal-800 underline font-medium"
                   >
                     https://i.postimg.cc/
                   </a>
@@ -576,7 +576,7 @@ const FotosCozinha: React.FC = () => {
                 <select
                   name="tipo_cozinha_id"
                   defaultValue={editingFoto?.tipo_cozinha_id || ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                 >
                   <option value="">Selecione um tipo (opcional)</option>
                   {tiposCozinha.map(tipo => (
@@ -596,7 +596,7 @@ const FotosCozinha: React.FC = () => {
                   name="descricao"
                   defaultValue={editingFoto?.descricao || ''}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Descreva o que a foto mostra e como deve ser feito..."
                 />
               </div>
@@ -608,7 +608,7 @@ const FotosCozinha: React.FC = () => {
                 <select
                   name="ativo"
                   defaultValue={editingFoto?.ativo !== undefined ? editingFoto.ativo.toString() : 'true'}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 >
                   <option value="true">Ativa</option>
@@ -630,7 +630,7 @@ const FotosCozinha: React.FC = () => {
                   className={`flex-1 px-4 py-2 rounded-md flex items-center justify-center space-x-2 transition-colors duration-200 ${
                     saving
                       ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-teal-600 hover:bg-teal-700'
                   } text-white`}
                 >
                   <Save className="w-4 h-4" />
@@ -645,8 +645,8 @@ const FotosCozinha: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Camera className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-teal-100 rounded-lg">
+              <Camera className="w-6 h-6 text-teal-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Total de Fotos</p>

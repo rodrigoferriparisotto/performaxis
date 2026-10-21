@@ -358,7 +358,7 @@ const NovoRegistroCamararia: React.FC = () => {
       setSuites(suitesData);
       setUsuarios(usuariosData);
 
-      // Carregar serviços de camararia
+      // Carregar serviços de governança
       await carregarServicosCamararia();
 
       // Carregar registros programados para hoje
@@ -800,7 +800,7 @@ const NovoRegistroCamararia: React.FC = () => {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <Home className="w-5 h-5 text-green-600" />
-                  <span className="font-medium text-gray-800">Camararia</span>
+                  <span className="font-medium text-gray-800">Governança</span>
                 </div>
                 <div className="text-sm text-gray-600">
                   {getSuiteNome(registroAtivo.suite_id)} - {getTipoServicoLabel(registroAtivo.tipo_servico)}
@@ -840,7 +840,7 @@ const NovoRegistroCamararia: React.FC = () => {
       {registroAtivo && <div className="h-16"></div>}
       
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Novo Registro - Camararia</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Novo Registro - Governança</h1>
         <p className="text-gray-600">Registre as atividades de limpeza das suítes</p>
       </div>
 
@@ -915,7 +915,7 @@ const NovoRegistroCamararia: React.FC = () => {
                 </div>
                 {servicosCamararia.length === 0 && (
                   <p className="text-xs text-yellow-600 mt-1">
-                    Nenhum serviço de camararia cadastrado. Cadastre em Cadastros → Serviços Camararia
+                    Nenhum serviço de governança cadastrado. Cadastre em Cadastros → Serviços Governança
                   </p>
                 )}
               </div>
@@ -1035,7 +1035,7 @@ const NovoRegistroCamararia: React.FC = () => {
         <>
           <div className="bg-white rounded-lg shadow-md border border-gray-200">
             <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">Atividades da Camararia</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Atividades da Governança</h3>
               <p className="text-sm text-gray-600">
                 Clique nas atividades para marcar como realizadas
               </p>
@@ -1076,7 +1076,7 @@ const NovoRegistroCamararia: React.FC = () => {
                         Não há atividades cadastradas para o serviço "{getTipoServicoLabel(registroAtivo.tipo_servico)}"
                       </p>
                       <p className="text-sm text-blue-600">
-                        Configure atividades específicas para este serviço em: Cadastros → Atividades Camararia
+                        Configure atividades específicas para este serviço em: Cadastros → Atividades Governança
                       </p>
                     </div>
                   </div>

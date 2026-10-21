@@ -598,7 +598,7 @@ export class DashboardService {
   static getDepartamentoNome(dept: string): string {
     const map: { [key: string]: string } = {
       'recepcao': 'Recepção',
-      'camararia': 'Camararia',
+      'camararia': 'Governança',
       'revisao': 'Revisão',
       'areas_comuns': 'Áreas Comuns',
       'gestao': 'Gestão',

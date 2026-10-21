@@ -6,7 +6,7 @@ import { checkIfEncrypted } from '../../services/encryptionService';
 
 const AREA_LABELS: Record<AreaVinculada, string> = {
   recepcao: 'Recepção',
-  camararia: 'Camararia',
+  camararia: 'Governança',
   revisao: 'Revisão',
   gestao: 'Gestão',
   vendas: 'Vendas',

@@ -365,7 +365,7 @@ const NovoRegistroVendas: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
       </div>
     );
   }
@@ -392,7 +392,7 @@ const NovoRegistroVendas: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <ShoppingBag className="w-5 h-5 text-indigo-600" />
+                  <ShoppingBag className="w-5 h-5 text-pink-600" />
                   <span className="font-medium text-gray-800">Vendas</span>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -402,7 +402,7 @@ const NovoRegistroVendas: React.FC = () => {
 
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <div className="text-lg font-bold text-indigo-600">
+                  <div className="text-lg font-bold text-pink-600">
                     {progressPercentage}%
                   </div>
                   <div className="text-xs text-gray-500">
@@ -412,7 +412,7 @@ const NovoRegistroVendas: React.FC = () => {
 
                 <div className="w-32 bg-gray-200 rounded-full h-3">
                   <div
-                    className="bg-indigo-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    className="bg-pink-600 h-3 rounded-full transition-all duration-500 ease-out"
                     style={{
                       width: `${progressPercentage}%`
                     }}
@@ -447,8 +447,8 @@ const NovoRegistroVendas: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-indigo-100 rounded-lg">
-              <Calendar className="w-6 h-6 text-indigo-600" />
+            <div className="p-3 bg-pink-100 rounded-lg">
+              <Calendar className="w-6 h-6 text-pink-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Data do Registro</h2>
@@ -475,7 +475,7 @@ const NovoRegistroVendas: React.FC = () => {
                 <select
                   value={tipoSelecionado}
                   onChange={(e) => setTipoSelecionado(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500 appearance-none"
                   required
                 >
                   <option value="">Selecione o tipo de função comercial</option>
@@ -507,10 +507,10 @@ const NovoRegistroVendas: React.FC = () => {
         )}
 
         {registroAtivo && (
-          <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+          <div className="mt-6 bg-pink-50 border border-pink-200 rounded-lg p-4">
             <div className="flex items-center space-x-2">
-              <ShoppingBag className="w-4 h-4 text-indigo-600" />
-              <span className="font-medium text-indigo-800">
+              <ShoppingBag className="w-4 h-4 text-pink-600" />
+              <span className="font-medium text-pink-800">
                 Tipo: {getTipoFuncaoComercialNome(tipoSelecionado)}
               </span>
             </div>
@@ -525,7 +525,7 @@ const NovoRegistroVendas: React.FC = () => {
               className={`px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors duration-200 ${
                 saving || !tipoSelecionado
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  : 'bg-pink-600 text-white hover:bg-pink-700'
               }`}
             >
               <Play className="w-5 h-5" />
@@ -598,7 +598,7 @@ const NovoRegistroVendas: React.FC = () => {
                 <textarea
                   value={observacoes}
                   onChange={(e) => setObservacoes(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   rows={4}
                   placeholder="Escreva observações sobre as atividades comerciais realizadas..."
                 />

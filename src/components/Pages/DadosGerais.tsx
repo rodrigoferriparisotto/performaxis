@@ -33,6 +33,7 @@ import {
   empresaService
 } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
+import { TEMAS_MODULO } from '../../constants/moduleTheme';
 import { formatarData, getBrazilDate, getDataAtualFormatada } from '../../utils/dateUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
@@ -161,15 +162,15 @@ const DadosGerais: React.FC = () => {
       }
 
       const SETORES = [
-        { chave: 'recepcao', nome: 'Recepção', cor: '#3B82F6' },
-        { chave: 'camararia', nome: 'Camararia', cor: '#10B981' },
-        { chave: 'revisao', nome: 'Revisão', cor: '#F59E0B' },
-        { chave: 'areas_comuns', nome: 'Áreas Comuns', cor: '#8B5CF6' },
-        { chave: 'atividades_extras', nome: 'Atividades Extras', cor: '#EF4444' },
-        { chave: 'atividades_diarias', nome: 'Atividades Diárias', cor: '#06B6D4' },
-        { chave: 'gestao', nome: 'Gestão', cor: '#F97316' },
-        { chave: 'cozinha', nome: 'Cozinha', cor: '#14B8A6' },
-        { chave: 'vendas', nome: 'Vendas', cor: '#A855F7' }
+        { chave: 'recepcao', nome: TEMAS_MODULO.recepcao.nome, cor: TEMAS_MODULO.recepcao.hex },
+        { chave: 'camararia', nome: TEMAS_MODULO.camararia.nome, cor: TEMAS_MODULO.camararia.hex },
+        { chave: 'revisao', nome: TEMAS_MODULO.revisao.nome, cor: TEMAS_MODULO.revisao.hex },
+        { chave: 'areas_comuns', nome: TEMAS_MODULO.areas_comuns.nome, cor: TEMAS_MODULO.areas_comuns.hex },
+        { chave: 'atividades_extras', nome: TEMAS_MODULO.atividades_extras.nome, cor: TEMAS_MODULO.atividades_extras.hex },
+        { chave: 'atividades_diarias', nome: TEMAS_MODULO.atividades_diarias.nome, cor: TEMAS_MODULO.atividades_diarias.hex },
+        { chave: 'gestao', nome: TEMAS_MODULO.gestao.nome, cor: TEMAS_MODULO.gestao.hex },
+        { chave: 'cozinha', nome: TEMAS_MODULO.cozinha.nome, cor: TEMAS_MODULO.cozinha.hex },
+        { chave: 'vendas', nome: TEMAS_MODULO.vendas.nome, cor: TEMAS_MODULO.vendas.hex }
       ];
 
       const vazio = {
@@ -207,7 +208,7 @@ const DadosGerais: React.FC = () => {
       // Gráfico: registros por tipo
       const dadosPorTipo = [
         ...SETORES.map(({ chave, nome, cor }) => ({ nome, quantidade: setor(chave).quantidade, cor })),
-        { nome: 'Manutenção', quantidade: man.total, cor: '#EC4899' }
+        { nome: TEMAS_MODULO.manutencao.nome, quantidade: man.total, cor: TEMAS_MODULO.manutencao.hex }
       ].filter(item => item.quantidade > 0);
 
       setGraficoPorTipo(dadosPorTipo);
@@ -275,27 +276,27 @@ const DadosGerais: React.FC = () => {
   const getIconeSetor = (setor: string) => {
     switch (setor) {
       case 'Recepção':
-        return { Icon: Phone, cor: 'blue' };
-      case 'Camararia':
-        return { Icon: Bed, cor: 'green' };
+        return { Icon: Phone, chip: TEMAS_MODULO.recepcao.chip };
+      case 'Governança':
+        return { Icon: Bed, chip: TEMAS_MODULO.camararia.chip };
       case 'Revisão':
-        return { Icon: Eye, cor: 'amber' };
+        return { Icon: Eye, chip: TEMAS_MODULO.revisao.chip };
       case 'Áreas Comuns':
-        return { Icon: Building, cor: 'purple' };
+        return { Icon: Building, chip: TEMAS_MODULO.areas_comuns.chip };
       case 'Atividades Extras':
-        return { Icon: Sun, cor: 'orange' };
+        return { Icon: Sun, chip: TEMAS_MODULO.atividades_extras.chip };
       case 'Atividades Diárias':
-        return { Icon: Moon, cor: 'indigo' };
+        return { Icon: Moon, chip: TEMAS_MODULO.atividades_diarias.chip };
       case 'Gestão':
-        return { Icon: Briefcase, cor: 'slate' };
+        return { Icon: Briefcase, chip: TEMAS_MODULO.gestao.chip };
       case 'Cozinha':
-        return { Icon: ChefHat, cor: 'teal' };
+        return { Icon: ChefHat, chip: TEMAS_MODULO.cozinha.chip };
       case 'Vendas':
-        return { Icon: TrendingUp, cor: 'violet' };
+        return { Icon: TrendingUp, chip: TEMAS_MODULO.vendas.chip };
       case 'Manutenção':
-        return { Icon: Wrench, cor: 'red' };
+        return { Icon: Wrench, chip: TEMAS_MODULO.manutencao.chip };
       default:
-        return { Icon: Activity, cor: 'gray' };
+        return { Icon: Activity, chip: 'bg-gray-100 text-gray-600' };
     }
   };
 
@@ -394,7 +395,7 @@ const DadosGerais: React.FC = () => {
     
     const registrosPorTipoData = [
       ['Recepção', dadosGerais.registrosPorTipo.recepcao.toString()],
-      ['Camararia', dadosGerais.registrosPorTipo.camararia.toString()],
+      ['Governança', dadosGerais.registrosPorTipo.camararia.toString()],
       ['Revisão', dadosGerais.registrosPorTipo.revisao.toString()],
       ['Áreas Comuns', dadosGerais.registrosPorTipo.areasComuns.toString()],
       ['Atividades Extras', dadosGerais.registrosPorTipo.atividadesExtras.toString()],
@@ -747,7 +748,7 @@ const DadosGerais: React.FC = () => {
               <div className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {ordenarEficiencia(graficoEficiencia).map((item, index) => {
-                    const { Icon, cor } = getIconeSetor(item.setor);
+                    const { Icon, chip } = getIconeSetor(item.setor);
                     const coresEficiencia = getCorEficiencia(item.eficiencia);
                     const status = getStatusEficiencia(item.eficiencia);
                     const StatusIcon = status.Icon;
@@ -763,8 +764,8 @@ const DadosGerais: React.FC = () => {
                       >
                         <div className="flex items-center justify-between mb-3">
                           <div className="flex items-center space-x-3">
-                            <div className={`p-2 bg-${cor}-100 rounded-lg flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
-                              <Icon className={`w-6 h-6 text-${cor}-600`} />
+                            <div className={`p-2 ${chip} rounded-lg flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
+                              <Icon className="w-6 h-6" />
                             </div>
                             <div className="flex-1">
                               <h4 className="text-sm font-semibold text-gray-800 mb-1">{item.setor}</h4>
@@ -867,7 +868,7 @@ const DadosGerais: React.FC = () => {
                     const percentual = dadosGerais.totalRegistros > 0 ? ((quantidade as number) / dadosGerais.totalRegistros) * 100 : 0;
                     const nomes = {
                       recepcao: 'Recepção',
-                      camararia: 'Camararia',
+                      camararia: 'Governança',
                       revisao: 'Revisão',
                       areasComuns: 'Áreas Comuns',
                       atividadesExtras: 'Atividades Extras',

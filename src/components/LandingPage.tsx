@@ -458,8 +458,8 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 'Recepção',
                 'Atividades diurnas',
                 'Atividades noturnas',
-                'Camararia',
-                'Revisão da camararia',
+                'Governança',
+                'Revisão da governança',
                 'Atividades extras',
                 'Vendas e Comercial',
                 'Cozinha',
@@ -950,7 +950,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 },
                 {
                   question: "Como o PERFORMAXIS ajuda hotéis e pousadas?",
-                  answer: "O sistema oferece controle completo de camararia e housekeeping, gestão de recepção, gerenciamento de manutenções, controle de áreas comuns, dashboard em tempo real com métricas de performance, ranking por meritocracia, relatórios detalhados e muito mais. Tudo isso resulta em aumento de produtividade, redução de custos e melhoria na qualidade do serviço."
+                  answer: "O sistema oferece controle completo de governança e housekeeping, gestão de recepção, gerenciamento de manutenções, controle de áreas comuns, dashboard em tempo real com métricas de performance, ranking por meritocracia, relatórios detalhados e muito mais. Tudo isso resulta em aumento de produtividade, redução de custos e melhoria na qualidade do serviço."
                 },
                 {
                   question: "Quais tipos de estabelecimentos podem usar o PERFORMAXIS?",

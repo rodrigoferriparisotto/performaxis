@@ -338,8 +338,8 @@ const ProgramacaoCamararia: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Programação - Camararia</h1>
-          <p className="text-gray-600">Programe registros de camararia antecipadamente</p>
+          <h1 className="text-2xl font-bold text-gray-800">Programação - Governança</h1>
+          <p className="text-gray-600">Programe registros de governança antecipadamente</p>
         </div>
         <button 
           onClick={handleNewRegistro}
@@ -424,7 +424,7 @@ const ProgramacaoCamararia: React.FC = () => {
             <div className="text-center py-12 text-gray-500">
               <Calendar className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-medium text-gray-800 mb-2">Nenhum registro programado</h3>
-              <p className="text-gray-600 mb-4">Programe registros de camararia antecipadamente</p>
+              <p className="text-gray-600 mb-4">Programe registros de governança antecipadamente</p>
               <button 
                 onClick={handleNewRegistro}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2 mx-auto transition-colors duration-200"

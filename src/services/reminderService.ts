@@ -182,7 +182,7 @@ class ReminderService {
 
   private getModuleName(tipoRegistro: string): string {
     const moduleNames: Record<string, string> = {
-      camararia: 'Camararia',
+      camararia: 'Governança',
       recepcao: 'Recepção',
       areas_comuns: 'Áreas Comuns',
       gestao: 'Gestão',

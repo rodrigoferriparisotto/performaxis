@@ -276,8 +276,8 @@ const AtividadesCamararia: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Atividades da Camararia</h1>
-        <p className="text-gray-600">Gerencie as atividades específicas da camararia - arraste para reordenar</p>
+        <h1 className="text-2xl font-bold text-gray-800">Atividades da Governança</h1>
+        <p className="text-gray-600">Gerencie as atividades específicas da governança - arraste para reordenar</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
@@ -307,7 +307,7 @@ const AtividadesCamararia: React.FC = () => {
               <Bed className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">Atividades da Camararia</h2>
+              <h2 className="text-lg font-semibold text-gray-800">Atividades da Governança</h2>
               <p className="text-sm text-gray-600">{filteredAtividades.length} atividades cadastradas</p>
             </div>
           </div>
@@ -407,7 +407,7 @@ const AtividadesCamararia: React.FC = () => {
             <div className="text-center py-12 text-gray-500">
               <Bed className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-medium text-gray-800 mb-2">Nenhuma atividade encontrada</h3>
-              <p className="text-gray-600 mb-4">Comece criando sua primeira atividade da camararia</p>
+              <p className="text-gray-600 mb-4">Comece criando sua primeira atividade da governança</p>
               <button 
                 onClick={handleNewActivity}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
@@ -427,7 +427,7 @@ const AtividadesCamararia: React.FC = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  {editingActivity ? 'Editar Atividade' : 'Nova Atividade da Camararia'}
+                  {editingActivity ? 'Editar Atividade' : 'Nova Atividade da Governança'}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
@@ -506,10 +506,10 @@ const AtividadesCamararia: React.FC = () => {
                 ) : (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p className="text-yellow-800 text-sm">
-                      <strong>Nenhum serviço de camararia cadastrado.</strong>
+                      <strong>Nenhum serviço de governança cadastrado.</strong>
                     </p>
                     <p className="text-yellow-700 text-xs mt-1">
-                      Cadastre serviços de camararia primeiro em Cadastros → Serviços Camararia
+                      Cadastre serviços de governança primeiro em Cadastros → Serviços Governança
                     </p>
                   </div>
                 )}

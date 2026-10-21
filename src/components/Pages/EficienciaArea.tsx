@@ -101,7 +101,7 @@ const EficienciaArea: React.FC = () => {
           cor: '#3B82F6'
         },
         {
-          nome: 'Camararia',
+          nome: 'Governança',
           tipo: 'camararia',
           registros: registrosCamararia,
           atividadesCadastradas: todasAtividades.filter(a => a.type === 'camararia'),

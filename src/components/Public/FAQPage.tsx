@@ -28,7 +28,7 @@ const FAQPage: React.FC = () => {
       questions: [
         {
           question: 'Quais setores o sistema gerencia?',
-          answer: 'O sistema gerencia Recepção, Camararia, Cozinha, Manutenção, Áreas Comuns, Gestão e Vendas. Cada setor possui módulos específicos com funcionalidades personalizadas.',
+          answer: 'O sistema gerencia Recepção, Governança, Cozinha, Manutenção, Áreas Comuns, Gestão e Vendas. Cada setor possui módulos específicos com funcionalidades personalizadas.',
         },
         {
           question: 'Como funciona o sistema de ranking?',

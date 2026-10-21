@@ -367,7 +367,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-slate-600"></div>
       </div>
     );
   }
@@ -395,7 +395,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <Activity className="w-5 h-5 text-indigo-600" />
+                  <Activity className="w-5 h-5 text-slate-600" />
                   <span className="font-medium text-gray-800">Atividades Diárias</span>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -405,7 +405,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
               
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <div className="text-lg font-bold text-indigo-600">
+                  <div className="text-lg font-bold text-slate-600">
                     {progressPercentage}%
                   </div>
                   <div className="text-xs text-gray-500">
@@ -415,7 +415,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
                 
                 <div className="w-32 bg-gray-200 rounded-full h-3">
                   <div 
-                    className="bg-indigo-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    className="bg-slate-600 h-3 rounded-full transition-all duration-500 ease-out"
                     style={{ 
                       width: `${progressPercentage}%` 
                     }}
@@ -444,8 +444,8 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-indigo-100 rounded-lg">
-              <Calendar className="w-6 h-6 text-indigo-600" />
+            <div className="p-3 bg-slate-100 rounded-lg">
+              <Calendar className="w-6 h-6 text-slate-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Data do Registro</h2>
@@ -472,7 +472,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
                 <select
                   value={tipoSelecionado}
                   onChange={(e) => setTipoSelecionado(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500 appearance-none"
                   required
                 >
                   <option value="">Selecione o tipo de atividade</option>
@@ -506,14 +506,14 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
 
         {/* Informação do tipo selecionado quando há registro ativo */}
         {registroAtivo && (
-          <div className="mt-6 bg-indigo-50 border border-indigo-200 rounded-lg p-4">
+          <div className="mt-6 bg-slate-50 border border-slate-200 rounded-lg p-4">
             <div className="flex items-center space-x-2">
-              <Activity className="w-4 h-4 text-indigo-600" />
-              <span className="font-medium text-indigo-800">
+              <Activity className="w-4 h-4 text-slate-600" />
+              <span className="font-medium text-slate-800">
                 Tipo: {tipoSelecionado ? getTipoAtividadeNome(tipoSelecionado) : 'Carregando...'}
               </span>
               {registroAtivo.atividades && (
-                <span className="text-sm text-indigo-600">
+                <span className="text-sm text-slate-600">
                   ({registroAtivo.atividades.filter((a: any) => a.status === 'realizada').length}/{registroAtivo.atividades.length} concluídas)
                 </span>
               )}
@@ -529,7 +529,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
               className={`px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors duration-200 ${
                 saving || !tipoSelecionado
                   ? 'bg-gray-400 cursor-not-allowed' 
-                  : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                  : 'bg-slate-600 text-white hover:bg-slate-700'
               }`}
             >
               <Play className="w-5 h-5" />
@@ -594,7 +594,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
                   </p>
                   <button
                     onClick={() => window.location.reload()}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+                    className="mt-4 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors duration-200"
                   >
                     Recarregar Página
                   </button>
@@ -619,7 +619,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
                 <textarea
                   value={observacoes}
                   onChange={(e) => setObservacoes(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-500"
                   rows={4}
                   placeholder="Escreva observações sobre as atividades diárias realizadas..."
                 />

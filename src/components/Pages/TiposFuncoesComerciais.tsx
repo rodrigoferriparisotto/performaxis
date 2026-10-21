@@ -191,7 +191,7 @@ const TiposFuncoesComerciais: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600"></div>
       </div>
     );
   }
@@ -211,12 +211,12 @@ const TiposFuncoesComerciais: React.FC = () => {
             placeholder="Buscar tipos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
           />
         </div>
         <button
           onClick={handleNewTipo}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-colors duration-200"
+          className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex items-center space-x-2 transition-colors duration-200"
         >
           <Plus className="w-4 h-4" />
           <span>Novo Tipo</span>
@@ -226,8 +226,8 @@ const TiposFuncoesComerciais: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-indigo-100 rounded-lg">
-              <ShoppingBag className="w-6 h-6 text-indigo-600" />
+            <div className="p-2 bg-pink-100 rounded-lg">
+              <ShoppingBag className="w-6 h-6 text-pink-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Lista de Tipos</h2>
@@ -246,7 +246,7 @@ const TiposFuncoesComerciais: React.FC = () => {
                     <div className="flex space-x-1">
                       <button
                         onClick={() => handleEditTipo(tipo)}
-                        className="p-1 text-indigo-600 hover:bg-indigo-100 rounded transition-colors duration-200"
+                        className="p-1 text-pink-600 hover:bg-pink-100 rounded transition-colors duration-200"
                         title="Editar tipo"
                       >
                         <Edit className="w-4 h-4" />
@@ -283,7 +283,7 @@ const TiposFuncoesComerciais: React.FC = () => {
               <p className="text-gray-600 mb-4">Comece criando seu primeiro tipo de função comercial</p>
               <button
                 onClick={handleNewTipo}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
+                className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>Novo Tipo</span>
@@ -319,7 +319,7 @@ const TiposFuncoesComerciais: React.FC = () => {
                   type="text"
                   name="nome"
                   defaultValue={editingTipo?.nome || ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Ex: Vendas Internas, Vendas Externas, Marketing..."
                   required
                 />
@@ -335,7 +335,7 @@ const TiposFuncoesComerciais: React.FC = () => {
                 <select
                   name="ativo"
                   defaultValue={editingTipo?.ativo !== undefined ? editingTipo.ativo.toString() : 'true'}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   required
                 >
                   <option value="true">Ativo</option>
@@ -357,7 +357,7 @@ const TiposFuncoesComerciais: React.FC = () => {
                   className={`flex-1 px-4 py-2 rounded-md flex items-center justify-center space-x-2 transition-colors duration-200 ${
                     saving
                       ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-indigo-600 hover:bg-indigo-700'
+                      : 'bg-pink-600 hover:bg-pink-700'
                   } text-white`}
                 >
                   <Save className="w-4 h-4" />
@@ -372,8 +372,8 @@ const TiposFuncoesComerciais: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-indigo-100 rounded-lg">
-              <ShoppingBag className="w-6 h-6 text-indigo-600" />
+            <div className="p-3 bg-pink-100 rounded-lg">
+              <ShoppingBag className="w-6 h-6 text-pink-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Total de Tipos</p>

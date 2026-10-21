@@ -11,7 +11,7 @@ const ConfiguracaoMetas: React.FC = () => {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const perfis = [
-    { value: 'camararia', label: 'Camararia' },
+    { value: 'camararia', label: 'Governança' },
     { value: 'recepcao', label: 'Recepção' },
     { value: 'areas_comuns', label: 'Áreas Comuns' },
     { value: 'cozinha', label: 'Cozinha' },

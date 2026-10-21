@@ -137,7 +137,7 @@ const Camararia: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Camararia</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Governança</h1>
         <p className="text-gray-600">Gerencie os registros de limpeza das suítes</p>
 
         {/* Lista de Itens para Trabalho */}
@@ -160,7 +160,7 @@ const Camararia: React.FC = () => {
           ) : (
             <div className="text-center py-4">
               <p className="text-green-700 text-sm">
-                Nenhum item cadastrado. Cadastre itens em <strong>Cadastros → Itens Camararia</strong>
+                Nenhum item cadastrado. Cadastre itens em <strong>Cadastros → Itens Governança</strong>
               </p>
             </div>
           )}
@@ -206,7 +206,7 @@ const Camararia: React.FC = () => {
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-800">Galeria de Referência</h3>
-              <p className="text-sm text-gray-600">Fotos de referência para o trabalho da camararia</p>
+              <p className="text-sm text-gray-600">Fotos de referência para o trabalho da governança</p>
             </div>
           </div>
         </div>
@@ -254,10 +254,10 @@ const Camararia: React.FC = () => {
               <Camera className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <h4 className="text-lg font-medium text-gray-800 mb-2">Nenhuma foto de referência</h4>
               <p className="text-gray-600 mb-4">
-                Cadastre fotos de referência para orientar o trabalho da camararia
+                Cadastre fotos de referência para orientar o trabalho da governança
               </p>
               <p className="text-sm text-blue-600">
-                Acesse <strong>Cadastros → Fotos Camararia</strong> para adicionar fotos
+                Acesse <strong>Cadastros → Fotos Governança</strong> para adicionar fotos
               </p>
             </div>
           )}

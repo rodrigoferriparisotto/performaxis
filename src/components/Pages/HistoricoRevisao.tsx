@@ -297,11 +297,11 @@ const HistoricoRevisao: React.FC = () => {
 
                         {/* Fotos */}
 
-                        {/* Informação sobre Registro da Camararia */}
+                        {/* Informação sobre Registro da Governança */}
                         {registro.registro_camararia_id && (
                           <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
                             <p className="text-sm text-blue-800">
-                              <strong>Revisão baseada em registro da camararia</strong>
+                              <strong>Revisão baseada em registro da governança</strong>
                             </p>
                             <p className="text-xs text-blue-600 mt-1">
                               ID do registro: {registro.registro_camararia_id}

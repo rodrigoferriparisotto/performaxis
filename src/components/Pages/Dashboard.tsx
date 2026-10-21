@@ -28,7 +28,8 @@ import {
   Sun,
   Moon,
   ChefHat,
-  ShoppingBag
+  ShoppingBag,
+  Briefcase
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDataAtual, getDataAtualFormatada } from '../../utils/dateUtils';
@@ -106,7 +107,7 @@ const Dashboard: React.FC = () => {
           tipo: 'camararia',
           icone: Bed,
           cor: 'green',
-          label: 'Camararia'
+          label: 'Governança'
         })),
         ...registrosRevisao.filter(r => r.status === 'concluido').map(r => ({
           ...r,
@@ -171,7 +172,7 @@ const Dashboard: React.FC = () => {
           gradient: 'from-green-500 to-green-600',
           accent: 'green',
           icon: Bed,
-          title: 'Central de Limpeza'
+          title: 'Central de Governança'
         };
       case 'revisao':
         return {
@@ -182,45 +183,52 @@ const Dashboard: React.FC = () => {
         };
       case 'areas_comuns':
         return {
-          gradient: 'from-indigo-500 to-purple-600',
+          gradient: 'from-indigo-500 to-indigo-600',
           accent: 'indigo',
           icon: Building,
           title: 'Central de Áreas Comuns'
         };
       case 'manutencao':
         return {
-          gradient: 'from-orange-500 to-red-600',
+          gradient: 'from-orange-500 to-orange-600',
           accent: 'orange',
           icon: Wrench,
           title: 'Central Técnica'
         };
       case 'atividades_extras':
         return {
-          gradient: 'from-yellow-400 to-orange-500',
-          accent: 'yellow',
+          gradient: 'from-sky-500 to-sky-600',
+          accent: 'sky',
           icon: Sun,
           title: 'Central de Atividades Extras'
         };
       case 'atividades_diarias':
         return {
-          gradient: 'from-indigo-600 to-purple-700',
-          accent: 'indigo',
+          gradient: 'from-slate-500 to-slate-600',
+          accent: 'slate',
           icon: Moon,
           title: 'Central de Atividades Diárias'
         };
       case 'cozinha':
         return {
-          gradient: 'from-cyan-500 to-cyan-600',
-          accent: 'cyan',
+          gradient: 'from-teal-500 to-teal-600',
+          accent: 'teal',
           icon: ChefHat,
           title: 'Central de Cozinha'
         };
       case 'vendas':
         return {
-          gradient: 'from-emerald-500 to-green-600',
-          accent: 'emerald',
+          gradient: 'from-pink-500 to-pink-600',
+          accent: 'pink',
           icon: ShoppingBag,
           title: 'Central de Vendas'
+        };
+      case 'gestao':
+        return {
+          gradient: 'from-purple-500 to-purple-600',
+          accent: 'purple',
+          icon: Briefcase,
+          title: 'Central de Gestão'
         };
       default:
         return {
@@ -251,6 +259,11 @@ const Dashboard: React.FC = () => {
       orange: 'bg-orange-600 hover:bg-orange-700',
       cyan: 'bg-cyan-600 hover:bg-cyan-700',
       emerald: 'bg-emerald-600 hover:bg-emerald-700',
+      teal: 'bg-teal-600 hover:bg-teal-700',
+      pink: 'bg-pink-600 hover:bg-pink-700',
+      sky: 'bg-sky-600 hover:bg-sky-700',
+      slate: 'bg-slate-600 hover:bg-slate-700',
+      purple: 'bg-purple-600 hover:bg-purple-700',
     };
     return colorMap[color] || 'bg-gray-600 hover:bg-gray-700';
   };
@@ -330,34 +343,34 @@ const Dashboard: React.FC = () => {
       ],
       revisao: [
         { label: 'Nova Revisão', icon: Eye, href: '#revisao', color: 'yellow', module: 'revisao', isPrimaryAction: true },
-        { label: 'Camararia', icon: Bed, href: '#camararia', color: 'green', module: 'camararia' },
+        { label: 'Governança', icon: Bed, href: '#camararia', color: 'green', module: 'camararia' },
         { label: 'Manutenção', icon: Wrench, href: '#manutencao', color: 'orange', module: 'manutencao' }
       ],
       areas_comuns: [
         { label: 'Iniciar Atividades', icon: Building, href: '#areas-comuns', color: 'indigo', module: 'areas_comuns', isPrimaryAction: true },
-        { label: 'Camararia', icon: Bed, href: '#camararia', color: 'green', module: 'camararia' },
+        { label: 'Governança', icon: Bed, href: '#camararia', color: 'green', module: 'camararia' },
         { label: 'Revisão', icon: Eye, href: '#revisao', color: 'yellow', module: 'revisao' }
       ],
       manutencao: [
         { label: 'Nova Manutenção', icon: Wrench, href: '#manutencao', color: 'orange', module: 'manutencao', isPrimaryAction: true },
-        { label: 'Camararia', icon: Bed, href: '#camararia', color: 'green', module: 'camararia' },
+        { label: 'Governança', icon: Bed, href: '#camararia', color: 'green', module: 'camararia' },
         { label: 'Áreas Comuns', icon: Building, href: '#areas-comuns', color: 'indigo', module: 'areas_comuns' }
       ],
       atividades_extras: [
-        { label: 'Atividades Extras', icon: Sun, href: '#atividades-extras', color: 'yellow', module: 'atividades_extras', isPrimaryAction: true },
+        { label: 'Atividades Extras', icon: Sun, href: '#atividades-extras', color: 'sky', module: 'atividades_extras', isPrimaryAction: true },
         { label: 'Manutenção', icon: Wrench, href: '#manutencao', color: 'orange', module: 'manutencao' }
       ],
       atividades_diarias: [
-        { label: 'Atividades Diárias', icon: Moon, href: '#atividades-diarias', color: 'indigo', module: 'atividades_diarias', isPrimaryAction: true },
-        { label: 'Atividades Extras', icon: Sun, href: '#atividades-extras', color: 'blue', module: 'atividades_extras' },
+        { label: 'Atividades Diárias', icon: Moon, href: '#atividades-diarias', color: 'slate', module: 'atividades_diarias', isPrimaryAction: true },
+        { label: 'Atividades Extras', icon: Sun, href: '#atividades-extras', color: 'sky', module: 'atividades_extras' },
         { label: 'Manutenção', icon: Wrench, href: '#manutencao', color: 'orange', module: 'manutencao' }
       ],
       cozinha: [
-        { label: 'Novo Registro', icon: ChefHat, href: '#cozinha', color: 'cyan', module: 'cozinha', isPrimaryAction: true },
+        { label: 'Novo Registro', icon: ChefHat, href: '#cozinha', color: 'teal', module: 'cozinha', isPrimaryAction: true },
         { label: 'Manutenção', icon: Wrench, href: '#manutencao', color: 'orange', module: 'manutencao' }
       ],
       vendas: [
-        { label: 'Novo Registro', icon: ShoppingBag, href: '#vendas', color: 'emerald', module: 'vendas', isPrimaryAction: true },
+        { label: 'Novo Registro', icon: ShoppingBag, href: '#vendas', color: 'pink', module: 'vendas', isPrimaryAction: true },
         { label: 'Manutenção', icon: Wrench, href: '#manutencao', color: 'orange', module: 'manutencao' }
       ]
     };

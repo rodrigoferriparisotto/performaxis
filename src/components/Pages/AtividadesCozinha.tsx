@@ -304,7 +304,7 @@ const AtividadesCozinha: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
       </div>
     );
   }
@@ -324,12 +324,12 @@ const AtividadesCozinha: React.FC = () => {
             placeholder="Buscar atividades..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full md:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
         </div>
         <button
           onClick={handleNewActivity}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 transition-colors duration-200"
+          className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center space-x-2 transition-colors duration-200"
         >
           <Plus className="w-4 h-4" />
           <span>Nova Atividade</span>
@@ -339,8 +339,8 @@ const AtividadesCozinha: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <ChefHat className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-teal-100 rounded-lg">
+              <ChefHat className="w-6 h-6 text-teal-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Atividades da Cozinha</h2>
@@ -359,7 +359,7 @@ const AtividadesCozinha: React.FC = () => {
                   onDragStart={(e) => handleDragStart(e, atividade)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, atividade)}
-                  className={`flex flex-col md:flex-row p-4 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors duration-200 cursor-move ${
+                  className={`flex flex-col md:flex-row p-4 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition-colors duration-200 cursor-move ${
                     draggedItem?.id === atividade.id ? 'opacity-50' : ''
                   }`}
                 >
@@ -387,11 +387,11 @@ const AtividadesCozinha: React.FC = () => {
                             onClick={(e) => e.stopPropagation()}
                             onDragStart={(e) => e.stopPropagation()}
                             disabled={updatingPosition === atividade.id}
-                            className="w-14 md:w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            className="w-14 md:w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-center disabled:bg-gray-100 disabled:cursor-not-allowed"
                             title="Clique para editar a posição"
                           />
                           {updatingPosition === atividade.id && (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-teal-600"></div>
                           )}
                         </div>
                         {atividade.dias_semana && atividade.dias_semana.length > 0 && (
@@ -414,7 +414,7 @@ const AtividadesCozinha: React.FC = () => {
                         <div className="mt-2">
                           <div className="flex flex-wrap gap-1">
                             {atividade.dias_semana.map((dia: string) => (
-                              <span key={dia} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                              <span key={dia} className="px-2 py-1 bg-teal-100 text-teal-700 text-xs rounded-full">
                                 {dia.charAt(0).toUpperCase() + dia.slice(1, 3)}
                               </span>
                             ))}
@@ -425,7 +425,7 @@ const AtividadesCozinha: React.FC = () => {
                         <div className="mt-2">
                           <div className="flex flex-wrap gap-1">
                             {atividade.tipos_cozinha.map((tipoId: string) => (
-                              <span key={tipoId} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                              <span key={tipoId} className="px-2 py-1 bg-teal-100 text-teal-700 text-xs rounded-full">
                                 {getTipoNome(tipoId)}
                               </span>
                             ))}
@@ -437,7 +437,7 @@ const AtividadesCozinha: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleEditActivity(atividade)}
-                      className="p-2 text-blue-600 hover:bg-blue-200 rounded-lg transition-colors duration-200"
+                      className="p-2 text-teal-600 hover:bg-teal-200 rounded-lg transition-colors duration-200"
                       title="Editar atividade"
                     >
                       <Edit className="w-4 h-4" />
@@ -462,7 +462,7 @@ const AtividadesCozinha: React.FC = () => {
               <p className="text-gray-600 mb-4">Comece criando sua primeira atividade da cozinha</p>
               <button
                 onClick={handleNewActivity}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
+                className="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>Nova Atividade</span>
@@ -498,7 +498,7 @@ const AtividadesCozinha: React.FC = () => {
                   type="text"
                   name="name"
                   defaultValue={editingActivity?.name || ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 />
               </div>
@@ -511,7 +511,7 @@ const AtividadesCozinha: React.FC = () => {
                   name="description"
                   defaultValue={editingActivity?.description || ''}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   placeholder="Descrição opcional da atividade"
                 />
               </div>
@@ -527,7 +527,7 @@ const AtividadesCozinha: React.FC = () => {
                         type="checkbox"
                         checked={selectedDias.includes(dia)}
                         onChange={() => handleDiaChange(dia)}
-                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
                       />
                       <span className="text-sm text-gray-700 capitalize">{dia}</span>
                     </label>
@@ -550,7 +550,7 @@ const AtividadesCozinha: React.FC = () => {
                           type="checkbox"
                           checked={selectedTipos.includes(tipo.id)}
                           onChange={() => handleTipoChange(tipo.id)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                          className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500"
                         />
                         <span className="text-sm text-gray-700">{tipo.nome}</span>
                       </label>
@@ -577,7 +577,7 @@ const AtividadesCozinha: React.FC = () => {
                 <select
                   name="active"
                   defaultValue={editingActivity?.active !== undefined ? editingActivity.active.toString() : 'true'}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   required
                 >
                   <option value="true">Ativo</option>
@@ -599,7 +599,7 @@ const AtividadesCozinha: React.FC = () => {
                   className={`flex-1 px-4 py-2 rounded-md flex items-center justify-center space-x-2 transition-colors duration-200 ${
                     saving
                       ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-teal-600 hover:bg-teal-700'
                   } text-white`}
                 >
                   <Save className="w-4 h-4" />
@@ -614,8 +614,8 @@ const AtividadesCozinha: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <ChefHat className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-teal-100 rounded-lg">
+              <ChefHat className="w-6 h-6 text-teal-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Total de Atividades</p>

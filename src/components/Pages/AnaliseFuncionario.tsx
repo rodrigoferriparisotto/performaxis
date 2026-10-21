@@ -27,6 +27,7 @@ import { formatarData, calcularTempoDecorrido, getBrazilDate } from '../../utils
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from 'jspdf-autotable';
+import { TEMAS_MODULO } from '../../constants/moduleTheme';
 
 const AnaliseFuncionario: React.FC = () => {
   const [loading, setLoading] = useState(true);
@@ -105,13 +106,13 @@ const AnaliseFuncionario: React.FC = () => {
 
       // Combinar todos os registros
       const todosRegistros = [
-        ...registrosRecepcao.map(r => ({ ...r, tipo: 'Recepção', cor: 'blue' })),
-        ...registrosCamararia.map(r => ({ ...r, tipo: 'Camararia', cor: 'green' })),
-        ...registrosRevisao.map(r => ({ ...r, tipo: 'Revisão', cor: 'yellow' })),
-        ...registrosAreasComuns.map(r => ({ ...r, tipo: 'Áreas Comuns', cor: 'indigo' })),
-        ...registrosAtividadesExtras.map(r => ({ ...r, tipo: 'Diurnas', cor: 'orange' })),
-        ...registrosAtividadesDiarias.map(r => ({ ...r, tipo: 'Noturnas', cor: 'purple' })),
-        ...registrosGestao.map(r => ({ ...r, tipo: 'Gestão', cor: 'pink' }))
+        ...registrosRecepcao.map(r => ({ ...r, tipo: TEMAS_MODULO.recepcao.nome, badge: TEMAS_MODULO.recepcao.badge })),
+        ...registrosCamararia.map(r => ({ ...r, tipo: TEMAS_MODULO.camararia.nome, badge: TEMAS_MODULO.camararia.badge })),
+        ...registrosRevisao.map(r => ({ ...r, tipo: TEMAS_MODULO.revisao.nome, badge: TEMAS_MODULO.revisao.badge })),
+        ...registrosAreasComuns.map(r => ({ ...r, tipo: TEMAS_MODULO.areas_comuns.nome, badge: TEMAS_MODULO.areas_comuns.badge })),
+        ...registrosAtividadesExtras.map(r => ({ ...r, tipo: TEMAS_MODULO.atividades_extras.nome, badge: TEMAS_MODULO.atividades_extras.badge })),
+        ...registrosAtividadesDiarias.map(r => ({ ...r, tipo: TEMAS_MODULO.atividades_diarias.nome, badge: TEMAS_MODULO.atividades_diarias.badge })),
+        ...registrosGestao.map(r => ({ ...r, tipo: TEMAS_MODULO.gestao.nome, badge: TEMAS_MODULO.gestao.badge }))
       ].sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
 
       // Calcular estatísticas
@@ -501,7 +502,7 @@ const AnaliseFuncionario: React.FC = () => {
                         {formatarData(registro.data)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-${registro.cor}-100 text-${registro.cor}-800`}>
+                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${registro.badge}`}>
                           {registro.tipo}
                         </span>
                       </td>

@@ -164,7 +164,7 @@ const HistoricoCamararia: React.FC = () => {
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Histórico - Camararia</h1>
+        <h1 className="text-2xl font-bold text-gray-800">Histórico - Governança</h1>
         <p className="text-gray-600">Consulte os registros de limpeza das suítes</p>
       </div>
 

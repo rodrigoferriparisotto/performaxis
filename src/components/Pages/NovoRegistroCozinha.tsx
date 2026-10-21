@@ -362,7 +362,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
       </div>
     );
   }
@@ -389,7 +389,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <ChefHat className="w-5 h-5 text-blue-600" />
+                  <ChefHat className="w-5 h-5 text-teal-600" />
                   <span className="font-medium text-gray-800">Cozinha</span>
                 </div>
                 <div className="text-sm text-gray-600">
@@ -399,7 +399,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
 
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <div className="text-lg font-bold text-blue-600">
+                  <div className="text-lg font-bold text-teal-600">
                     {progressPercentage}%
                   </div>
                   <div className="text-xs text-gray-500">
@@ -409,7 +409,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
 
                 <div className="w-32 bg-gray-200 rounded-full h-3">
                   <div
-                    className="bg-blue-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    className="bg-teal-600 h-3 rounded-full transition-all duration-500 ease-out"
                     style={{
                       width: `${progressPercentage}%`
                     }}
@@ -444,8 +444,8 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <Calendar className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-teal-100 rounded-lg">
+              <Calendar className="w-6 h-6 text-teal-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Data do Registro</h2>
@@ -472,7 +472,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
                 <select
                   value={tipoSelecionado}
                   onChange={(e) => setTipoSelecionado(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 appearance-none"
                   required
                 >
                   <option value="">Selecione o tipo de cozinha</option>
@@ -504,10 +504,10 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
         )}
 
         {registroAtivo && (
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="mt-6 bg-teal-50 border border-teal-200 rounded-lg p-4">
             <div className="flex items-center space-x-2">
-              <ChefHat className="w-4 h-4 text-blue-600" />
-              <span className="font-medium text-blue-800">
+              <ChefHat className="w-4 h-4 text-teal-600" />
+              <span className="font-medium text-teal-800">
                 Tipo: {getTipoCozinhaNome(registroAtivo.tipo_cozinha_id || tipoSelecionado)}
               </span>
             </div>
@@ -522,7 +522,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
               className={`px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors duration-200 ${
                 saving || !tipoSelecionado
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 text-white hover:bg-blue-700'
+                  : 'bg-teal-600 text-white hover:bg-teal-700'
               }`}
             >
               <Play className="w-5 h-5" />
@@ -595,7 +595,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
                 <textarea
                   value={observacoes}
                   onChange={(e) => setObservacoes(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                   rows={4}
                   placeholder="Escreva observações sobre as atividades realizadas hoje..."
                 />

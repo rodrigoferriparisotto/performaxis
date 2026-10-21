@@ -718,7 +718,7 @@ export const registroRecepcaoService = {
   }
 };
 
-// Serviço para Registros de Camararia
+// Serviço para Registros de Governança
 export const registroCamarariaService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {

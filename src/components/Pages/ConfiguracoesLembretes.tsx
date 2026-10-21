@@ -522,10 +522,10 @@ export default function ConfiguracoesLembretes() {
                 </div>
                 <div className="grid grid-cols-2 gap-2 ml-8">
                   {[
-                    { value: 'info', label: 'Suave', color: 'blue' },
-                    { value: 'warning', label: 'Moderado', color: 'yellow' },
-                    { value: 'urgent', label: 'Urgente', color: 'orange' },
-                    { value: 'critical', label: 'Crítico', color: 'red' },
+                    { value: 'info', label: 'Suave', ativo: 'border-blue-600 bg-blue-50 text-blue-900' },
+                    { value: 'warning', label: 'Moderado', ativo: 'border-yellow-600 bg-yellow-50 text-yellow-900' },
+                    { value: 'urgent', label: 'Urgente', ativo: 'border-orange-600 bg-orange-50 text-orange-900' },
+                    { value: 'critical', label: 'Crítico', ativo: 'border-red-600 bg-red-50 text-red-900' },
                   ].map((sound) => (
                     <button
                       key={sound.value}
@@ -537,7 +537,7 @@ export default function ConfiguracoesLembretes() {
                       }
                       className={`py-2 px-4 rounded-lg border-2 transition-colors ${
                         advancedSettings.tipo_som_preferido === sound.value
-                          ? `border-${sound.color}-600 bg-${sound.color}-50 text-${sound.color}-900 font-semibold`
+                          ? `${sound.ativo} font-semibold`
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                       }`}
                     >

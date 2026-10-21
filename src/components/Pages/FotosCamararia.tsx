@@ -283,8 +283,8 @@ const FotosCamararia: React.FC = () => {
   return (
     <div className="space-y-4 max-w-7xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Fotos Camararia</h1>
-        <p className="text-gray-600">Gerencie a galeria de fotos de referência para a camararia</p>
+        <h1 className="text-2xl font-bold text-gray-800">Fotos Governança</h1>
+        <p className="text-gray-600">Gerencie a galeria de fotos de referência para a governança</p>
       </div>
 
       {/* Filtros e Ações */}

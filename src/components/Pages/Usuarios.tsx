@@ -339,7 +339,7 @@ const Usuarios: React.FC = () => {
     const labels = {
       admin: 'Administrador',
       recepcao: 'Recepção',
-      camararia: 'Camararia',
+      camararia: 'Governança',
       revisao: 'Revisão',
       manutencao: 'Manutenção',
       areas_comuns: 'Áreas Comuns',
@@ -502,7 +502,7 @@ const Usuarios: React.FC = () => {
               <option value="gestor">Apenas Gestores</option>
               <option value="admin">Apenas Administradores</option>
               <option value="recepcao">Apenas Recepção</option>
-              <option value="camararia">Apenas Camararia</option>
+              <option value="camararia">Apenas Governança</option>
               <option value="revisao">Apenas Revisão</option>
               <option value="manutencao">Apenas Manutenção</option>
               <option value="areas_comuns">Apenas Áreas Comuns</option>

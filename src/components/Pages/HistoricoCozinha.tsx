@@ -112,7 +112,7 @@ const HistoricoCozinha: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-600"></div>
       </div>
     );
   }
@@ -127,8 +127,8 @@ const HistoricoCozinha: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <History className="w-6 h-6 text-blue-600" />
+            <div className="p-3 bg-teal-100 rounded-lg">
+              <History className="w-6 h-6 text-teal-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Registros Diários</h2>
@@ -301,8 +301,8 @@ const HistoricoCozinha: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
             <div className="flex items-center space-x-3">
-              <div className="p-3 bg-blue-100 rounded-lg">
-                <History className="w-6 h-6 text-blue-600" />
+              <div className="p-3 bg-teal-100 rounded-lg">
+                <History className="w-6 h-6 text-teal-600" />
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-600">Total de Registros</p>

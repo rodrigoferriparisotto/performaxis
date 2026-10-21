@@ -275,8 +275,8 @@ const ItensCamararia: React.FC = () => {
   return (
     <div className="space-y-4 max-w-7xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Itens da Camararia</h1>
-        <p className="text-gray-600">Gerencie a lista de itens necessários para o trabalho da camararia</p>
+        <h1 className="text-2xl font-bold text-gray-800">Itens da Governança</h1>
+        <p className="text-gray-600">Gerencie a lista de itens necessários para o trabalho da governança</p>
       </div>
 
       {/* Filtros e Ações */}
@@ -373,7 +373,7 @@ const ItensCamararia: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 {searchTerm 
                   ? 'Tente ajustar o termo de busca'
-                  : 'Comece criando seu primeiro item da camararia'
+                  : 'Comece criando seu primeiro item da governança'
                 }
               </p>
               {!searchTerm && (
@@ -397,7 +397,7 @@ const ItensCamararia: React.FC = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  {editingItem ? 'Editar Item' : 'Novo Item da Camararia'}
+                  {editingItem ? 'Editar Item' : 'Novo Item da Governança'}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}

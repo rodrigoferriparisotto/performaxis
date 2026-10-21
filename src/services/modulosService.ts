@@ -66,8 +66,8 @@ const MODULOS_DISPONIVEIS: ModuloInfo[] = [
   },
   {
     id: 'camararia',
-    nome: 'Camararia',
-    descricao: 'Gestão completa de serviços de camararia',
+    nome: 'Governança',
+    descricao: 'Gestão completa de serviços de governança',
     icon: Sparkles,
     cor: 'pink',
     isFixed: false,

@@ -166,7 +166,7 @@ export const activityTrackingService = {
    */
   async hasOpenRecords(usuarioId: string): Promise<{ hasOpen: boolean; modules: string[] }> {
     const modulesToCheck = [
-      { table: 'registros_camararia', name: 'Camararia' },
+      { table: 'registros_camararia', name: 'Governança' },
       { table: 'registros_areas_comuns', name: 'Áreas Comuns' },
       { table: 'registros_cozinha', name: 'Cozinha' },
       { table: 'registros_gestao', name: 'Gestão' },

@@ -11,7 +11,7 @@ const RankingPorMeritocracia: React.FC = () => {
 
   const perfis = [
     { value: undefined, label: 'Todos os Perfis' },
-    { value: 'camararia', label: 'Camararia' },
+    { value: 'camararia', label: 'Governança' },
     { value: 'recepcao', label: 'Recepção' },
     { value: 'revisao', label: 'Revisão' },
     { value: 'areas_comuns', label: 'Áreas Comuns' },

@@ -69,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
     { id: 'atividades-diarias', label: 'Atividades Diárias', icon: Activity, access: hasModuleAccess('atividades_diarias') },
     { id: 'recepcao', label: 'Recepção', icon: Phone, access: hasModuleAccess('recepcao') },
     { id: 'areas-comuns', label: 'Áreas Comuns', icon: Building, access: hasModuleAccess('areas_comuns') },
-    { id: 'camararia', label: 'Camararia', icon: Bed, access: hasModuleAccess('camararia') },
+    { id: 'camararia', label: 'Governança', icon: Bed, access: hasModuleAccess('camararia') },
     { id: 'revisao', label: 'Revisão', icon: CheckCircle, access: hasModuleAccess('revisao') },
     { id: 'cozinha', label: 'Cozinha', icon: ChefHat, access: hasModuleAccess('cozinha') },
     { id: 'manutencao', label: 'Manutenção', icon: Wrench, access: hasAccess('manutencao') },
@@ -96,10 +96,10 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
       { id: 'atividades-recepcao', label: 'Atividades Recepção', icon: Phone }
     ],
     camararia: [
-      { id: 'itens-camararia', label: 'Itens Camararia', icon: Package },
-      { id: 'servicos-camararia', label: 'Serviços Camararia', icon: Bed },
-      { id: 'fotos-camararia', label: 'Fotos Camararia', icon: Camera },
-      { id: 'atividades-camararia', label: 'Atividades Camararia', icon: Bed }
+      { id: 'itens-camararia', label: 'Itens Governança', icon: Package },
+      { id: 'servicos-camararia', label: 'Serviços Governança', icon: Bed },
+      { id: 'fotos-camararia', label: 'Fotos Governança', icon: Camera },
+      { id: 'atividades-camararia', label: 'Atividades Governança', icon: Bed }
     ],
     revisao: [
       { id: 'atividades-revisao', label: 'Atividades Revisão', icon: CheckCircle }
@@ -226,19 +226,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
           onClick={() => setOpen(!isOpen)}
           className={`w-full flex items-center justify-between px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
             hasActiveItem
-              ? 'bg-blue-100 text-emerald-700 border-r-2 border-blue-700'
+              ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
               : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
           }`}
         >
           <div className="flex items-center min-w-0 flex-1">
-            <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${hasActiveItem ? 'text-emerald-700' : 'text-gray-400'}`} />
+            <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${hasActiveItem ? 'text-blue-700' : 'text-gray-400'}`} />
             <span className="truncate text-xs">{title}</span>
           </div>
           <div className="flex-shrink-0 ml-2">
             {isOpen ? (
-              <ChevronDown className={`w-3 h-3 ${hasActiveItem ? 'text-emerald-700' : 'text-gray-500'}`} />
+              <ChevronDown className={`w-3 h-3 ${hasActiveItem ? 'text-blue-700' : 'text-gray-500'}`} />
             ) : (
-              <ChevronRight className={`w-3 h-3 ${hasActiveItem ? 'text-emerald-700' : 'text-gray-500'}`} />
+              <ChevronRight className={`w-3 h-3 ${hasActiveItem ? 'text-blue-700' : 'text-gray-500'}`} />
             )}
           </div>
         </button>
@@ -274,11 +274,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                   onClick={() => onPageChange(item.id)}
                   className={`w-full flex items-center px-12 py-1.5 text-left text-sm transition-colors duration-200 ${
                     isActive
-                      ? 'bg-emerald-200 text-emerald-700 border-r-2 border-blue-700'
+                      ? 'bg-blue-200 text-blue-700 border-r-2 border-blue-700'
                       : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
                   }`}
                 >
-                  <ItemIcon className={`w-3 h-3 mr-3 flex-shrink-0 ${isActive ? 'text-emerald-700' : 'text-gray-400'}`} />
+                  <ItemIcon className={`w-3 h-3 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
                   <span className="truncate text-xs">{item.label}</span>
                 </button>
               );
@@ -358,7 +358,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
         {/* User info fixo */}
         <div className={`px-4 py-3 border-b border-gray-200 flex-shrink-0 ${isCollapsed ? 'lg:px-0 lg:flex lg:justify-center' : ''}`}>
           <div className={`flex items-center ${isCollapsed ? 'lg:flex-col lg:space-x-0' : 'space-x-3'}`}>
-            <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
               <Users className="w-4 h-4 text-white" />
             </div>
             <div className={`min-w-0 flex-1 ${isCollapsed ? 'lg:hidden' : ''}`}>
@@ -392,12 +392,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                   onClick={() => onPageChange(item.id)}
                   className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group ${
                     isActive
-                      ? 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-700'
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                       : 'text-gray-700 hover:bg-gray-50'
                   } ${isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'}`}
                   title={isCollapsed ? item.label : ''}
                 >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-emerald-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
+                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
                   <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
 
                   {isCollapsed && (
@@ -415,12 +415,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                 onClick={() => onPageChange('manutencao')}
                 className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group ${
                   currentPage === 'manutencao'
-                    ? 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-700'
+                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                     : 'text-gray-700 hover:bg-gray-50'
                 } ${isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'}`}
                 title={isCollapsed ? 'Manutenção' : ''}
               >
-                <Wrench className={`w-5 h-5 flex-shrink-0 ${currentPage === 'manutencao' ? 'text-emerald-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
+                <Wrench className={`w-5 h-5 flex-shrink-0 ${currentPage === 'manutencao' ? 'text-blue-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
                 <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>Manutenção</span>
 
                 {isCollapsed && (
@@ -437,12 +437,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                 onClick={() => onPageChange('ver-acessos')}
                 className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group ${
                   currentPage === 'ver-acessos'
-                    ? 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-700'
+                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                     : 'text-gray-700 hover:bg-gray-50'
                 } ${isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'}`}
                 title={isCollapsed ? 'Ver Acessos' : ''}
               >
-                <Eye className={`w-5 h-5 flex-shrink-0 ${currentPage === 'ver-acessos' ? 'text-emerald-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
+                <Eye className={`w-5 h-5 flex-shrink-0 ${currentPage === 'ver-acessos' ? 'text-blue-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
                 <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>Ver Acessos</span>
 
                 {isCollapsed && (
@@ -460,19 +460,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                   onClick={() => setSistemaOpen(!sistemaOpen)}
                   className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
                     isSistemaActive
-                      ? 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-700'
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center min-w-0 flex-1">
-                    <Settings className={`w-5 h-5 mr-3 flex-shrink-0 ${isSistemaActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                    <Settings className={`w-5 h-5 mr-3 flex-shrink-0 ${isSistemaActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     <span className="truncate">Sistema</span>
                   </div>
                   <div className="flex-shrink-0 ml-2">
                     {sistemaOpen ? (
-                      <ChevronDown className={`w-3 h-3 ${isSistemaActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                      <ChevronDown className={`w-3 h-3 ${isSistemaActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     ) : (
-                      <ChevronRight className={`w-3 h-3 ${isSistemaActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                      <ChevronRight className={`w-3 h-3 ${isSistemaActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     )}
                   </div>
                 </button>
@@ -491,11 +491,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                           onClick={() => onPageChange(item.id)}
                           className={`w-full flex items-center px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
                             isActive
-                              ? 'bg-emerald-100 text-emerald-700 border-r-2 border-emerald-700'
+                              ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
                               : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
                           }`}
                         >
-                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-emerald-700' : 'text-gray-400'}`} />
+                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
                           <span className="truncate text-xs">{item.label}</span>
                         </button>
                       );
@@ -512,19 +512,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                   onClick={() => setRelatoriosOpen(!relatoriosOpen)}
                   className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
                     isRelatoriosActive
-                      ? 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-700'
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center min-w-0 flex-1">
-                    <FileText className={`w-5 h-5 mr-3 flex-shrink-0 ${isRelatoriosActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                    <FileText className={`w-5 h-5 mr-3 flex-shrink-0 ${isRelatoriosActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     <span className="truncate">Relatórios</span>
                   </div>
                   <div className="flex-shrink-0 ml-2">
                     {relatoriosOpen ? (
-                      <ChevronDown className={`w-3 h-3 ${isRelatoriosActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                      <ChevronDown className={`w-3 h-3 ${isRelatoriosActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     ) : (
-                      <ChevronRight className={`w-3 h-3 ${isRelatoriosActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                      <ChevronRight className={`w-3 h-3 ${isRelatoriosActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     )}
                   </div>
                 </button>
@@ -541,11 +541,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                           onClick={() => onPageChange(item.id)}
                           className={`w-full flex items-center px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
                             isActive
-                              ? 'bg-blue-100 text-emerald-700 border-r-2 border-blue-700'
+                              ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
                               : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
                           }`}
                         >
-                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-emerald-700' : 'text-gray-400'}`} />
+                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
                           <span className="truncate text-xs">{item.label}</span>
                         </button>
                       );
@@ -562,19 +562,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                   onClick={() => setCadastrosOpen(!cadastrosOpen)}
                   className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
                     isCadastrosActive
-                      ? 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-700'
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center min-w-0 flex-1">
-                    <FolderOpen className={`w-5 h-5 mr-3 flex-shrink-0 ${isCadastrosActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                    <FolderOpen className={`w-5 h-5 mr-3 flex-shrink-0 ${isCadastrosActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     <span className="truncate">Cadastros</span>
                   </div>
                   <div className="flex-shrink-0 ml-2">
                     {cadastrosOpen ? (
-                      <ChevronDown className={`w-3 h-3 ${isCadastrosActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                      <ChevronDown className={`w-3 h-3 ${isCadastrosActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     ) : (
-                      <ChevronRight className={`w-3 h-3 ${isCadastrosActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                      <ChevronRight className={`w-3 h-3 ${isCadastrosActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     )}
                   </div>
                 </button>
@@ -590,12 +590,12 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                       Phone
                     )}
 
-                    {/* Camararia */}
+                    {/* Governança */}
                     {hasModuleAccess('camararia') && renderSubMenu(
                       cadastrosItems.camararia,
                       camarariaOpen,
                       setCamarariaOpen,
-                      'Camararia',
+                      'Governança',
                       Bed
                     )}
 
@@ -673,19 +673,19 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                   onClick={() => setAdminOpen(!adminOpen)}
                   className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
                     isAdminActive
-                      ? 'bg-emerald-50 text-emerald-700 border-r-2 border-emerald-700'
+                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
                       : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-center min-w-0 flex-1">
-                    <Settings className={`w-5 h-5 mr-3 flex-shrink-0 ${isAdminActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                    <Settings className={`w-5 h-5 mr-3 flex-shrink-0 ${isAdminActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     <span className="truncate">Administração</span>
                   </div>
                   <div className="flex-shrink-0 ml-2">
                     {adminOpen ? (
-                      <ChevronDown className={`w-3 h-3 ${isAdminActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                      <ChevronDown className={`w-3 h-3 ${isAdminActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     ) : (
-                      <ChevronRight className={`w-3 h-3 ${isAdminActive ? 'text-emerald-700' : 'text-gray-500'}`} />
+                      <ChevronRight className={`w-3 h-3 ${isAdminActive ? 'text-blue-700' : 'text-gray-500'}`} />
                     )}
                   </div>
                 </button>
@@ -704,11 +704,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
                           onClick={() => onPageChange(item.id)}
                           className={`w-full flex items-center px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
                             isActive
-                              ? 'bg-blue-100 text-emerald-700 border-r-2 border-blue-700'
+                              ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
                               : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
                           }`}
                         >
-                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-emerald-700' : 'text-gray-400'}`} />
+                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
                           <span className="truncate text-xs">{item.label}</span>
                         </button>
                       );

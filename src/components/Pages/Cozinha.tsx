@@ -161,12 +161,12 @@ const Cozinha: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`group inline-flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
+                    ? 'border-teal-500 text-teal-600'
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
                 <Icon className={`mr-2 w-5 h-5 ${
-                  activeTab === tab.id ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'
+                  activeTab === tab.id ? 'text-teal-500' : 'text-gray-400 group-hover:text-gray-500'
                 }`} />
                 {tab.label}
               </button>
@@ -180,8 +180,8 @@ const Cozinha: React.FC = () => {
       <div className={`bg-white rounded-lg shadow-md border border-gray-200 transition-all duration-300 ${hasRegistroAtivo ? 'mt-8' : 'mt-2'}`}>
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Camera className="w-5 h-5 text-blue-600" />
+            <div className="p-2 bg-teal-100 rounded-lg">
+              <Camera className="w-5 h-5 text-teal-600" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-800">Galeria de Referência</h3>
@@ -193,8 +193,8 @@ const Cozinha: React.FC = () => {
         <div className="p-6">
           {fotosCarregando ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-blue-700">Carregando fotos...</span>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+              <span className="ml-3 text-teal-700">Carregando fotos...</span>
             </div>
           ) : fotosCozinha.length > 0 ? (
             <div className="space-y-8">
@@ -205,9 +205,9 @@ const Cozinha: React.FC = () => {
 
                 return (
                   <div key={tipo.id} className="space-y-4">
-                    <div className="flex items-center space-x-3 pb-3 border-b-2 border-blue-200">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <ChefHat className="w-5 h-5 text-blue-600" />
+                    <div className="flex items-center space-x-3 pb-3 border-b-2 border-teal-200">
+                      <div className="p-2 bg-teal-50 rounded-lg">
+                        <ChefHat className="w-5 h-5 text-teal-600" />
                       </div>
                       <div>
                         <h4 className="text-lg font-semibold text-gray-800">{tipo.nome}</h4>
@@ -305,7 +305,7 @@ const Cozinha: React.FC = () => {
               <p className="text-gray-600 mb-4">
                 Cadastre fotos de referência para orientar o trabalho da cozinha
               </p>
-              <p className="text-sm text-blue-600">
+              <p className="text-sm text-teal-600">
                 Acesse <strong>Cadastros → Fotos Cozinha</strong> para adicionar fotos
               </p>
             </div>

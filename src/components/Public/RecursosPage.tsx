@@ -37,7 +37,7 @@ const RecursosPage: React.FC = () => {
     },
     {
       icon: DoorOpen,
-      title: 'Controle de Camararia',
+      title: 'Controle de Governança',
       description: 'Gerencie limpeza de suítes, revisões, itens e fotos de qualidade.',
       color: 'orange',
     },
@@ -166,7 +166,7 @@ const RecursosPage: React.FC = () => {
             <div className="bg-white rounded-xl p-6 border border-gray-200">
               <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
                 <ClipboardCheck className="w-6 h-6 text-green-600" />
-                Camararia
+                Governança
               </h3>
               <ul className="space-y-2 text-gray-600">
                 <li>• Limpeza de suítes</li>

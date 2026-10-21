@@ -112,7 +112,7 @@ const AnaliseOperacional: React.FC = () => {
           cor: 'blue'
         },
         {
-          nome: 'Camararia',
+          nome: 'Governança',
           tipo: 'camararia',
           registros: registrosCamararia,
           atividades: todasAtividades.filter(a => a.type === 'camararia'),

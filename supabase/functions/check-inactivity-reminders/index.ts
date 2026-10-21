@@ -453,7 +453,7 @@ async function verificarRegistrosAbertos(supabase: any, usuarioId: string): Prom
   let registroMaisRecente: string | null = null;
 
   const tabelasParaVerificar = [
-    { tabela: 'registros_camararia', modulo: 'Camararia' },
+    { tabela: 'registros_camararia', modulo: 'Governança' },
     { tabela: 'registros_areas_comuns', modulo: 'Áreas Comuns' },
     { tabela: 'registros_cozinha', modulo: 'Cozinha' },
     { tabela: 'registros_gestao', modulo: 'Gestão' },
@@ -525,7 +525,7 @@ function isDoNotDisturbActive(settings: any): boolean {
 
 function mapModuloToUrl(modulo: string): string {
   const map: Record<string, string> = {
-    'Camararia': '/camararia',
+    'Governança': '/camararia',
     'Áreas Comuns': '/areas-comuns',
     'Cozinha': '/cozinha',
     'Gestão': '/gestao',

@@ -564,7 +564,7 @@ const NovoRegistroRevisao: React.FC = () => {
       
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Novo Registro - Revisão</h1>
-        <p className="text-gray-600">Revise os registros da camararia ou crie novos registros de revisão</p>
+        <p className="text-gray-600">Revise os registros da governança ou crie novos registros de revisão</p>
       </div>
 
       {/* Data Atual */}
@@ -599,11 +599,11 @@ const NovoRegistroRevisao: React.FC = () => {
         </div>
       </div>
 
-      {/* Registros da Camararia para Revisão */}
+      {/* Registros da Governança para Revisão */}
       {!registroAtivo && !showNovoRegistro && (
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
           <div className="p-6 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-800">Registros da Camararia para Revisão</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Registros da Governança para Revisão</h3>
             <p className="text-sm text-gray-600">{registrosCamararia.length} registros concluídos hoje</p>
           </div>
 
@@ -662,22 +662,22 @@ const NovoRegistroRevisao: React.FC = () => {
             ) : (
               <div className="text-center py-12 text-gray-500">
                 <Bed className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-lg font-medium text-gray-800 mb-2">Nenhum registro da camararia hoje</h3>
-                <p className="text-gray-600">Não há registros concluídos da camararia para revisar</p>
+                <h3 className="text-lg font-medium text-gray-800 mb-2">Nenhum registro da governança hoje</h3>
+                <p className="text-gray-600">Não há registros concluídos da governança para revisar</p>
               </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Modal de Visualização do Registro da Camararia */}
+      {/* Modal de Visualização do Registro da Governança */}
       {registroSelecionado && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  Registro da Camararia - {getSuiteNome(registroSelecionado.suite_id)}
+                  Registro da Governança - {getSuiteNome(registroSelecionado.suite_id)}
                 </h3>
                 <button
                   onClick={() => setRegistroSelecionado(null)}

@@ -285,7 +285,7 @@ const AtividadesComerciais: React.FC = () => {
     return (
       <div className="flex items-center justify-center min-h-64">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Carregando atividades...</p>
         </div>
       </div>
@@ -307,12 +307,12 @@ const AtividadesComerciais: React.FC = () => {
             placeholder="Buscar atividades..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full md:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full md:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
           />
         </div>
         <button
           onClick={handleNewActivity}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center space-x-2 transition-colors duration-200"
+          className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex items-center space-x-2 transition-colors duration-200"
         >
           <Plus className="w-4 h-4" />
           <span>Nova Atividade</span>
@@ -322,8 +322,8 @@ const AtividadesComerciais: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-indigo-100 rounded-lg">
-              <ShoppingBag className="w-6 h-6 text-indigo-600" />
+            <div className="p-3 bg-pink-100 rounded-lg">
+              <ShoppingBag className="w-6 h-6 text-pink-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Atividades Comerciais</h2>
@@ -342,7 +342,7 @@ const AtividadesComerciais: React.FC = () => {
                   onDragStart={(e) => handleDragStart(e, atividade)}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, atividade)}
-                  className={`flex flex-col md:flex-row p-4 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors duration-200 cursor-move ${
+                  className={`flex flex-col md:flex-row p-4 bg-pink-50 border border-pink-200 rounded-lg hover:bg-pink-100 transition-colors duration-200 cursor-move ${
                     draggedItem?.id === atividade.id ? 'opacity-50' : ''
                   }`}
                 >
@@ -370,11 +370,11 @@ const AtividadesComerciais: React.FC = () => {
                             onClick={(e) => e.stopPropagation()}
                             onDragStart={(e) => e.stopPropagation()}
                             disabled={updatingPosition === atividade.id}
-                            className="w-14 md:w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-center disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            className="w-14 md:w-16 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-center disabled:bg-gray-100 disabled:cursor-not-allowed"
                             title="Clique para editar a posição"
                           />
                           {updatingPosition === atividade.id && (
-                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-indigo-600"></div>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-pink-600"></div>
                           )}
                         </div>
                         {atividade.dias_semana && atividade.dias_semana.length > 0 && (
@@ -397,7 +397,7 @@ const AtividadesComerciais: React.FC = () => {
                         <div className="mt-2">
                           <div className="flex flex-wrap gap-1">
                             {atividade.dias_semana.map(dia => (
-                              <span key={dia} className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full">
+                              <span key={dia} className="px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded-full">
                                 {dia.charAt(0).toUpperCase() + dia.slice(1, 3)}
                               </span>
                             ))}
@@ -408,7 +408,7 @@ const AtividadesComerciais: React.FC = () => {
                         <div className="mt-2">
                           <div className="flex flex-wrap gap-1">
                             {atividade.tipos_funcoes_comerciais.map((tipoId: string) => (
-                              <span key={tipoId} className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded-full">
+                              <span key={tipoId} className="px-2 py-1 bg-pink-100 text-pink-700 text-xs rounded-full">
                                 {getTipoNome(tipoId)}
                               </span>
                             ))}
@@ -420,7 +420,7 @@ const AtividadesComerciais: React.FC = () => {
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => handleEditActivity(atividade)}
-                      className="p-2 text-indigo-600 hover:bg-indigo-200 rounded-lg transition-colors duration-200"
+                      className="p-2 text-pink-600 hover:bg-pink-200 rounded-lg transition-colors duration-200"
                       title="Editar atividade"
                     >
                       <Edit className="w-4 h-4" />
@@ -445,7 +445,7 @@ const AtividadesComerciais: React.FC = () => {
               <p className="text-gray-600 mb-4">Comece criando sua primeira atividade comercial</p>
               <button
                 onClick={handleNewActivity}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
+                className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>Nova Atividade</span>
@@ -481,7 +481,7 @@ const AtividadesComerciais: React.FC = () => {
                   type="text"
                   name="name"
                   defaultValue={editingActivity?.name || ''}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Ex: Prospecção de clientes, Reunião com fornecedor..."
                   required
                 />
@@ -495,7 +495,7 @@ const AtividadesComerciais: React.FC = () => {
                   name="description"
                   defaultValue={editingActivity?.description || ''}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Descrição detalhada da atividade comercial..."
                 />
               </div>
@@ -511,7 +511,7 @@ const AtividadesComerciais: React.FC = () => {
                         type="checkbox"
                         checked={selectedDias.includes(dia)}
                         onChange={() => handleDiaChange(dia)}
-                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                        className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                       />
                       <span className="text-sm text-gray-700 capitalize">{dia}</span>
                     </label>
@@ -534,7 +534,7 @@ const AtividadesComerciais: React.FC = () => {
                           type="checkbox"
                           checked={selectedTipos.includes(tipo.id)}
                           onChange={() => handleTipoChange(tipo.id)}
-                          className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                          className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                         />
                         <span className="text-sm text-gray-700">{tipo.nome}</span>
                       </label>
@@ -562,7 +562,7 @@ const AtividadesComerciais: React.FC = () => {
                 <select
                   name="active"
                   defaultValue={editingActivity?.active !== undefined ? editingActivity.active.toString() : 'true'}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
                   required
                 >
                   <option value="true">Ativo</option>
@@ -584,7 +584,7 @@ const AtividadesComerciais: React.FC = () => {
                   className={`flex-1 px-4 py-2 rounded-md flex items-center justify-center space-x-2 transition-colors duration-200 ${
                     saving
                       ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-indigo-600 hover:bg-indigo-700'
+                      : 'bg-pink-600 hover:bg-pink-700'
                   } text-white`}
                 >
                   <Save className="w-4 h-4" />
@@ -599,8 +599,8 @@ const AtividadesComerciais: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-indigo-100 rounded-lg">
-              <ShoppingBag className="w-6 h-6 text-indigo-600" />
+            <div className="p-3 bg-pink-100 rounded-lg">
+              <ShoppingBag className="w-6 h-6 text-pink-600" />
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Total de Atividades</p>

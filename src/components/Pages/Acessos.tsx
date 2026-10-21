@@ -5,7 +5,7 @@ import { acessosService, Acesso, AcessoInsert, AreaVinculada } from '../../servi
 
 const AREA_LABELS: Record<AreaVinculada, string> = {
   recepcao: 'Recepção',
-  camararia: 'Camararia',
+  camararia: 'Governança',
   revisao: 'Revisão',
   gestao: 'Gestão',
   vendas: 'Vendas',

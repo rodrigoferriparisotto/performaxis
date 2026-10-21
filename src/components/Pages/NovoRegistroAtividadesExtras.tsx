@@ -354,7 +354,7 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sky-600"></div>
       </div>
     );
   }
@@ -382,14 +382,14 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <Sun className="w-5 h-5 text-yellow-600" />
+                  <Sun className="w-5 h-5 text-sky-600" />
                   <span className="font-medium text-gray-800">Atividades Extras</span>
                 </div>
               </div>
               
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <div className="text-lg font-bold text-yellow-600">
+                  <div className="text-lg font-bold text-sky-600">
                     {progressPercentage}%
                   </div>
                   <div className="text-xs text-gray-500">
@@ -399,7 +399,7 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
                 
                 <div className="w-32 bg-gray-200 rounded-full h-3">
                   <div 
-                    className="bg-yellow-600 h-3 rounded-full transition-all duration-500 ease-out"
+                    className="bg-sky-600 h-3 rounded-full transition-all duration-500 ease-out"
                     style={{ 
                       width: `${progressPercentage}%` 
                     }}
@@ -428,8 +428,8 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="p-3 bg-yellow-100 rounded-lg">
-              <Calendar className="w-6 h-6 text-yellow-600" />
+            <div className="p-3 bg-sky-100 rounded-lg">
+              <Calendar className="w-6 h-6 text-sky-600" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Data do Registro</h2>
@@ -456,7 +456,7 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
                 <select
                   value={tipoSelecionado}
                   onChange={(e) => setTipoSelecionado(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 appearance-none"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500 appearance-none"
                   required
                 >
                   <option value="">Selecione o tipo de atividade extra</option>
@@ -488,10 +488,10 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
         )}
 
         {registroAtivo && (
-          <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="mt-6 bg-sky-50 border border-sky-200 rounded-lg p-4">
             <div className="flex items-center space-x-2">
-              <Sun className="w-4 h-4 text-yellow-600" />
-              <span className="font-medium text-yellow-800">
+              <Sun className="w-4 h-4 text-sky-600" />
+              <span className="font-medium text-sky-800">
                 Tipo: {getTipoExtraNome(registroAtivo.tipo_atividade_id || tipoSelecionado)}
               </span>
             </div>
@@ -506,7 +506,7 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
               className={`px-6 py-3 rounded-lg flex items-center space-x-2 transition-colors duration-200 ${
                 saving || !tipoSelecionado
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-yellow-600 text-white hover:bg-yellow-700'
+                  : 'bg-sky-600 text-white hover:bg-sky-700'
               }`}
             >
               <Play className="w-5 h-5" />
@@ -582,7 +582,7 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
                 <textarea
                   value={observacoes}
                   onChange={(e) => setObservacoes(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-sky-500"
                   rows={4}
                   placeholder="Escreva observações sobre as atividades extras realizadas..."
                 />

@@ -79,7 +79,7 @@ const ServicosCamararia: React.FC = () => {
   };
 
   const handleDeleteServico = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este serviço de camararia?')) {
+    if (confirm('Tem certeza que deseja excluir este serviço de governança?')) {
       try {
         const { error } = await supabase
           .from('servicos_camararia')
@@ -88,14 +88,14 @@ const ServicosCamararia: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir serviço de camararia');
+          window.alert('Erro ao excluir serviço de governança');
         } else {
           await carregarServicos();
-          window.alert('Serviço de camararia excluído com sucesso!');
+          window.alert('Serviço de governança excluído com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir serviço de camararia');
+        window.alert('Erro ao excluir serviço de governança');
       }
     }
   };
@@ -129,7 +129,7 @@ const ServicosCamararia: React.FC = () => {
     );
 
     if (nomeExiste) {
-      window.alert('Já existe um serviço de camararia com este nome.');
+      window.alert('Já existe um serviço de governança com este nome.');
       setSaving(false);
       return;
     }
@@ -183,7 +183,7 @@ const ServicosCamararia: React.FC = () => {
 
       if (result.error) {
 
-        window.alert('Erro ao salvar serviço de camararia');
+        window.alert('Erro ao salvar serviço de governança');
       } else {
         await carregarServicos();
         setShowModal(false);
@@ -192,7 +192,7 @@ const ServicosCamararia: React.FC = () => {
       }
     } catch (error) {
 
-      window.alert('Erro ao salvar serviço de camararia');
+      window.alert('Erro ao salvar serviço de governança');
     } finally {
       setSaving(false);
     }
@@ -214,8 +214,8 @@ const ServicosCamararia: React.FC = () => {
   return (
     <div className="space-y-4 max-w-7xl">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800">Serviços de Camararia</h1>
-        <p className="text-gray-600">Gerencie os diferentes tipos de serviço da camararia</p>
+        <h1 className="text-2xl font-bold text-gray-800">Serviços de Governança</h1>
+        <p className="text-gray-600">Gerencie os diferentes tipos de serviço da governança</p>
       </div>
 
       <div className="flex items-center justify-between">
@@ -301,7 +301,7 @@ const ServicosCamararia: React.FC = () => {
             <div className="text-center py-12 text-gray-500">
               <Bed className="w-16 h-16 mx-auto mb-4 text-gray-300" />
               <h3 className="text-lg font-medium text-gray-800 mb-2">Nenhum serviço encontrado</h3>
-              <p className="text-gray-600 mb-4">Comece criando seu primeiro serviço de camararia</p>
+              <p className="text-gray-600 mb-4">Comece criando seu primeiro serviço de governança</p>
               <button 
                 onClick={handleNewServico}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
@@ -321,7 +321,7 @@ const ServicosCamararia: React.FC = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  {editingServico ? 'Editar Serviço de Camararia' : 'Novo Serviço de Camararia'}
+                  {editingServico ? 'Editar Serviço de Governança' : 'Novo Serviço de Governança'}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
