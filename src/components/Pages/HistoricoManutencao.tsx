@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { manutencaoService, usuarioService } from '../../services/supabaseService';
+import { FotosRegistro } from '../common/FotosRegistro';
 import { formatarData, formatarHorario } from '../../utils/dateUtils';
 import Pagination from '../common/Pagination';
 import {
@@ -286,6 +287,7 @@ const HistoricoManutencao: React.FC = () => {
                           <h4 className="text-sm font-medium text-gray-700 mb-2">Manutenção Realizada</h4>
                           <div className="bg-white p-3 rounded-lg border border-gray-200">
                             <p className="text-sm text-gray-700">{manutencao.descricao}</p>
+                            <FotosRegistro fotos={manutencao.fotos} />
                           </div>
                         </div>
 

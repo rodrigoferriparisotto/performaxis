@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { manutencaoService } from '../../services/supabaseService';
+import { fotoUploadService } from '../../services/fotoUploadService';
+import { FotosRegistro } from '../common/FotosRegistro';
 import { getDataAtual } from '../../utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
 import { activityMarkingService } from '../../services/activityMarkingService';
@@ -13,7 +15,8 @@ import {
   Edit,
   ChevronDown,
   User,
-  Trash2
+  Trash2,
+  Camera
 } from 'lucide-react';
 
 const NovoRegistroManutencao: React.FC = () => {
@@ -23,6 +26,38 @@ const NovoRegistroManutencao: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingManutencao, setEditingManutencao] = useState<any>(null);
+  const [fotosSelecionadas, setFotosSelecionadas] = useState<{ file: File; preview: string }[]>([]);
+
+  const MAX_FOTOS = 5;
+
+  const adicionarFotos = (lista: FileList | null) => {
+    if (!lista) return;
+    const existentes = (editingManutencao?.fotos?.length || 0) + fotosSelecionadas.length;
+    const novas = Array.from(lista)
+      .filter((f) => f.type.startsWith('image/'))
+      .slice(0, Math.max(0, MAX_FOTOS - existentes));
+    if (novas.length < lista.length) {
+      alert(`Máximo de ${MAX_FOTOS} fotos por manutenção.`);
+    }
+    setFotosSelecionadas((prev) => [
+      ...prev,
+      ...novas.map((file) => ({ file, preview: URL.createObjectURL(file) })),
+    ]);
+  };
+
+  const removerFoto = (index: number) => {
+    setFotosSelecionadas((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
+
+  const limparFotosSelecionadas = () => {
+    setFotosSelecionadas((prev) => {
+      prev.forEach((f) => URL.revokeObjectURL(f.preview));
+      return [];
+    });
+  };
 
   useEffect(() => {
     carregarManutencoes();
@@ -46,7 +81,26 @@ const NovoRegistroManutencao: React.FC = () => {
     setSaving(true);
     
     const formData = new FormData(e.target as HTMLFormElement);
-    
+
+    // sobe as fotos novas antes de salvar o registro
+    let fotos: string[] = editingManutencao?.fotos || [];
+    if (fotosSelecionadas.length > 0) {
+      const { urls, falhas } = await fotoUploadService.uploadFotos(
+        fotosSelecionadas.map((f) => f.file),
+        'manutencoes'
+      );
+      fotos = [...fotos, ...urls];
+      if (falhas > 0) {
+        const continuar = confirm(
+          `${falhas} foto(s) não puderam ser enviadas (conexão ou tamanho). Salvar a manutenção mesmo assim?`
+        );
+        if (!continuar) {
+          setSaving(false);
+          return;
+        }
+      }
+    }
+
     const manutencaoData = {
       data: getDataAtual(),
       local: formData.get('local') as string,
@@ -54,8 +108,8 @@ const NovoRegistroManutencao: React.FC = () => {
       prioridade: formData.get('prioridade') as any,
       descricao: formData.get('descricao') as string,
       observacoes: formData.get('observacoes') as string || '',
-      fotos: [],
-      status: 'aberto' as const
+      fotos,
+      status: editingManutencao?.status || ('aberto' as const)
     };
 
     try {
@@ -70,6 +124,7 @@ const NovoRegistroManutencao: React.FC = () => {
         await carregarManutencoes();
         setShowForm(false);
         setEditingManutencao(null);
+        limparFotosSelecionadas();
         alert(editingManutencao ? 'Manutenção atualizada com sucesso!' : 'Manutenção criada com sucesso!');
       } else {
         alert('Erro ao salvar manutenção');
@@ -83,11 +138,13 @@ const NovoRegistroManutencao: React.FC = () => {
   };
 
   const handleEditManutencao = (manutencao: any) => {
+    limparFotosSelecionadas();
     setEditingManutencao(manutencao);
     setShowForm(true);
   };
 
   const handleNewManutencao = () => {
+    limparFotosSelecionadas();
     setEditingManutencao(null);
     setShowForm(true);
   };
@@ -298,6 +355,63 @@ const NovoRegistroManutencao: React.FC = () => {
               />
             </div>
 
+            {/* Fotos */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                <Camera className="w-4 h-4 inline mr-1" />
+                Fotos do problema (opcional, até {MAX_FOTOS})
+              </label>
+
+              {editingManutencao?.fotos?.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-xs text-gray-500 mb-1">Fotos já enviadas:</p>
+                  <FotosRegistro fotos={editingManutencao.fotos} tamanho="sm" />
+                </div>
+              )}
+
+              <input
+                id="input-fotos-manutencao"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                multiple
+                className="hidden"
+                onChange={(e) => {
+                  adicionarFotos(e.target.files);
+                  e.target.value = '';
+                }}
+              />
+              <label
+                htmlFor="input-fotos-manutencao"
+                className="inline-flex items-center space-x-2 px-4 py-2 border border-orange-300 text-orange-700 bg-orange-50 rounded-md hover:bg-orange-100 cursor-pointer transition-colors duration-200"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Tirar foto / escolher da galeria</span>
+              </label>
+
+              {fotosSelecionadas.length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {fotosSelecionadas.map((foto, i) => (
+                    <div key={foto.preview} className="relative">
+                      <img
+                        src={foto.preview}
+                        alt={`Foto selecionada ${i + 1}`}
+                        className="w-16 h-16 object-cover rounded-md border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removerFoto(i)}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-600 text-white rounded-full text-xs leading-none flex items-center justify-center hover:bg-red-700"
+                        title="Remover foto"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Botões */}
             <div className="flex space-x-3 pt-6 border-t border-gray-200">
               <button
@@ -358,6 +472,8 @@ const NovoRegistroManutencao: React.FC = () => {
                           <strong>Obs:</strong> {manutencao.observacoes}
                         </p>
                       )}
+
+                      <FotosRegistro fotos={manutencao.fotos} tamanho="sm" />
 
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span className="flex items-center gap-1">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { manutencaoService, usuarioService } from '../../services/supabaseService';
+import { FotosRegistro } from '../common/FotosRegistro';
 import { formatarData, getDataHoraAtual } from '../../utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
 import { activityMarkingService } from '../../services/activityMarkingService';
@@ -521,7 +522,9 @@ const ManutencoesPendentes: React.FC = () => {
                       </div>
                       
                       <p className="text-sm text-gray-700 mb-2">{manutencao.descricao}</p>
-                      
+
+                      <FotosRegistro fotos={manutencao.fotos} tamanho="sm" />
+
                       <div className="flex items-center space-x-4 text-xs text-gray-500 mb-2">
                         <span>Criado: {formatarData(manutencao.data)}</span>
                         {manutencao.solicitante_id && (
