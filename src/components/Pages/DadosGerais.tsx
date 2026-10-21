@@ -28,30 +28,66 @@ import {
 } from 'lucide-react';
 import {
   usuarioService,
-  registroRecepcaoService,
-  registroCamarariaService,
-  registroRevisaoService,
-  registroAreasComunsService,
-  registroAtividadesExtrasService,
-  registroAtividadesDiariasService,
-  registroGestaoService,
-  registroCozinhaService,
-  registroVendasService,
-  manutencaoService,
   suiteService,
   atividadeService,
   empresaService
 } from '../../services/supabaseService';
+import { supabase } from '../../lib/supabase';
 import { formatarData, getBrazilDate, getDataAtualFormatada } from '../../utils/dateUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+const agoraEmSaoPaulo = () =>
+  new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
+
+const saudacaoDoHorario = (d: Date) => {
+  const hora = d.getHours();
+  if (hora < 12) return 'Bom dia';
+  if (hora < 18) return 'Boa tarde';
+  return 'Boa noite';
+};
+
+// Relógio e saudação têm estado próprio: atualizam sozinhos sem
+// re-renderizar a página e os gráficos (antes, o relógio no estado da
+// página inteira redesenhava todos os gráficos a cada segundo).
+const Saudacao: React.FC<{ nome?: string }> = ({ nome }) => {
+  const [saudacao, setSaudacao] = useState(() => saudacaoDoHorario(agoraEmSaoPaulo()));
+  useEffect(() => {
+    const id = setInterval(() => setSaudacao(saudacaoDoHorario(agoraEmSaoPaulo())), 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
+  return <h1 className="text-xl lg:text-3xl font-bold">{saudacao}, {nome}!</h1>;
+};
+
+const RelogioAoVivo: React.FC = () => {
+  const [agora, setAgora] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setAgora(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return (
+    <div className="text-xl lg:text-2xl font-bold">
+      {agora.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Sao_Paulo'
+      })}
+      <span className="text-base lg:text-lg">:{agora.toLocaleTimeString('pt-BR', {
+        second: '2-digit',
+        timeZone: 'America/Sao_Paulo'
+      }).split(':')[2]}</span>
+    </div>
+  );
+};
 
 const DadosGerais: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [timeOfDay, setTimeOfDay] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date());
+  // período aplicado (o que está nos gráficos) × rascunho (o que está nos campos)
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [rascunhoInicio, setRascunhoInicio] = useState('');
+  const [rascunhoFim, setRascunhoFim] = useState('');
+  const [erroFiltro, setErroFiltro] = useState('');
   const [dadosGerais, setDadosGerais] = useState<any>(null);
   const [graficoPorTipo, setGraficoPorTipo] = useState<any[]>([]);
   const [graficoEficiencia, setGraficoEficiencia] = useState<any[]>([]);
@@ -60,43 +96,40 @@ const DadosGerais: React.FC = () => {
   const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#06B6D4', '#F97316'];
 
   useEffect(() => {
-    // Configurar horário
-    const updateTimeOfDay = () => {
-      // Usar horário brasileiro
-      const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-      const hour = now.getHours();
-      setCurrentTime(now);
-      if (hour < 12) setTimeOfDay('Bom dia');
-      else if (hour < 18) setTimeOfDay('Boa tarde');
-      else setTimeOfDay('Boa noite');
-    };
-    
-    updateTimeOfDay();
-    
-    // Atualizar horário a cada segundo
-    const timeInterval = setInterval(() => {
-      updateTimeOfDay();
-    }, 1000);
-
-    // Definir período padrão (últimos 30 dias)
+    // Período padrão: últimos 30 dias
     const hoje = getBrazilDate();
     const trintaDiasAtras = getBrazilDate();
     trintaDiasAtras.setDate(trintaDiasAtras.getDate() - 30);
-    
+
     const ano = hoje.getFullYear();
     const mes = String(hoje.getMonth() + 1).padStart(2, '0');
     const dia = String(hoje.getDate()).padStart(2, '0');
-    setDataFim(`${ano}-${mes}-${dia}`);
-    
+    const fim = `${ano}-${mes}-${dia}`;
+
     const anoInicio = trintaDiasAtras.getFullYear();
     const mesInicio = String(trintaDiasAtras.getMonth() + 1).padStart(2, '0');
     const diaInicio = String(trintaDiasAtras.getDate()).padStart(2, '0');
-    setDataInicio(`${anoInicio}-${mesInicio}-${diaInicio}`);
-    
-    return () => {
-      clearInterval(timeInterval);
-    };
+    const inicio = `${anoInicio}-${mesInicio}-${diaInicio}`;
+
+    setDataInicio(inicio);
+    setDataFim(fim);
+    setRascunhoInicio(inicio);
+    setRascunhoFim(fim);
   }, []);
+
+  const aplicarFiltro = () => {
+    if (!rascunhoInicio || !rascunhoFim) {
+      setErroFiltro('Preencha as duas datas.');
+      return;
+    }
+    if (rascunhoInicio > rascunhoFim) {
+      setErroFiltro('A data de início não pode ser depois da data de fim.');
+      return;
+    }
+    setErroFiltro('');
+    setDataInicio(rascunhoInicio);
+    setDataFim(rascunhoFim);
+  };
 
   useEffect(() => {
     if (dataInicio && dataFim) {
@@ -116,133 +149,81 @@ const DadosGerais: React.FC = () => {
         empresaService.getEmpresa()
       ]);
 
-      // Carregar todos os registros
-      const [
-        registrosRecepcao,
-        registrosCamararia,
-        registrosRevisao,
-        registrosAreasComuns,
-        registrosAtividadesExtras,
-        registrosAtividadesDiarias,
-        registrosGestao,
-        registrosCozinha,
-        registrosVendas,
-        manutencoes
-      ] = await Promise.all([
-        registroRecepcaoService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroCamarariaService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroRevisaoService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroAreasComunsService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroAtividadesExtrasService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroAtividadesDiariasService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroGestaoService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroCozinhaService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroVendasService.getRegistrosByPeriodo(dataInicio, dataFim),
-        manutencaoService.getManutencoesByPeriodo(dataInicio, dataFim)
-      ]);
+      // Uma única chamada: o banco devolve os totais já somados por setor
+      // (antes eram 10 buscas de registros brutos + soma no navegador)
+      const { data: agregado, error: erroAgregado } = await supabase.rpc('dashboard_dados_gerais', {
+        p_inicio: dataInicio,
+        p_fim: dataFim
+      });
 
-      // Combinar todos os registros
-      const todosRegistros = [
-        ...registrosRecepcao,
-        ...registrosCamararia,
-        ...registrosRevisao,
-        ...registrosAreasComuns,
-        ...registrosAtividadesExtras,
-        ...registrosAtividadesDiarias,
-        ...registrosGestao,
-        ...registrosCozinha,
-        ...registrosVendas
+      if (erroAgregado) {
+        throw erroAgregado;
+      }
+
+      const SETORES = [
+        { chave: 'recepcao', nome: 'Recepção', cor: '#3B82F6' },
+        { chave: 'camararia', nome: 'Camararia', cor: '#10B981' },
+        { chave: 'revisao', nome: 'Revisão', cor: '#F59E0B' },
+        { chave: 'areas_comuns', nome: 'Áreas Comuns', cor: '#8B5CF6' },
+        { chave: 'atividades_extras', nome: 'Atividades Extras', cor: '#EF4444' },
+        { chave: 'atividades_diarias', nome: 'Atividades Diárias', cor: '#06B6D4' },
+        { chave: 'gestao', nome: 'Gestão', cor: '#F97316' },
+        { chave: 'cozinha', nome: 'Cozinha', cor: '#14B8A6' },
+        { chave: 'vendas', nome: 'Vendas', cor: '#A855F7' }
       ];
 
-      // Calcular estatísticas gerais
-      const totalRegistros = todosRegistros.length;
-      const registrosConcluidos = todosRegistros.filter(r => r.status === 'concluido').length;
-      const taxaConclusao = totalRegistros > 0 ? (registrosConcluidos / totalRegistros) * 100 : 0;
+      const vazio = {
+        quantidade: 0, concluidos: 0, total_atividades: 0,
+        atividades_realizadas: 0, tempo_total_min: 0, registros_com_tempo: 0
+      };
+      const setor = (chave: string) => ({ ...vazio, ...(agregado?.setores?.[chave] || {}) });
+      const man = { total: 0, concluidas: 0, ...(agregado?.manutencoes || {}) };
 
+      // Estatísticas gerais (mesmas fórmulas de antes, agora sobre os totais)
+      let totalRegistros = 0;
+      let registrosConcluidos = 0;
       let totalAtividades = 0;
       let atividadesRealizadas = 0;
       let tempoTotalMinutos = 0;
       let registrosComTempo = 0;
 
-      todosRegistros.forEach(registro => {
-        if (registro.atividades && Array.isArray(registro.atividades)) {
-          totalAtividades += registro.atividades.length;
-          atividadesRealizadas += registro.atividades.filter(a => a.status === 'realizada').length;
-        }
-
-        if (registro.hora_inicio && registro.hora_fim) {
-          const inicio = new Date(registro.hora_inicio);
-          const fim = new Date(registro.hora_fim);
-          const tempoRegistro = Math.floor((fim.getTime() - inicio.getTime()) / (1000 * 60));
-          tempoTotalMinutos += tempoRegistro;
-          registrosComTempo++;
-        }
+      SETORES.forEach(({ chave }) => {
+        const s = setor(chave);
+        totalRegistros += s.quantidade;
+        registrosConcluidos += s.concluidos;
+        totalAtividades += s.total_atividades;
+        atividadesRealizadas += s.atividades_realizadas;
+        tempoTotalMinutos += s.tempo_total_min;
+        registrosComTempo += s.registros_com_tempo;
       });
 
+      const taxaConclusao = totalRegistros > 0 ? (registrosConcluidos / totalRegistros) * 100 : 0;
       const eficienciaGeral = totalAtividades > 0 ? (atividadesRealizadas / totalAtividades) * 100 : 0;
       const tempoMedio = registrosComTempo > 0 ? tempoTotalMinutos / registrosComTempo : 0;
 
-      // Calcular usuários ativos e limite
       const usuariosAtivos = usuarios.filter(u => u.active).length;
       const limiteUsuarios = empresa?.numero_usuarios || 0;
 
-      // Dados por tipo de registro
+      // Gráfico: registros por tipo
       const dadosPorTipo = [
-        { nome: 'Recepção', quantidade: registrosRecepcao.length, cor: '#3B82F6' },
-        { nome: 'Camararia', quantidade: registrosCamararia.length, cor: '#10B981' },
-        { nome: 'Revisão', quantidade: registrosRevisao.length, cor: '#F59E0B' },
-        { nome: 'Áreas Comuns', quantidade: registrosAreasComuns.length, cor: '#8B5CF6' },
-        { nome: 'Atividades Extras', quantidade: registrosAtividadesExtras.length, cor: '#EF4444' },
-        { nome: 'Atividades Diárias', quantidade: registrosAtividadesDiarias.length, cor: '#06B6D4' },
-        { nome: 'Gestão', quantidade: registrosGestao.length, cor: '#F97316' },
-        { nome: 'Cozinha', quantidade: registrosCozinha.length, cor: '#14B8A6' },
-        { nome: 'Vendas', quantidade: registrosVendas.length, cor: '#A855F7' },
-        { nome: 'Manutenção', quantidade: manutencoes.length, cor: '#EC4899' }
+        ...SETORES.map(({ chave, nome, cor }) => ({ nome, quantidade: setor(chave).quantidade, cor })),
+        { nome: 'Manutenção', quantidade: man.total, cor: '#EC4899' }
       ].filter(item => item.quantidade > 0);
 
       setGraficoPorTipo(dadosPorTipo);
 
-      // Dados de eficiência por setor
+      // Gráfico: eficiência por setor
       const eficienciaPorSetor = [
-        {
-          setor: 'Recepção',
-          eficiencia: calcularEficienciaSetor(registrosRecepcao)
-        },
-        {
-          setor: 'Camararia',
-          eficiencia: calcularEficienciaSetor(registrosCamararia)
-        },
-        {
-          setor: 'Revisão',
-          eficiencia: calcularEficienciaSetor(registrosRevisao)
-        },
-        {
-          setor: 'Áreas Comuns',
-          eficiencia: calcularEficienciaSetor(registrosAreasComuns)
-        },
-        {
-          setor: 'Atividades Extras',
-          eficiencia: calcularEficienciaSetor(registrosAtividadesExtras)
-        },
-        {
-          setor: 'Atividades Diárias',
-          eficiencia: calcularEficienciaSetor(registrosAtividadesDiarias)
-        },
-        {
-          setor: 'Gestão',
-          eficiencia: calcularEficienciaSetor(registrosGestao)
-        },
-        {
-          setor: 'Cozinha',
-          eficiencia: calcularEficienciaSetor(registrosCozinha)
-        },
-        {
-          setor: 'Vendas',
-          eficiencia: calcularEficienciaSetor(registrosVendas)
-        },
+        ...SETORES.map(({ chave, nome }) => {
+          const s = setor(chave);
+          return {
+            setor: nome,
+            eficiencia: s.total_atividades > 0 ? (s.atividades_realizadas / s.total_atividades) * 100 : 0
+          };
+        }),
         {
           setor: 'Manutenção',
-          eficiencia: calcularEficienciaManutencao(manutencoes)
+          eficiencia: man.total > 0 ? (man.concluidas / man.total) * 100 : 0
         }
       ].filter(item => item.eficiencia > 0);
 
@@ -266,21 +247,21 @@ const DadosGerais: React.FC = () => {
         eficienciaGeral,
         tempoTotalMinutos,
         tempoMedio,
-        totalManutencoes: manutencoes.length,
-        manutencoesCompletas: manutencoes.filter(m => m.status === 'concluida').length,
+        totalManutencoes: man.total,
+        manutencoesCompletas: man.concluidas,
 
         // Breakdown por tipo
         registrosPorTipo: {
-          recepcao: registrosRecepcao.length,
-          camararia: registrosCamararia.length,
-          revisao: registrosRevisao.length,
-          areasComuns: registrosAreasComuns.length,
-          atividadesExtras: registrosAtividadesExtras.length,
-          atividadesDiarias: registrosAtividadesDiarias.length,
-          gestao: registrosGestao.length,
-          cozinha: registrosCozinha.length,
-          vendas: registrosVendas.length,
-          manutencao: manutencoes.length
+          recepcao: setor('recepcao').quantidade,
+          camararia: setor('camararia').quantidade,
+          revisao: setor('revisao').quantidade,
+          areasComuns: setor('areas_comuns').quantidade,
+          atividadesExtras: setor('atividades_extras').quantidade,
+          atividadesDiarias: setor('atividades_diarias').quantidade,
+          gestao: setor('gestao').quantidade,
+          cozinha: setor('cozinha').quantidade,
+          vendas: setor('vendas').quantidade,
+          manutencao: man.total
         }
       });
 
@@ -289,26 +270,6 @@ const DadosGerais: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const calcularEficienciaSetor = (registros: any[]) => {
-    let totalAtividades = 0;
-    let atividadesRealizadas = 0;
-
-    registros.forEach(registro => {
-      if (registro.atividades && Array.isArray(registro.atividades)) {
-        totalAtividades += registro.atividades.length;
-        atividadesRealizadas += registro.atividades.filter(a => a.status === 'realizada').length;
-      }
-    });
-
-    return totalAtividades > 0 ? (atividadesRealizadas / totalAtividades) * 100 : 0;
-  };
-
-  const calcularEficienciaManutencao = (manutencoes: any[]) => {
-    const total = manutencoes.length;
-    const concluidas = manutencoes.filter(m => m.status === 'concluida').length;
-    return total > 0 ? (concluidas / total) * 100 : 0;
   };
 
   const getIconeSetor = (setor: string) => {
@@ -523,23 +484,13 @@ const DadosGerais: React.FC = () => {
               <Crown className="w-6 h-6 lg:w-8 lg:h-8" />
             </div>
             <div>
-              <h1 className="text-xl lg:text-3xl font-bold">{timeOfDay}, {user?.name}!</h1>
+              <Saudacao nome={user?.name} />
               <p className="text-white text-opacity-90 mt-1 text-sm lg:text-base">Painel Executivo - Dados Gerais</p>
               <p className="text-white text-opacity-75 text-xs lg:text-sm mt-1 capitalize hidden lg:block">{dataAtual}</p>
             </div>
           </div>
           <div className="text-right hidden lg:block">
-            <div className="text-xl lg:text-2xl font-bold">
-              {currentTime.toLocaleTimeString('pt-BR', { 
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'America/Sao_Paulo'
-              })}
-              <span className="text-base lg:text-lg">:{currentTime.toLocaleTimeString('pt-BR', { 
-                second: '2-digit',
-                timeZone: 'America/Sao_Paulo'
-              }).split(':')[2]}</span>
-            </div>
+            <RelogioAoVivo />
             <div className="text-white text-opacity-75 text-sm">Horário atual</div>
           </div>
         </div>
@@ -567,15 +518,15 @@ const DadosGerais: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-800">Período de Análise</h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Data Início
             </label>
             <input
               type="date"
-              value={dataInicio}
-              onChange={(e) => setDataInicio(e.target.value)}
+              value={rascunhoInicio}
+              onChange={(e) => setRascunhoInicio(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -585,12 +536,24 @@ const DadosGerais: React.FC = () => {
             </label>
             <input
               type="date"
-              value={dataFim}
-              onChange={(e) => setDataFim(e.target.value)}
+              value={rascunhoFim}
+              onChange={(e) => setRascunhoFim(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <button
+            type="button"
+            onClick={aplicarFiltro}
+            disabled={loading}
+            className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-wait flex items-center justify-center space-x-2"
+          >
+            <Filter className="w-4 h-4" />
+            <span>{loading ? 'Carregando...' : 'Filtrar'}</span>
+          </button>
         </div>
+        {erroFiltro && (
+          <p className="text-sm text-red-600 mt-3">{erroFiltro}</p>
+        )}
       </div>
 
       {dadosGerais && (
