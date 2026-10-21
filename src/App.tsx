@@ -4,6 +4,7 @@ import { VersionProvider } from './contexts/VersionContext';
 import { BroadcastMessageProvider } from './contexts/BroadcastMessageContext';
 import { UpdateModal } from './components/common/UpdateModal';
 import { BroadcastMessageModal } from './components/common/BroadcastMessageModal';
+import { InstalarPwaBanner } from './components/common/InstalarPwaBanner';
 import MainAppContent from './components/MainAppContent';
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
             </ErrorBoundary>
             <UpdateModal />
             <BroadcastMessageModal />
+            <InstalarPwaBanner />
           </div>
         </BroadcastMessageProvider>
       </VersionProvider>
