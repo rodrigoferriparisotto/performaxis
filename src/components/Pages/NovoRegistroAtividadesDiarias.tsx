@@ -21,6 +21,7 @@ import {
 import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgColor } from '../../utils/motivationalPhrases';
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const NovoRegistroAtividadesDiarias: React.FC = () => {
   const { user } = useAuth();
@@ -159,7 +160,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
         }
       }
     } catch (error) {
-      alert('Erro ao carregar dados. Tente novamente.');
+      notificar('Erro ao carregar dados. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -167,12 +168,12 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
 
   const iniciarRegistro = async () => {
     if (!tipoSelecionado) {
-      alert('Por favor, selecione o tipo de atividade');
+      notificar('Por favor, selecione o tipo de atividade');
       return;
     }
 
     if (atividades.length === 0) {
-      alert('Não há atividades cadastradas para este tipo no dia de hoje');
+      notificar('Não há atividades cadastradas para este tipo no dia de hoje');
       return;
     }
 
@@ -199,10 +200,10 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
         setRegistroAtivo(resultado);
         await activityMarkingService.registrarInicio('atividades_diarias');
       } else {
-        alert('Erro ao iniciar registro');
+        notificar('Erro ao iniciar registro');
       }
     } catch (error) {
-      alert('Erro ao iniciar registro');
+      notificar('Erro ao iniciar registro');
     } finally {
       setSaving(false);
     }
@@ -241,7 +242,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
     } catch (error) {
       // desfaz o check na tela: a marcação NÃO foi gravada no banco
       setRegistroAtivo(registroAtivo);
-      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
+      notificar('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
     }
   };
 
@@ -267,19 +268,19 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
         await activityMarkingService.limparRastreamentoCompleto();
         setRegistroAtivo(null);
         setObservacoes('');
-        alert('Registro encerrado com sucesso!');
+        notificar('Registro encerrado com sucesso!');
       } else {
-        alert('Erro ao encerrar registro');
+        notificar('Erro ao encerrar registro');
       }
     } catch (error) {
-      alert('Erro ao encerrar registro');
+      notificar('Erro ao encerrar registro');
     } finally {
       setSaving(false);
     }
   };
 
-  const cancelarRegistro = () => {
-    if (confirm('Tem certeza que deseja cancelar? Todos os dados serão perdidos.')) {
+  const cancelarRegistro = async () => {
+    if (await confirmar('Tem certeza que deseja cancelar? Todos os dados serão perdidos.')) {
       setSaving(true);
       
       const cancelarAsync = async () => {
@@ -300,12 +301,12 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
           if (sucesso) {
             setRegistroAtivo(null);
             setObservacoes('');
-            alert('Registro cancelado e salvo na auditoria!');
+            notificar('Registro cancelado e salvo na auditoria!');
           } else {
-            alert('Erro ao cancelar registro');
+            notificar('Erro ao cancelar registro');
           }
         } catch (error) {
-          alert('Erro ao cancelar registro');
+          notificar('Erro ao cancelar registro');
         } finally {
           setSaving(false);
         }

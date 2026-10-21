@@ -5,6 +5,7 @@ import { AuthService } from '../../services/authService';
 import { PermissionsService } from '../../services/permissionsService';
 import { useAuth } from '../../contexts/AuthContext';
 import { modulosService } from '../../services/modulosService';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const Usuarios: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -98,7 +99,7 @@ const Usuarios: React.FC = () => {
 
     // Validação do telefone
     if (!validatePhoneNumber(formData.telefone)) {
-      alert('Telefone inválido! O telefone deve ter 10 dígitos (fixo) ou 11 dígitos (celular) no formato brasileiro.');
+      notificar('Telefone inválido! O telefone deve ter 10 dígitos (fixo) ou 11 dígitos (celular) no formato brasileiro.');
       return;
     }
 
@@ -113,7 +114,7 @@ const Usuarios: React.FC = () => {
         if (empresaData && empresaData.numero_usuarios) {
           const usuariosAtivos = usuariosData.filter(u => u.active).length;
           if (usuariosAtivos >= empresaData.numero_usuarios) {
-            alert(`Limite de usuários atingido! Máximo permitido: ${empresaData.numero_usuarios} usuários. Usuários ativos atuais: ${usuariosAtivos}`);
+            notificar(`Limite de usuários atingido! Máximo permitido: ${empresaData.numero_usuarios} usuários. Usuários ativos atuais: ${usuariosAtivos}`);
             return;
           }
         }
@@ -125,12 +126,12 @@ const Usuarios: React.FC = () => {
 
     // Validação de senha apenas se preenchida
     if (formData.password && formData.password.length < 6) {
-      alert('A senha deve ter pelo menos 6 caracteres');
+      notificar('A senha deve ter pelo menos 6 caracteres');
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert('As senhas não coincidem');
+      notificar('As senhas não coincidem');
       return;
     }
 
@@ -157,21 +158,21 @@ const Usuarios: React.FC = () => {
             // Usar AuthService para atualizar senha
             const { success, error } = await AuthService.updateUserPassword(editingUser.id, formData.password);
             if (success) {
-              alert('Usuário e senha atualizados com sucesso!');
+              notificar('Usuário e senha atualizados com sucesso!');
             } else {
-              alert(`Usuário atualizado, mas houve problema ao alterar a senha: ${error}`);
+              notificar(`Usuário atualizado, mas houve problema ao alterar a senha: ${error}`);
             }
           } catch (authError) {
 
-            alert('Usuário atualizado, mas houve problema ao alterar a senha no sistema de autenticação.');
+            notificar('Usuário atualizado, mas houve problema ao alterar a senha no sistema de autenticação.');
           }
         } else {
-          alert('Usuário atualizado com sucesso!');
+          notificar('Usuário atualizado com sucesso!');
         }
       } else {
         // Criar novo usuário
         if (!formData.password) {
-          alert('Senha é obrigatória para novos usuários');
+          notificar('Senha é obrigatória para novos usuários');
           setSaving(false);
           return;
         }
@@ -188,7 +189,7 @@ const Usuarios: React.FC = () => {
 
           // Verificação de segurança: usuário não-super-admin DEVE ter empresa
           if (!empresaId) {
-            alert('Erro: Seu usuário não está vinculado a nenhuma empresa. Entre em contato com o administrador do sistema.');
+            notificar('Erro: Seu usuário não está vinculado a nenhuma empresa. Entre em contato com o administrador do sistema.');
             setSaving(false);
             return;
           }
@@ -197,7 +198,7 @@ const Usuarios: React.FC = () => {
         // Validação: gestor/admin pode ser criado sem empresa (apenas por super-admin)
         // Outros perfis SEMPRE precisam de empresa
         if (!empresaId && formData.profile !== 'gestor' && formData.profile !== 'admin') {
-          alert('Usuários que não são gestores ou admin devem ter uma empresa vinculada');
+          notificar('Usuários que não são gestores ou admin devem ter uma empresa vinculada');
           setSaving(false);
           return;
         }
@@ -216,12 +217,12 @@ const Usuarios: React.FC = () => {
 
         if (success) {
           if (!empresaId && formData.profile === 'gestor') {
-            alert('Usuário gestor criado com sucesso!\n\nEste gestor pode ser vinculado a uma empresa posteriormente.');
+            notificar('Usuário gestor criado com sucesso!\n\nEste gestor pode ser vinculado a uma empresa posteriormente.');
           } else {
-            alert('Usuário criado com sucesso no sistema de autenticação e base de dados!');
+            notificar('Usuário criado com sucesso no sistema de autenticação e base de dados!');
           }
         } else {
-          alert(`Erro ao criar usuário: ${error}`);
+          notificar(`Erro ao criar usuário: ${error}`);
           setSaving(false);
           return;
         }
@@ -234,9 +235,9 @@ const Usuarios: React.FC = () => {
       // Verificar se é erro de limite de usuários
       const errorMessage = error?.message || '';
       if (errorMessage.includes('limite') || errorMessage.includes('limit')) {
-        alert(errorMessage);
+        notificar(errorMessage);
       } else {
-        alert('Erro ao salvar usuário');
+        notificar('Erro ao salvar usuário');
       }
     } finally {
       setSaving(false);
@@ -277,18 +278,18 @@ const Usuarios: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este usuário?\n\nEsta ação é PERMANENTE e removerá o usuário completamente do sistema (autenticação e banco de dados).')) {
+    if (await confirmar('Tem certeza que deseja excluir este usuário?\n\nEsta ação é PERMANENTE e removerá o usuário completamente do sistema (autenticação e banco de dados).')) {
       try {
         const { success, error } = await AuthService.deleteUser(id);
 
         if (success) {
-          alert('Usuário excluído com sucesso do sistema de autenticação e banco de dados!');
+          notificar('Usuário excluído com sucesso do sistema de autenticação e banco de dados!');
           loadUsuarios();
         } else {
-          alert(`Erro ao excluir usuário: ${error}`);
+          notificar(`Erro ao excluir usuário: ${error}`);
         }
       } catch (error) {
-        alert('Erro ao excluir usuário. Tente novamente.');
+        notificar('Erro ao excluir usuário. Tente novamente.');
       }
     }
   };
@@ -360,12 +361,12 @@ const Usuarios: React.FC = () => {
       const { success, error } = await AuthService.resetPassword(editingUser.login);
 
       if (success) {
-        alert(`Email de recuperação de senha enviado para ${editingUser.login}. Verifique a caixa de entrada.`);
+        notificar(`Email de recuperação de senha enviado para ${editingUser.login}. Verifique a caixa de entrada.`);
       } else {
-        alert(`Erro ao enviar email: ${error}`);
+        notificar(`Erro ao enviar email: ${error}`);
       }
     } catch (error) {
-      alert('Erro ao enviar email de recuperação');
+      notificar('Erro ao enviar email de recuperação');
     } finally {
       setSendingResetEmail(false);
     }

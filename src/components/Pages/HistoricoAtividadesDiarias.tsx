@@ -18,6 +18,7 @@ import {
   Activity,
   Trash2
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const PAGE_SIZE = 15;
 
@@ -52,7 +53,7 @@ const HistoricoAtividadesDiarias: React.FC = () => {
       setTotalRecords(count);
     } catch (error) {
 
-      alert('Erro ao carregar histórico. Tente novamente.');
+      notificar('Erro ao carregar histórico. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -179,18 +180,18 @@ const HistoricoAtividadesDiarias: React.FC = () => {
                          <button
                            onClick={async (e) => {
                              e.stopPropagation();
-                             if (confirm('Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.')) {
+                             if (await confirmar('Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.')) {
                                try {
                                  const result = await registroAtividadesDiariasService.deleteRegistro(registro.id);
                                  if (result.success) {
-                                   alert('Registro excluído com sucesso!');
+                                   notificar('Registro excluído com sucesso!');
                                    await carregarDados();
                                  } else {
-                                   alert(result.error || 'Erro ao excluir registro');
+                                   notificar(result.error || 'Erro ao excluir registro');
                                  }
                                } catch (error) {
                                  console.error('Error deleting registro:', error);
-                                 alert('Erro inesperado ao excluir registro. Tente novamente.');
+                                 notificar('Erro inesperado ao excluir registro. Tente novamente.');
                                }
                              }
                            }}

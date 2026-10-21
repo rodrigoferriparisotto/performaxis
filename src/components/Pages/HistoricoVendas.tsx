@@ -19,6 +19,7 @@ import {
   ShoppingBag,
   Trash2
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const PAGE_SIZE = 15;
 
@@ -78,7 +79,7 @@ const HistoricoVendas: React.FC = () => {
       setAtividades(atividadesData);
       setTotalRecords(countResult.count || 0);
     } catch (error) {
-      alert('Erro ao carregar histórico. Tente novamente.');
+      notificar('Erro ao carregar histórico. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -139,17 +140,17 @@ const HistoricoVendas: React.FC = () => {
 
   const handleDeleteRegistro = async (registroId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (confirm('Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.')) {
+    if (await confirmar('Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.')) {
       const { error } = await supabase
         .from('registros_vendas')
         .delete()
         .eq('id', registroId);
 
       if (error) {
-        alert('Erro ao excluir registro');
+        notificar('Erro ao excluir registro');
       } else {
         await carregarDados();
-        alert('Registro excluído com sucesso!');
+        notificar('Registro excluído com sucesso!');
       }
     }
   };

@@ -24,6 +24,7 @@ import {
 import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgColor } from '../../utils/motivationalPhrases';
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const NovoRegistroRevisao: React.FC = () => {
   const { user } = useAuth();
@@ -91,7 +92,7 @@ const NovoRegistroRevisao: React.FC = () => {
         setAtividades(atividadesRevisao);
       }
     } catch (error) {
-      alert('Erro ao carregar dados. Tente novamente.');
+      notificar('Erro ao carregar dados. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -121,12 +122,12 @@ const NovoRegistroRevisao: React.FC = () => {
         setShowOldRecordModal(false);
         // Recarregar dados para atualizar a lista
         await carregarDados();
-        alert('Registro anterior finalizado com sucesso!');
+        notificar('Registro anterior finalizado com sucesso!');
       } else {
-        alert('Erro ao finalizar registro anterior');
+        notificar('Erro ao finalizar registro anterior');
       }
     } catch (error) {
-      alert('Erro ao finalizar registro anterior');
+      notificar('Erro ao finalizar registro anterior');
     } finally {
       setSaving(false);
     }
@@ -155,12 +156,12 @@ const NovoRegistroRevisao: React.FC = () => {
         await activityMarkingService.limparRastreamentoCompleto();
         setOldRecord(null);
         setShowOldRecordModal(false);
-        alert('Registro anterior cancelado com sucesso!');
+        notificar('Registro anterior cancelado com sucesso!');
       } else {
-        alert('Erro ao cancelar registro anterior');
+        notificar('Erro ao cancelar registro anterior');
       }
     } catch (error) {
-      alert('Erro ao cancelar registro anterior');
+      notificar('Erro ao cancelar registro anterior');
     } finally {
       setSaving(false);
     }
@@ -202,10 +203,10 @@ const NovoRegistroRevisao: React.FC = () => {
         setRegistroAtivo(resultado);
         await activityMarkingService.registrarInicio('revisao');
       } else {
-        alert('Erro ao iniciar registro');
+        notificar('Erro ao iniciar registro');
       }
     } catch (error) {
-      alert('Erro ao iniciar registro');
+      notificar('Erro ao iniciar registro');
     } finally {
       setSaving(false);
     }
@@ -213,7 +214,7 @@ const NovoRegistroRevisao: React.FC = () => {
 
   const iniciarNovoRegistro = async () => {
     if (!suiteSelecionada) {
-      alert('Por favor, selecione uma suíte');
+      notificar('Por favor, selecione uma suíte');
       return;
     }
 
@@ -243,10 +244,10 @@ const NovoRegistroRevisao: React.FC = () => {
         setShowNovoRegistro(false);
         setSuiteSelecionada('');
       } else {
-        alert('Erro ao iniciar registro');
+        notificar('Erro ao iniciar registro');
       }
     } catch (error) {
-      alert('Erro ao iniciar registro');
+      notificar('Erro ao iniciar registro');
     } finally {
       setSaving(false);
     }
@@ -285,7 +286,7 @@ const NovoRegistroRevisao: React.FC = () => {
     } catch (error) {
       // desfaz o check na tela: a marcação NÃO foi gravada no banco
       setRegistroAtivo(registroAtivo);
-      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
+      notificar('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
     }
   };
 
@@ -326,19 +327,19 @@ const NovoRegistroRevisao: React.FC = () => {
           behavior: 'smooth'
         });
 
-        alert('Registro de revisão encerrado com sucesso!');
+        notificar('Registro de revisão encerrado com sucesso!');
       } else {
-        alert('Erro ao encerrar registro');
+        notificar('Erro ao encerrar registro');
       }
     } catch (error) {
-      alert('Erro ao encerrar registro');
+      notificar('Erro ao encerrar registro');
     } finally {
       setSaving(false);
     }
   };
 
-  const cancelarRegistro = () => {
-    if (confirm('Tem certeza que deseja cancelar? Todos os dados serão perdidos.')) {
+  const cancelarRegistro = async () => {
+    if (await confirmar('Tem certeza que deseja cancelar? Todos os dados serão perdidos.')) {
       setSaving(true);
       
       const cancelarAsync = async () => {
@@ -361,12 +362,12 @@ const NovoRegistroRevisao: React.FC = () => {
             await activityMarkingService.limparRastreamentoCompleto();
             setRegistroAtivo(null);
             setObservacoes('');
-            alert('Registro cancelado e salvo na auditoria!');
+            notificar('Registro cancelado e salvo na auditoria!');
           } else {
-            alert('Erro ao cancelar registro');
+            notificar('Erro ao cancelar registro');
           }
         } catch (error) {
-          alert('Erro ao cancelar registro');
+          notificar('Erro ao cancelar registro');
         } finally {
           setSaving(false);
         }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Save, Shield, Eye, Settings, ChevronDown, ChevronRight, Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
 import { PermissionsService, PerfilSistema } from '../../services/permissionsService';
 import { useAuth } from '../../contexts/AuthContext';
+import { notificar } from '../../lib/feedback';
 
 const Perfis: React.FC = () => {
   const { user, reloadPermissions } = useAuth();
@@ -26,7 +27,7 @@ const Perfis: React.FC = () => {
       setProfiles(profilesData);
     } catch (error) {
       console.error('Error loading system profiles:', error);
-      alert('Erro ao carregar perfis do sistema');
+      notificar('Erro ao carregar perfis do sistema');
     } finally {
       setLoading(false);
     }
@@ -34,7 +35,7 @@ const Perfis: React.FC = () => {
 
   const handlePermissionChange = (profileId: string, moduleId: string, checked: boolean) => {
     if (!canEdit) {
-      alert('Você não tem permissão para alterar perfis');
+      notificar('Você não tem permissão para alterar perfis');
       return;
     }
 
@@ -66,7 +67,7 @@ const Perfis: React.FC = () => {
 
   const handleSaveChanges = async () => {
     if (!canEdit) {
-      alert('Você não tem permissão para salvar alterações');
+      notificar('Você não tem permissão para salvar alterações');
       return;
     }
 
@@ -85,11 +86,11 @@ const Perfis: React.FC = () => {
         // Recarregar as permissões do usuário atual imediatamente
         await reloadPermissions();
 
-        alert('Permissões globais atualizadas com sucesso!\n\nSuas permissões foram atualizadas automaticamente.\n\nIMPORTANTE: Outros usuários já logados precisam fazer logout e login novamente para que as alterações sejam aplicadas.\n\nAs alterações serão aplicadas a todos os usuários com esses perfis, em todas as empresas.');
+        notificar('Permissões globais atualizadas com sucesso!\n\nSuas permissões foram atualizadas automaticamente.\n\nIMPORTANTE: Outros usuários já logados precisam fazer logout e login novamente para que as alterações sejam aplicadas.\n\nAs alterações serão aplicadas a todos os usuários com esses perfis, em todas as empresas.');
         setHasChanges(false);
         await loadSystemProfiles();
       } else {
-        alert('Erro ao salvar algumas permissões.\n\nVerifique se você tem permissões de administrador para modificar perfis do sistema.\n\nSe o problema persistir, entre em contato com o suporte.');
+        notificar('Erro ao salvar algumas permissões.\n\nVerifique se você tem permissões de administrador para modificar perfis do sistema.\n\nSe o problema persistir, entre em contato com o suporte.');
       }
     } catch (error: any) {
       console.error('Error saving permissions:', error);
@@ -101,7 +102,7 @@ const Perfis: React.FC = () => {
         errorMessage += '\n\nTente novamente. Se o problema persistir, entre em contato com o suporte.';
       }
 
-      alert(errorMessage);
+      notificar(errorMessage);
     } finally {
       setSaving(false);
     }

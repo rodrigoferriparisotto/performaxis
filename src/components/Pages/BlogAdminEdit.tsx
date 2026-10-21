@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Save, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { notificar } from '../../lib/feedback';
 
 interface BlogAdminEditProps {
   postId?: string;
@@ -91,7 +92,7 @@ const BlogAdminEdit: React.FC<BlogAdminEditProps> = ({ postId }) => {
       setSelectedTags(postTags?.map(pt => pt.tag_id) || []);
     } catch (error) {
       console.error('Erro ao carregar post:', error);
-      alert('Erro ao carregar post.');
+      notificar('Erro ao carregar post.');
     }
   };
 
@@ -145,7 +146,7 @@ const BlogAdminEdit: React.FC<BlogAdminEditProps> = ({ postId }) => {
           await supabase.from('blog_posts_tags').insert(tagsData);
         }
 
-        alert('Post atualizado com sucesso!');
+        notificar('Post atualizado com sucesso!');
       } else {
         const { data: newPost, error } = await supabase
           .from('blog_posts')
@@ -164,16 +165,16 @@ const BlogAdminEdit: React.FC<BlogAdminEditProps> = ({ postId }) => {
           await supabase.from('blog_posts_tags').insert(tagsData);
         }
 
-        alert('Post criado com sucesso!');
+        notificar('Post criado com sucesso!');
       }
 
       window.location.hash = 'blog-admin';
     } catch (error: any) {
       console.error('Erro ao salvar post:', error);
       if (error.code === '23505') {
-        alert('Já existe um post com este slug. Escolha outro título ou edite o slug manualmente.');
+        notificar('Já existe um post com este slug. Escolha outro título ou edite o slug manualmente.');
       } else {
-        alert('Erro ao salvar post. Tente novamente.');
+        notificar('Erro ao salvar post. Tente novamente.');
       }
     } finally {
       setLoading(false);

@@ -10,6 +10,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface TipoFuncaoComercial {
   id: string;
@@ -73,7 +74,7 @@ const TiposFuncoesComerciais: React.FC = () => {
   };
 
   const handleDeleteTipo = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este tipo de função comercial?')) {
+    if (await confirmar('Tem certeza que deseja excluir este tipo de função comercial?')) {
       try {
         const { error } = await supabase
           .from('tipos_funcoes_comerciais')
@@ -81,13 +82,13 @@ const TiposFuncoesComerciais: React.FC = () => {
           .eq('id', id);
 
         if (error) {
-          window.alert('Erro ao excluir tipo de função comercial');
+          notificar('Erro ao excluir tipo de função comercial');
         } else {
           await carregarTipos();
-          window.alert('Tipo de função comercial excluído com sucesso!');
+          notificar('Tipo de função comercial excluído com sucesso!');
         }
       } catch (error) {
-        window.alert('Erro ao excluir tipo de função comercial');
+        notificar('Erro ao excluir tipo de função comercial');
       }
     }
   };
@@ -119,7 +120,7 @@ const TiposFuncoesComerciais: React.FC = () => {
     );
 
     if (nomeExiste) {
-      window.alert('Já existe um tipo de função comercial com este nome.');
+      notificar('Já existe um tipo de função comercial com este nome.');
       setSaving(false);
       return;
     }
@@ -127,7 +128,7 @@ const TiposFuncoesComerciais: React.FC = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -139,7 +140,7 @@ const TiposFuncoesComerciais: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -170,15 +171,15 @@ const TiposFuncoesComerciais: React.FC = () => {
       }
 
       if (result.error) {
-        window.alert('Erro ao salvar tipo de função comercial');
+        notificar('Erro ao salvar tipo de função comercial');
       } else {
         await carregarTipos();
         setShowModal(false);
         setEditingTipo(null);
-        window.alert(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
+        notificar(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
       }
     } catch (error) {
-      window.alert('Erro ao salvar tipo de função comercial');
+      notificar('Erro ao salvar tipo de função comercial');
     } finally {
       setSaving(false);
     }

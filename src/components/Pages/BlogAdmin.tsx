@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface BlogPost {
   id: string;
@@ -58,7 +59,7 @@ const BlogAdmin: React.FC = () => {
   };
 
   const handleDelete = async (id: string, titulo: string) => {
-    if (!confirm(`Tem certeza que deseja excluir o post "${titulo}"?`)) {
+    if (!await confirmar(`Tem certeza que deseja excluir o post "${titulo}"?`)) {
       return;
     }
 
@@ -70,11 +71,11 @@ const BlogAdmin: React.FC = () => {
 
       if (error) throw error;
 
-      alert('Post excluído com sucesso!');
+      notificar('Post excluído com sucesso!');
       loadPosts();
     } catch (error) {
       console.error('Erro ao excluir post:', error);
-      alert('Erro ao excluir post. Tente novamente.');
+      notificar('Erro ao excluir post. Tente novamente.');
     }
   };
 

@@ -40,6 +40,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const AtividadesGestao: React.FC = () => {
   const { user } = useAuth();
@@ -128,13 +129,13 @@ const AtividadesGestao: React.FC = () => {
   };
 
   const handleDeleteAtividade = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta atividade?')) {
+    if (await confirmar('Tem certeza que deseja excluir esta atividade?')) {
       const success = await atividadeService.deleteAtividade(id);
       if (success) {
         await carregarAtividades();
-        alert('Atividade excluída com sucesso!');
+        notificar('Atividade excluída com sucesso!');
       } else {
-        alert('Erro ao excluir atividade');
+        notificar('Erro ao excluir atividade');
       }
     }
   };
@@ -186,10 +187,10 @@ const AtividadesGestao: React.FC = () => {
       setEditingActivity(null);
       setSelectedDias([]);
       setSelectedTipos([]);
-      alert(editingActivity ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
+      notificar(editingActivity ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
     } else {
 
-      alert('Erro ao salvar atividade');
+      notificar('Erro ao salvar atividade');
     }
     
     setSaving(false);
@@ -265,7 +266,7 @@ const AtividadesGestao: React.FC = () => {
     if (success) {
       setAtividades(sortedAtividades);
     } else {
-      alert('Erro ao reordenar atividades');
+      notificar('Erro ao reordenar atividades');
       await carregarAtividades();
     }
 
@@ -313,7 +314,7 @@ const AtividadesGestao: React.FC = () => {
       if (success) {
         setAtividades(reorderedAtividades);
       } else {
-        alert('Erro ao reordenar atividades');
+        notificar('Erro ao reordenar atividades');
         carregarAtividades(); // Recarregar em caso de erro
       }
     });

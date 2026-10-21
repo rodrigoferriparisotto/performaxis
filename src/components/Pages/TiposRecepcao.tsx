@@ -10,6 +10,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface TipoRecepcao {
   id: string;
@@ -78,7 +79,7 @@ const TiposRecepcao: React.FC = () => {
   };
 
   const handleDeleteTipo = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este tipo de recepção?')) {
+    if (await confirmar('Tem certeza que deseja excluir este tipo de recepção?')) {
       try {
         const { error } = await supabase
           .from('tipos_recepcao')
@@ -87,14 +88,14 @@ const TiposRecepcao: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir tipo de recepção');
+          notificar('Erro ao excluir tipo de recepção');
         } else {
           await carregarTipos();
-          window.alert('Tipo de recepção excluído com sucesso!');
+          notificar('Tipo de recepção excluído com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir tipo de recepção');
+        notificar('Erro ao excluir tipo de recepção');
       }
     }
   };
@@ -127,7 +128,7 @@ const TiposRecepcao: React.FC = () => {
     );
 
     if (nomeExiste) {
-      window.alert('Já existe um tipo de recepção com este nome.');
+      notificar('Já existe um tipo de recepção com este nome.');
       setSaving(false);
       return;
     }
@@ -136,7 +137,7 @@ const TiposRecepcao: React.FC = () => {
       // Obter empresa_id do usuário atual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -148,7 +149,7 @@ const TiposRecepcao: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -181,16 +182,16 @@ const TiposRecepcao: React.FC = () => {
 
       if (result.error) {
 
-        window.alert('Erro ao salvar tipo de recepção');
+        notificar('Erro ao salvar tipo de recepção');
       } else {
         await carregarTipos();
         setShowModal(false);
         setEditingTipo(null);
-        window.alert(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
+        notificar(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
       }
     } catch (error) {
 
-      window.alert('Erro ao salvar tipo de recepção');
+      notificar('Erro ao salvar tipo de recepção');
     } finally {
       setSaving(false);
     }

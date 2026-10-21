@@ -21,6 +21,7 @@ import {
 import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgColor } from '../../utils/motivationalPhrases';
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const NovoRegistroGestao: React.FC = () => {
   const { user } = useAuth();
@@ -115,7 +116,7 @@ const NovoRegistroGestao: React.FC = () => {
         setObservacoes(registroEmAndamento.observacoes || '');
       }
     } catch (error) {
-      alert('Erro ao carregar dados. Tente novamente.');
+      notificar('Erro ao carregar dados. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -157,12 +158,12 @@ const NovoRegistroGestao: React.FC = () => {
 
   const iniciarRegistro = async () => {
     if (!tipoSelecionado) {
-      alert('Por favor, selecione o tipo de gestão');
+      notificar('Por favor, selecione o tipo de gestão');
       return;
     }
 
     if (atividades.length === 0) {
-      alert('Não há atividades cadastradas para este tipo de gestão');
+      notificar('Não há atividades cadastradas para este tipo de gestão');
       return;
     }
 
@@ -188,10 +189,10 @@ const NovoRegistroGestao: React.FC = () => {
         setRegistroAtivo(resultado);
         await activityMarkingService.registrarInicio('gestao');
       } else {
-        alert('Erro ao iniciar registro');
+        notificar('Erro ao iniciar registro');
       }
     } catch (error) {
-      alert('Erro ao iniciar registro');
+      notificar('Erro ao iniciar registro');
     } finally {
       setSaving(false);
     }
@@ -230,7 +231,7 @@ const NovoRegistroGestao: React.FC = () => {
     } catch (error) {
       // desfaz o check na tela: a marcação NÃO foi gravada no banco
       setRegistroAtivo(registroAtivo);
-      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
+      notificar('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
     }
   };
 
@@ -256,19 +257,19 @@ const NovoRegistroGestao: React.FC = () => {
         await activityMarkingService.limparRastreamentoCompleto();
         setRegistroAtivo(null);
         setObservacoes('');
-        alert('Registro encerrado com sucesso!');
+        notificar('Registro encerrado com sucesso!');
       } else {
-        alert('Erro ao encerrar registro');
+        notificar('Erro ao encerrar registro');
       }
     } catch (error) {
-      alert('Erro ao encerrar registro');
+      notificar('Erro ao encerrar registro');
     } finally {
       setSaving(false);
     }
   };
 
-  const cancelarRegistro = () => {
-    if (confirm('Tem certeza que deseja cancelar? Todos os dados serão perdidos.')) {
+  const cancelarRegistro = async () => {
+    if (await confirmar('Tem certeza que deseja cancelar? Todos os dados serão perdidos.')) {
       setSaving(true);
       
       const cancelarAsync = async () => {
@@ -289,12 +290,12 @@ const NovoRegistroGestao: React.FC = () => {
           if (sucesso) {
             setRegistroAtivo(null);
             setObservacoes('');
-            alert('Registro cancelado e salvo na auditoria!');
+            notificar('Registro cancelado e salvo na auditoria!');
           } else {
-            alert('Erro ao cancelar registro');
+            notificar('Erro ao cancelar registro');
           }
         } catch (error) {
-          alert('Erro ao cancelar registro');
+          notificar('Erro ao cancelar registro');
         } finally {
           setSaving(false);
         }

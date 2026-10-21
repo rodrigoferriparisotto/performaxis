@@ -15,6 +15,7 @@ import {
   Clock,
   User
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface RegistroProgramado {
   id: string;
@@ -180,7 +181,7 @@ const ProgramacaoCamararia: React.FC = () => {
       );
       
       if (jaProgramada) {
-        alert('Esta suíte já possui uma programação para esta data.');
+        notificar('Esta suíte já possui uma programação para esta data.');
         setSaving(false);
         return;
       }
@@ -201,7 +202,7 @@ const ProgramacaoCamararia: React.FC = () => {
     try {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (!authUser) {
-        alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -213,7 +214,7 @@ const ProgramacaoCamararia: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -245,23 +246,23 @@ const ProgramacaoCamararia: React.FC = () => {
 
       if (result.error) {
 
-        alert('Erro ao salvar programação');
+        notificar('Erro ao salvar programação');
       } else {
         await carregarRegistrosProgramados();
         setShowModal(false);
         setEditingRegistro(null);
-        alert(editingRegistro ? 'Programação atualizada com sucesso!' : 'Registro programado com sucesso!');
+        notificar(editingRegistro ? 'Programação atualizada com sucesso!' : 'Registro programado com sucesso!');
       }
     } catch (error) {
 
-      alert('Erro ao salvar programação');
+      notificar('Erro ao salvar programação');
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteRegistro = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta programação?')) {
+    if (await confirmar('Tem certeza que deseja excluir esta programação?')) {
       try {
         // Optimistic update: remover da lista imediatamente
         const registroAnterior = registrosProgramados.find(r => r.id === id);
@@ -277,17 +278,17 @@ const ProgramacaoCamararia: React.FC = () => {
           if (registroAnterior) {
             setRegistrosProgramados(prev => [...prev, registroAnterior]);
           }
-          alert('Erro ao excluir programação');
+          notificar('Erro ao excluir programação');
         } else {
           // Sucesso: a lista já foi atualizada com o optimistic update
-          alert('Programação excluída com sucesso!');
+          notificar('Programação excluída com sucesso!');
           // Opcional: recarregar para garantir sincronização
           await carregarRegistrosProgramados();
         }
       } catch (error) {
         // Em caso de exceção, recarregar a lista
         await carregarRegistrosProgramados();
-        alert('Erro ao excluir programação');
+        notificar('Erro ao excluir programação');
       }
     }
   };

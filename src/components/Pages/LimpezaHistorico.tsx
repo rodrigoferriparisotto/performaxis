@@ -15,6 +15,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { historicalCleanupService, TabelaRegistro, LogLimpeza } from '../../services/historicalCleanupService';
 import Pagination from '../common/Pagination';
 import ConfirmacaoLimpezaModal from './ConfirmacaoLimpezaModal';
+import { notificar } from '../../lib/feedback';
 
 const PERIODOS_DISPONIVEIS = [
   { valor: 6, label: '6 meses' },
@@ -64,13 +65,13 @@ export default function LimpezaHistorico() {
     const permissao = await historicalCleanupService.validarPermissaoUsuario();
     setTemPermissao(permissao);
     if (!permissao) {
-      alert('Acesso negado. Apenas administradores e gestores podem acessar esta página.');
+      notificar('Acesso negado. Apenas administradores e gestores podem acessar esta página.');
     }
   };
 
   const buscarRegistrosAntigos = async () => {
     if (!user?.empresaId) {
-      alert('Empresa não identificada. Faça login novamente.');
+      notificar('Empresa não identificada. Faça login novamente.');
       return;
     }
 
@@ -90,11 +91,11 @@ export default function LimpezaHistorico() {
 
       // Mostrar mensagem se não houver registros
       if (dados.length === 0 || dados.every(d => d.quantidade === 0)) {
-        alert(`Nenhum registro encontrado com mais de ${periodoSelecionado} meses.`);
+        notificar(`Nenhum registro encontrado com mais de ${periodoSelecionado} meses.`);
       }
     } catch (error: any) {
       console.error('Erro na busca:', error);
-      alert(`Erro ao buscar registros antigos: ${error.message || 'Erro desconhecido'}`);
+      notificar(`Erro ao buscar registros antigos: ${error.message || 'Erro desconhecido'}`);
     } finally {
       setBuscando(false);
     }
@@ -151,7 +152,7 @@ export default function LimpezaHistorico() {
 
   const abrirModalConfirmacao = () => {
     if (tabelasSelecionadas.size === 0) {
-      alert('Selecione pelo menos uma tabela para limpar.');
+      notificar('Selecione pelo menos uma tabela para limpar.');
       return;
     }
     setMostrarModal(true);
@@ -174,9 +175,9 @@ export default function LimpezaHistorico() {
       setRegistrosAntigos([]);
       setTabelasSelecionadas(new Set());
       await carregarHistorico();
-      alert('Limpeza realizada com sucesso!');
+      notificar('Limpeza realizada com sucesso!');
     } catch (error) {
-      alert('Erro ao executar limpeza. Tente novamente.');
+      notificar('Erro ao executar limpeza. Tente novamente.');
       console.error(error);
     } finally {
       setLoading(false);

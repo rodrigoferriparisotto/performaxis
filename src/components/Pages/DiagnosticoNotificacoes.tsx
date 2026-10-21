@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { notificationService } from '../../services/notificationService';
 import { notificationQueueService } from '../../services/notificationQueueService';
 import { requestPushNotificationPermission } from '../../services/firebasePushService';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface PushNotificationLog {
   id: string;
@@ -208,7 +209,7 @@ export function DiagnosticoNotificacoes() {
   };
 
   const cleanupInvalidTokens = async () => {
-    if (!confirm('Deseja limpar todos os tokens inválidos? Esta ação não pode ser desfeita.')) {
+    if (!await confirmar('Deseja limpar todos os tokens inválidos? Esta ação não pode ser desfeita.')) {
       return;
     }
 
@@ -272,7 +273,7 @@ export function DiagnosticoNotificacoes() {
   };
 
   const deleteIndividualToken = async (tokenId: string) => {
-    if (!confirm('Deseja remover este token? Esta ação não pode ser desfeita.')) {
+    if (!await confirmar('Deseja remover este token? Esta ação não pode ser desfeita.')) {
       return;
     }
 
@@ -288,7 +289,7 @@ export function DiagnosticoNotificacoes() {
 
       await loadDiagnosticData();
     } catch (error: any) {
-      alert(`Erro ao remover token: ${error.message}`);
+      notificar(`Erro ao remover token: ${error.message}`);
     } finally {
       setDeletingTokenId(null);
     }

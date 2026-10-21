@@ -4,6 +4,7 @@ import { BroadcastMessageService, BroadcastMessage } from '../../services/broadc
 import { useAuth } from '../../contexts/AuthContext';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { confirmar } from '../../lib/feedback';
 
 export const EnviarMensagem: React.FC = () => {
   const { user } = useAuth();
@@ -167,7 +168,7 @@ export const EnviarMensagem: React.FC = () => {
   };
 
   const handleDeactivate = async (messageId: string) => {
-    if (!confirm('Deseja realmente desativar esta mensagem? Ela não aparecerá mais para novos usuários.')) {
+    if (!await confirmar('Deseja realmente desativar esta mensagem? Ela não aparecerá mais para novos usuários.')) {
       return;
     }
 

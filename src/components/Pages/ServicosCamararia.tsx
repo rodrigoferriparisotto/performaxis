@@ -10,6 +10,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface ServicosCamararia {
   id: string;
@@ -79,7 +80,7 @@ const ServicosCamararia: React.FC = () => {
   };
 
   const handleDeleteServico = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este serviço de governança?')) {
+    if (await confirmar('Tem certeza que deseja excluir este serviço de governança?')) {
       try {
         const { error } = await supabase
           .from('servicos_camararia')
@@ -88,14 +89,14 @@ const ServicosCamararia: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir serviço de governança');
+          notificar('Erro ao excluir serviço de governança');
         } else {
           await carregarServicos();
-          window.alert('Serviço de governança excluído com sucesso!');
+          notificar('Serviço de governança excluído com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir serviço de governança');
+        notificar('Erro ao excluir serviço de governança');
       }
     }
   };
@@ -129,7 +130,7 @@ const ServicosCamararia: React.FC = () => {
     );
 
     if (nomeExiste) {
-      window.alert('Já existe um serviço de governança com este nome.');
+      notificar('Já existe um serviço de governança com este nome.');
       setSaving(false);
       return;
     }
@@ -138,7 +139,7 @@ const ServicosCamararia: React.FC = () => {
       // Obter empresa_id do usuário atual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -150,7 +151,7 @@ const ServicosCamararia: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -183,16 +184,16 @@ const ServicosCamararia: React.FC = () => {
 
       if (result.error) {
 
-        window.alert('Erro ao salvar serviço de governança');
+        notificar('Erro ao salvar serviço de governança');
       } else {
         await carregarServicos();
         setShowModal(false);
         setEditingServico(null);
-        window.alert(editingServico ? 'Serviço atualizado com sucesso!' : 'Serviço criado com sucesso!');
+        notificar(editingServico ? 'Serviço atualizado com sucesso!' : 'Serviço criado com sucesso!');
       }
     } catch (error) {
 
-      window.alert('Erro ao salvar serviço de governança');
+      notificar('Erro ao salvar serviço de governança');
     } finally {
       setSaving(false);
     }

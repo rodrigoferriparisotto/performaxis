@@ -11,6 +11,7 @@ import {
   Save,
   AlertCircle
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const Suites: React.FC = () => {
   const { user } = useAuth();
@@ -38,13 +39,13 @@ const Suites: React.FC = () => {
   };
 
   const handleDeleteSuite = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta suíte?')) {
+    if (await confirmar('Tem certeza que deseja excluir esta suíte?')) {
       const success = await suiteService.deleteSuite(id);
       if (success) {
         await carregarDados();
-        alert('Suíte excluída com sucesso!');
+        notificar('Suíte excluída com sucesso!');
       } else {
-        alert('Erro ao excluir suíte');
+        notificar('Erro ao excluir suíte');
       }
     }
   };
@@ -57,7 +58,7 @@ const Suites: React.FC = () => {
   const handleNewSuite = () => {
     // Verificar se já atingiu o limite
     if (empresa && suites.length >= empresa.numero_quartos) {
-      alert(`Limite de ${empresa.numero_quartos} suítes já foi atingido conforme cadastro da empresa.`);
+      notificar(`Limite de ${empresa.numero_quartos} suítes já foi atingido conforme cadastro da empresa.`);
       return;
     }
     setEditingSuite(null);
@@ -83,7 +84,7 @@ const Suites: React.FC = () => {
     );
 
     if (nomeExiste) {
-      alert('Já existe uma suíte com este nome.');
+      notificar('Já existe uma suíte com este nome.');
       setSaving(false);
       return;
     }
@@ -94,7 +95,7 @@ const Suites: React.FC = () => {
     } else {
       // Verificar limite novamente antes de adicionar
       if (empresa && suites.length >= empresa.numero_quartos) {
-        alert(`Limite de ${empresa.numero_quartos} suítes já foi atingido.`);
+        notificar(`Limite de ${empresa.numero_quartos} suítes já foi atingido.`);
         setSaving(false);
         return;
       }
@@ -105,9 +106,9 @@ const Suites: React.FC = () => {
       await carregarDados();
       setShowModal(false);
       setEditingSuite(null);
-      alert(editingSuite ? 'Suíte atualizada com sucesso!' : 'Suíte criada com sucesso!');
+      notificar(editingSuite ? 'Suíte atualizada com sucesso!' : 'Suíte criada com sucesso!');
     } else {
-      alert('Erro ao salvar suíte');
+      notificar('Erro ao salvar suíte');
     }
     
     setSaving(false);

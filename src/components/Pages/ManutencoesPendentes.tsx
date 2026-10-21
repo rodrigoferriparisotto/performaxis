@@ -20,6 +20,7 @@ import {
   FileText,
   Trash2
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const ManutencoesPendentes: React.FC = () => {
   const { user } = useAuth();
@@ -78,7 +79,7 @@ const ManutencoesPendentes: React.FC = () => {
       setUsuarios(usuariosData);
     } catch (error) {
 
-      alert('Erro ao carregar manutenções. Tente novamente.');
+      notificar('Erro ao carregar manutenções. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -98,12 +99,12 @@ const ManutencoesPendentes: React.FC = () => {
         await activityMarkingService.registrarInicio('manutencao');
         await carregarManutencoes();
       } else {
-        alert('Esta manutenção acabou de ser assumida por outra pessoa. A lista será atualizada.');
+        notificar('Esta manutenção acabou de ser assumida por outra pessoa. A lista será atualizada.');
         await carregarManutencoes();
       }
     } catch (error) {
 
-      alert('Erro ao iniciar manutenção');
+      notificar('Erro ao iniciar manutenção');
     } finally {
       setUpdating(false);
     }
@@ -130,11 +131,11 @@ const ManutencoesPendentes: React.FC = () => {
       if (resultado) {
         await carregarManutencoes();
       } else {
-        alert('Erro ao pausar manutenção');
+        notificar('Erro ao pausar manutenção');
       }
     } catch (error) {
 
-      alert('Erro ao pausar manutenção');
+      notificar('Erro ao pausar manutenção');
     } finally {
       setUpdating(false);
     }
@@ -160,11 +161,11 @@ const ManutencoesPendentes: React.FC = () => {
       if (resultado) {
         await carregarManutencoes();
       } else {
-        alert('Erro ao retomar manutenção');
+        notificar('Erro ao retomar manutenção');
       }
     } catch (error) {
 
-      alert('Erro ao retomar manutenção');
+      notificar('Erro ao retomar manutenção');
     } finally {
       setUpdating(false);
     }
@@ -177,7 +178,7 @@ const ManutencoesPendentes: React.FC = () => {
   };
 
   const resetarManutencaoOrfa = async (manutencaoId: string) => {
-    if (!window.confirm('Resetar esta manutenção para o status "Aberto"? Isso permitirá que alguém possa iniciá-la novamente.')) {
+    if (!await confirmar('Resetar esta manutenção para o status "Aberto"? Isso permitirá que alguém possa iniciá-la novamente.')) {
       return;
     }
 
@@ -194,10 +195,10 @@ const ManutencoesPendentes: React.FC = () => {
       if (resultado) {
         await carregarManutencoes();
       } else {
-        alert('Erro ao resetar manutenção');
+        notificar('Erro ao resetar manutenção');
       }
     } catch (error) {
-      alert('Erro ao resetar manutenção. Tente novamente.');
+      notificar('Erro ao resetar manutenção. Tente novamente.');
     } finally {
       setUpdating(false);
     }
@@ -237,20 +238,20 @@ const ManutencoesPendentes: React.FC = () => {
         setShowFinalizarModal(false);
         setManutencaoParaFinalizar(null);
         setObservacoesFinal('');
-        alert('Manutenção finalizada com sucesso!');
+        notificar('Manutenção finalizada com sucesso!');
       } else {
-        alert('Erro ao finalizar manutenção');
+        notificar('Erro ao finalizar manutenção');
       }
     } catch (error) {
 
-      alert('Erro ao finalizar manutenção');
+      notificar('Erro ao finalizar manutenção');
     } finally {
       setUpdating(false);
     }
   };
 
   const deletarManutencao = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta solicitação de manutenção? Esta ação não pode ser desfeita.')) {
+    if (!await confirmar('Tem certeza que deseja excluir esta solicitação de manutenção? Esta ação não pode ser desfeita.')) {
       return;
     }
 
@@ -260,12 +261,12 @@ const ManutencoesPendentes: React.FC = () => {
 
       if (success) {
         await carregarManutencoes();
-        alert('Solicitação de manutenção excluída com sucesso!');
+        notificar('Solicitação de manutenção excluída com sucesso!');
       } else {
-        alert('Erro ao excluir solicitação de manutenção');
+        notificar('Erro ao excluir solicitação de manutenção');
       }
     } catch (error) {
-      alert('Erro ao excluir solicitação de manutenção');
+      notificar('Erro ao excluir solicitação de manutenção');
     } finally {
       setUpdating(false);
     }
@@ -313,7 +314,7 @@ const ManutencoesPendentes: React.FC = () => {
       if (success) {
         setManutencoes(reorderedManutencoes);
       } else {
-        alert('Erro ao reordenar manutenções');
+        notificar('Erro ao reordenar manutenções');
         carregarManutencoes(); // Recarregar em caso de erro
       }
     });

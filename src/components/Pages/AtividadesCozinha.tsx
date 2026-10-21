@@ -12,6 +12,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const getCurrentUserEmpresaId = async () => {
   try {
@@ -102,13 +103,13 @@ const AtividadesCozinha: React.FC = () => {
   };
 
   const handleDeleteAtividade = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta atividade?')) {
+    if (await confirmar('Tem certeza que deseja excluir esta atividade?')) {
       const success = await atividadeService.deleteAtividade(id);
       if (success) {
         await carregarAtividades();
-        alert('Atividade excluída com sucesso!');
+        notificar('Atividade excluída com sucesso!');
       } else {
-        alert('Erro ao excluir atividade');
+        notificar('Erro ao excluir atividade');
       }
     }
   };
@@ -160,14 +161,14 @@ const AtividadesCozinha: React.FC = () => {
         setEditingActivity(null);
         setSelectedDias([]);
         setSelectedTipos([]);
-        alert(editingActivity ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
+        notificar(editingActivity ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
       } else {
 
-        alert('Erro ao salvar atividade. Verifique o console para mais detalhes.');
+        notificar('Erro ao salvar atividade. Verifique o console para mais detalhes.');
       }
     } catch (error) {
 
-      alert('Erro inesperado ao salvar atividade. Verifique o console para mais detalhes.');
+      notificar('Erro inesperado ao salvar atividade. Verifique o console para mais detalhes.');
     } finally {
       setSaving(false);
     }
@@ -243,7 +244,7 @@ const AtividadesCozinha: React.FC = () => {
     if (success) {
       setAtividades(sortedAtividades);
     } else {
-      alert('Erro ao reordenar atividades');
+      notificar('Erro ao reordenar atividades');
       await carregarAtividades();
     }
 
@@ -289,7 +290,7 @@ const AtividadesCozinha: React.FC = () => {
     if (success) {
       setAtividades(reorderedAtividades);
     } else {
-      alert('Erro ao reordenar atividades');
+      notificar('Erro ao reordenar atividades');
       await carregarAtividades();
     }
 

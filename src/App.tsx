@@ -5,6 +5,7 @@ import { BroadcastMessageProvider } from './contexts/BroadcastMessageContext';
 import { UpdateModal } from './components/common/UpdateModal';
 import { BroadcastMessageModal } from './components/common/BroadcastMessageModal';
 import { InstalarPwaBanner } from './components/common/InstalarPwaBanner';
+import { CamadaDeFeedback } from './components/common/CamadaDeFeedback';
 import MainAppContent from './components/MainAppContent';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <UpdateModal />
             <BroadcastMessageModal />
             <InstalarPwaBanner />
+            <CamadaDeFeedback />
           </div>
         </BroadcastMessageProvider>
       </VersionProvider>

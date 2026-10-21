@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Bell, CheckCircle, XCircle, Play, Loader, AlertTriangle } from 'lucide-react';
 import { PushNotificationTester } from '../../utils/testPushNotifications';
 import { useAuth } from '../../contexts/AuthContext';
+import { notificar } from '../../lib/feedback';
 
 interface TestResult {
   step: string;
@@ -18,7 +19,7 @@ export default function TesteNotificacoesPush() {
 
   const runQuickTests = async () => {
     if (!user?.id) {
-      alert('Você precisa estar logado para executar os testes');
+      notificar('Você precisa estar logado para executar os testes');
       return;
     }
 
@@ -53,7 +54,7 @@ export default function TesteNotificacoesPush() {
 
   const runFullTests = async () => {
     if (!user?.id) {
-      alert('Você precisa estar logado para executar os testes');
+      notificar('Você precisa estar logado para executar os testes');
       return;
     }
 

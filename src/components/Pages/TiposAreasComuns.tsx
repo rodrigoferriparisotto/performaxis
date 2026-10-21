@@ -10,6 +10,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface TipoAreaComum {
   id: string;
@@ -79,7 +80,7 @@ const TiposAreasComuns: React.FC = () => {
   };
 
   const handleDeleteTipo = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este tipo de área comum?')) {
+    if (await confirmar('Tem certeza que deseja excluir este tipo de área comum?')) {
       try {
         const { error } = await supabase
           .from('tipos_areas_comuns')
@@ -88,14 +89,14 @@ const TiposAreasComuns: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir tipo de área comum');
+          notificar('Erro ao excluir tipo de área comum');
         } else {
           await carregarTipos();
-          window.alert('Tipo de área comum excluído com sucesso!');
+          notificar('Tipo de área comum excluído com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir tipo de área comum');
+        notificar('Erro ao excluir tipo de área comum');
       }
     }
   };
@@ -125,7 +126,7 @@ const TiposAreasComuns: React.FC = () => {
       // Obter empresa_id do usuário atual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -137,7 +138,7 @@ const TiposAreasComuns: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -150,7 +151,7 @@ const TiposAreasComuns: React.FC = () => {
         .ilike('nome', tipoData.nome);
 
       if (checkError) {
-        window.alert('Erro ao validar nome do tipo');
+        notificar('Erro ao validar nome do tipo');
         setSaving(false);
         return;
       }
@@ -162,7 +163,7 @@ const TiposAreasComuns: React.FC = () => {
       );
 
       if (nomeExiste) {
-        window.alert('Já existe um tipo de área comum com este nome.');
+        notificar('Já existe um tipo de área comum com este nome.');
         setSaving(false);
         return;
       }
@@ -197,18 +198,18 @@ const TiposAreasComuns: React.FC = () => {
       if (result.error) {
         // Tratamento específico para erro de constraint única
         if (result.error.code === '23505') {
-          window.alert('Já existe um tipo de área comum com este nome. Por favor, escolha outro nome.');
+          notificar('Já existe um tipo de área comum com este nome. Por favor, escolha outro nome.');
         } else {
-          window.alert('Erro ao salvar tipo de área comum: ' + result.error.message);
+          notificar('Erro ao salvar tipo de área comum: ' + result.error.message);
         }
       } else {
         await carregarTipos();
         setShowModal(false);
         setEditingTipo(null);
-        window.alert(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
+        notificar(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
       }
     } catch (error) {
-      window.alert('Erro ao salvar tipo de área comum');
+      notificar('Erro ao salvar tipo de área comum');
     } finally {
       setSaving(false);
     }

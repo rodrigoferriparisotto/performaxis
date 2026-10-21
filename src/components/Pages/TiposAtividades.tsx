@@ -38,6 +38,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface TipoAtividade {
   id: string;
@@ -92,7 +93,7 @@ const TiposAtividades: React.FC = () => {
   };
 
   const handleDeleteTipo = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este tipo de atividade?')) {
+    if (await confirmar('Tem certeza que deseja excluir este tipo de atividade?')) {
       try {
         const { error } = await supabase
           .from('tipos_atividades')
@@ -101,14 +102,14 @@ const TiposAtividades: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir tipo de atividade');
+          notificar('Erro ao excluir tipo de atividade');
         } else {
           await carregarTipos();
-          window.alert('Tipo de atividade excluído com sucesso!');
+          notificar('Tipo de atividade excluído com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir tipo de atividade');
+        notificar('Erro ao excluir tipo de atividade');
       }
     }
   };
@@ -141,7 +142,7 @@ const TiposAtividades: React.FC = () => {
     );
 
     if (nomeExiste) {
-      window.alert('Já existe um tipo de atividade com este nome.');
+      notificar('Já existe um tipo de atividade com este nome.');
       setSaving(false);
       return;
     }
@@ -150,7 +151,7 @@ const TiposAtividades: React.FC = () => {
       // Obter empresa_id do usuário atual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -162,7 +163,7 @@ const TiposAtividades: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -195,16 +196,16 @@ const TiposAtividades: React.FC = () => {
 
       if (result.error) {
 
-        window.alert('Erro ao salvar tipo de atividade');
+        notificar('Erro ao salvar tipo de atividade');
       } else {
         await carregarTipos();
         setShowModal(false);
         setEditingTipo(null);
-        window.alert(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
+        notificar(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
       }
     } catch (error) {
 
-      window.alert('Erro ao salvar tipo de atividade');
+      notificar('Erro ao salvar tipo de atividade');
     } finally {
       setSaving(false);
     }

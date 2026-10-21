@@ -18,6 +18,7 @@ import {
   Trash2,
   Camera
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const NovoRegistroManutencao: React.FC = () => {
   const { user } = useAuth();
@@ -37,7 +38,7 @@ const NovoRegistroManutencao: React.FC = () => {
       .filter((f) => f.type.startsWith('image/'))
       .slice(0, Math.max(0, MAX_FOTOS - existentes));
     if (novas.length < lista.length) {
-      alert(`Máximo de ${MAX_FOTOS} fotos por manutenção.`);
+      notificar(`Máximo de ${MAX_FOTOS} fotos por manutenção.`);
     }
     setFotosSelecionadas((prev) => [
       ...prev,
@@ -70,7 +71,7 @@ const NovoRegistroManutencao: React.FC = () => {
       setManutencoes(manutencoesAbertas);
     } catch (error) {
 
-      alert('Erro ao carregar manutenções. Tente novamente.');
+      notificar('Erro ao carregar manutenções. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -91,7 +92,7 @@ const NovoRegistroManutencao: React.FC = () => {
       );
       fotos = [...fotos, ...urls];
       if (falhas > 0) {
-        const continuar = confirm(
+        const continuar = await confirmar(
           `${falhas} foto(s) não puderam ser enviadas (conexão ou tamanho). Salvar a manutenção mesmo assim?`
         );
         if (!continuar) {
@@ -125,13 +126,13 @@ const NovoRegistroManutencao: React.FC = () => {
         setShowForm(false);
         setEditingManutencao(null);
         limparFotosSelecionadas();
-        alert(editingManutencao ? 'Manutenção atualizada com sucesso!' : 'Manutenção criada com sucesso!');
+        notificar(editingManutencao ? 'Manutenção atualizada com sucesso!' : 'Manutenção criada com sucesso!');
       } else {
-        alert('Erro ao salvar manutenção');
+        notificar('Erro ao salvar manutenção');
       }
     } catch (error) {
 
-      alert('Erro ao salvar manutenção');
+      notificar('Erro ao salvar manutenção');
     } finally {
       setSaving(false);
     }
@@ -150,7 +151,7 @@ const NovoRegistroManutencao: React.FC = () => {
   };
 
   const handleDeleteManutencao = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta manutenção?')) {
+    if (!await confirmar('Tem certeza que deseja excluir esta manutenção?')) {
       return;
     }
 
@@ -158,12 +159,12 @@ const NovoRegistroManutencao: React.FC = () => {
       const success = await manutencaoService.deleteManutencao(id);
       if (success) {
         await carregarManutencoes();
-        alert('Manutenção excluída com sucesso!');
+        notificar('Manutenção excluída com sucesso!');
       } else {
-        alert('Erro ao excluir manutenção. Verifique suas permissões.');
+        notificar('Erro ao excluir manutenção. Verifique suas permissões.');
       }
     } catch (error) {
-      alert('Erro ao excluir manutenção');
+      notificar('Erro ao excluir manutenção');
     }
   };
 

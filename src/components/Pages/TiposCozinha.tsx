@@ -10,6 +10,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface TipoCozinha {
   id: string;
@@ -77,7 +78,7 @@ const TiposCozinha: React.FC = () => {
   };
 
   const handleDeleteTipo = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este tipo de cozinha?')) {
+    if (await confirmar('Tem certeza que deseja excluir este tipo de cozinha?')) {
       try {
         const { error } = await supabase
           .from('tipos_cozinha')
@@ -86,14 +87,14 @@ const TiposCozinha: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir tipo de cozinha');
+          notificar('Erro ao excluir tipo de cozinha');
         } else {
           await carregarTipos();
-          window.alert('Tipo de cozinha excluído com sucesso!');
+          notificar('Tipo de cozinha excluído com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir tipo de cozinha');
+        notificar('Erro ao excluir tipo de cozinha');
       }
     }
   };
@@ -125,7 +126,7 @@ const TiposCozinha: React.FC = () => {
     );
 
     if (nomeExiste) {
-      window.alert('Já existe um tipo de cozinha com este nome.');
+      notificar('Já existe um tipo de cozinha com este nome.');
       setSaving(false);
       return;
     }
@@ -133,7 +134,7 @@ const TiposCozinha: React.FC = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -145,7 +146,7 @@ const TiposCozinha: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -177,16 +178,16 @@ const TiposCozinha: React.FC = () => {
 
       if (result.error) {
 
-        window.alert('Erro ao salvar tipo de cozinha');
+        notificar('Erro ao salvar tipo de cozinha');
       } else {
         await carregarTipos();
         setShowModal(false);
         setEditingTipo(null);
-        window.alert(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
+        notificar(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
       }
     } catch (error) {
 
-      window.alert('Erro ao salvar tipo de cozinha');
+      notificar('Erro ao salvar tipo de cozinha');
     } finally {
       setSaving(false);
     }

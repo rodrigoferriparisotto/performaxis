@@ -11,6 +11,7 @@ import {
   Save,
   GripVertical
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface ItemCamararia {
   id: string;
@@ -82,7 +83,7 @@ const ItensCamararia: React.FC = () => {
   };
 
   const handleDeleteItem = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este item?')) {
+    if (await confirmar('Tem certeza que deseja excluir este item?')) {
       try {
         const { error } = await supabase
           .from('itens_camararia')
@@ -91,14 +92,14 @@ const ItensCamararia: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir item');
+          notificar('Erro ao excluir item');
         } else {
           await carregarItens();
-          window.alert('Item excluído com sucesso!');
+          notificar('Item excluído com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir item');
+        notificar('Erro ao excluir item');
       }
     }
   };
@@ -132,7 +133,7 @@ const ItensCamararia: React.FC = () => {
     );
 
     if (nomeExiste) {
-      window.alert('Já existe um item com este nome.');
+      notificar('Já existe um item com este nome.');
       setSaving(false);
       return;
     }
@@ -141,7 +142,7 @@ const ItensCamararia: React.FC = () => {
       // Obter empresa_id do usuário atual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -153,7 +154,7 @@ const ItensCamararia: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -186,16 +187,16 @@ const ItensCamararia: React.FC = () => {
 
       if (result.error) {
 
-        window.alert('Erro ao salvar item');
+        notificar('Erro ao salvar item');
       } else {
         await carregarItens();
         setShowModal(false);
         setEditingItem(null);
-        window.alert(editingItem ? 'Item atualizado com sucesso!' : 'Item criado com sucesso!');
+        notificar(editingItem ? 'Item atualizado com sucesso!' : 'Item criado com sucesso!');
       }
     } catch (error) {
 
-      window.alert('Erro ao salvar item');
+      notificar('Erro ao salvar item');
     } finally {
       setSaving(false);
     }
@@ -246,14 +247,14 @@ const ItensCamararia: React.FC = () => {
 
       if (hasError) {
 
-        alert('Erro ao reordenar itens');
+        notificar('Erro ao reordenar itens');
         await carregarItens(); // Recarregar em caso de erro
       } else {
         setItens(reorderedItens);
       }
     } catch (error) {
 
-      alert('Erro ao reordenar itens');
+      notificar('Erro ao reordenar itens');
       await carregarItens();
     }
     

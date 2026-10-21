@@ -14,6 +14,7 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface FotoCamararia {
   id: string;
@@ -88,7 +89,7 @@ const FotosCamararia: React.FC = () => {
   };
 
   const handleDeleteFoto = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta foto?')) {
+    if (await confirmar('Tem certeza que deseja excluir esta foto?')) {
       try {
         const { error } = await supabase
           .from('fotos_camararia')
@@ -97,14 +98,14 @@ const FotosCamararia: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir foto');
+          notificar('Erro ao excluir foto');
         } else {
           await carregarFotos();
-          window.alert('Foto excluída com sucesso!');
+          notificar('Foto excluída com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir foto');
+        notificar('Erro ao excluir foto');
       }
     }
   };
@@ -137,7 +138,7 @@ const FotosCamararia: React.FC = () => {
     try {
       new URL(fotoData.url_externa);
     } catch {
-      window.alert('Por favor, insira uma URL válida');
+      notificar('Por favor, insira uma URL válida');
       setSaving(false);
       return;
     }
@@ -146,7 +147,7 @@ const FotosCamararia: React.FC = () => {
       // Obter empresa_id do usuário atual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -158,7 +159,7 @@ const FotosCamararia: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -191,16 +192,16 @@ const FotosCamararia: React.FC = () => {
 
       if (result.error) {
 
-        window.alert('Erro ao salvar foto');
+        notificar('Erro ao salvar foto');
       } else {
         await carregarFotos();
         setShowModal(false);
         setEditingFoto(null);
-        window.alert(editingFoto ? 'Foto atualizada com sucesso!' : 'Foto criada com sucesso!');
+        notificar(editingFoto ? 'Foto atualizada com sucesso!' : 'Foto criada com sucesso!');
       }
     } catch (error) {
 
-      window.alert('Erro ao salvar foto');
+      notificar('Erro ao salvar foto');
     } finally {
       setSaving(false);
     }
@@ -251,14 +252,14 @@ const FotosCamararia: React.FC = () => {
 
       if (hasError) {
 
-        alert('Erro ao reordenar fotos');
+        notificar('Erro ao reordenar fotos');
         await carregarFotos();
       } else {
         setFotos(reorderedFotos);
       }
     } catch (error) {
 
-      alert('Erro ao reordenar fotos');
+      notificar('Erro ao reordenar fotos');
       await carregarFotos();
     }
     

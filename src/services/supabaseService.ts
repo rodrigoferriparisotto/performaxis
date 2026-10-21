@@ -1,5 +1,6 @@
 import { supabase, Database } from '../lib/supabase';
 import { AuthUser } from '../types';
+import { notificar } from '../lib/feedback';
 
 // ---------------------------------------------------------------------------
 // Contexto do usuário logado (id + empresa) com cache.
@@ -164,7 +165,7 @@ export const empresaService = {
           return false;
         }
 
-        alert('Empresa inativada com sucesso!\n\nA empresa tinha múltiplos usuários, por isso foi inativada em vez de excluída.');
+        notificar('Empresa inativada com sucesso!\n\nA empresa tinha múltiplos usuários, por isso foi inativada em vez de excluída.');
         return true;
       } else if (temRegistros) {
         // Tem registros: inativar empresa
@@ -177,7 +178,7 @@ export const empresaService = {
           return false;
         }
 
-        alert('Empresa inativada com sucesso!\n\nA empresa tinha registros históricos, por isso foi inativada em vez de excluída.');
+        notificar('Empresa inativada com sucesso!\n\nA empresa tinha registros históricos, por isso foi inativada em vez de excluída.');
         return true;
       } else {
         // Pode excluir completamente
@@ -190,7 +191,7 @@ export const empresaService = {
           return false;
         }
 
-        alert('Empresa excluída com sucesso!\n\nA empresa foi completamente removida do sistema.');
+        notificar('Empresa excluída com sucesso!\n\nA empresa foi completamente removida do sistema.');
         return true;
       }
     } catch (error) {
@@ -459,7 +460,7 @@ export const atividadeService = {
       }
 
       if (!userData?.empresa_id) {
-        alert('Erro: Usuário não possui empresa vinculada. Entre em contato com o administrador.');
+        notificar('Erro: Usuário não possui empresa vinculada. Entre em contato com o administrador.');
         return null;
       }
 

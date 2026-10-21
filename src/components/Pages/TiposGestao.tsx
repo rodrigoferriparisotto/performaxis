@@ -10,6 +10,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 interface TipoGestao {
   id: string;
@@ -78,7 +79,7 @@ const TiposGestao: React.FC = () => {
   };
 
   const handleDeleteTipo = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este tipo de gestão?')) {
+    if (await confirmar('Tem certeza que deseja excluir este tipo de gestão?')) {
       try {
         const { error } = await supabase
           .from('tipos_gestao')
@@ -87,14 +88,14 @@ const TiposGestao: React.FC = () => {
 
         if (error) {
 
-          window.alert('Erro ao excluir tipo de gestão');
+          notificar('Erro ao excluir tipo de gestão');
         } else {
           await carregarTipos();
-          window.alert('Tipo de gestão excluído com sucesso!');
+          notificar('Tipo de gestão excluído com sucesso!');
         }
       } catch (error) {
 
-        window.alert('Erro ao excluir tipo de gestão');
+        notificar('Erro ao excluir tipo de gestão');
       }
     }
   };
@@ -127,7 +128,7 @@ const TiposGestao: React.FC = () => {
     );
 
     if (nomeExiste) {
-      window.alert('Já existe um tipo de gestão com este nome.');
+      notificar('Já existe um tipo de gestão com este nome.');
       setSaving(false);
       return;
     }
@@ -136,7 +137,7 @@ const TiposGestao: React.FC = () => {
       // Obter empresa_id do usuário atual
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.alert('Usuário não autenticado');
+        notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
@@ -148,7 +149,7 @@ const TiposGestao: React.FC = () => {
         .single();
 
       if (userError || !userData?.empresa_id) {
-        window.alert('Usuário não possui empresa vinculada');
+        notificar('Usuário não possui empresa vinculada');
         setSaving(false);
         return;
       }
@@ -181,16 +182,16 @@ const TiposGestao: React.FC = () => {
 
       if (result.error) {
 
-        window.alert('Erro ao salvar tipo de gestão');
+        notificar('Erro ao salvar tipo de gestão');
       } else {
         await carregarTipos();
         setShowModal(false);
         setEditingTipo(null);
-        window.alert(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
+        notificar(editingTipo ? 'Tipo atualizado com sucesso!' : 'Tipo criado com sucesso!');
       }
     } catch (error) {
 
-      window.alert('Erro ao salvar tipo de gestão');
+      notificar('Erro ao salvar tipo de gestão');
     } finally {
       setSaving(false);
     }

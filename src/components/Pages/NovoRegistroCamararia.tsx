@@ -23,6 +23,7 @@ import {
 import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgColor } from '../../utils/motivationalPhrases';
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const NovoRegistroCamararia: React.FC = () => {
   const { user } = useAuth();
@@ -279,7 +280,7 @@ const NovoRegistroCamararia: React.FC = () => {
       const resultado = await registroCamarariaService.claimRegistroProgramado(registro.id, registroAtualizado);
 
       if (!resultado) {
-        alert('Esta suíte acabou de ser assumida por outra pessoa. A lista será atualizada.');
+        notificar('Esta suíte acabou de ser assumida por outra pessoa. A lista será atualizada.');
         await carregarRegistrosProgramados();
         return;
       }
@@ -300,11 +301,11 @@ const NovoRegistroCamararia: React.FC = () => {
         setTipoServico(registro.tipo_servico);
         setObservacoes(registroAtualizado.observacoes);
       } else {
-        alert('Erro ao iniciar registro programado');
+        notificar('Erro ao iniciar registro programado');
       }
     } catch (error) {
       console.error('Erro ao iniciar registro programado:', error);
-      alert('Erro ao iniciar registro programado');
+      notificar('Erro ao iniciar registro programado');
     } finally {
       setSaving(false);
     }
@@ -401,7 +402,7 @@ const NovoRegistroCamararia: React.FC = () => {
         }
       }
     } catch (error) {
-      alert('Erro ao carregar dados. Tente novamente.');
+      notificar('Erro ao carregar dados. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -429,13 +430,13 @@ const NovoRegistroCamararia: React.FC = () => {
       if (resultado) {
         await activityMarkingService.limparRastreamentoCompleto();
 
-        alert('Registro anterior finalizado com sucesso!');
+        notificar('Registro anterior finalizado com sucesso!');
         await processarProximoRegistroAntigo();
       } else {
-        alert('Erro ao finalizar registro anterior');
+        notificar('Erro ao finalizar registro anterior');
       }
     } catch (error) {
-      alert('Erro ao finalizar registro anterior');
+      notificar('Erro ao finalizar registro anterior');
     } finally{
       setSaving(false);
     }
@@ -462,13 +463,13 @@ const NovoRegistroCamararia: React.FC = () => {
       const sucesso = await registroCamarariaService.deleteRegistro(oldRecord.id);
       if (sucesso) {
         await activityMarkingService.limparRastreamentoCompleto();
-        alert('Registro anterior cancelado com sucesso!');
+        notificar('Registro anterior cancelado com sucesso!');
         await processarProximoRegistroAntigo();
       } else {
-        alert('Erro ao cancelar registro anterior');
+        notificar('Erro ao cancelar registro anterior');
       }
     } catch (error) {
-      alert('Erro ao cancelar registro anterior');
+      notificar('Erro ao cancelar registro anterior');
     } finally {
       setSaving(false);
     }
@@ -493,7 +494,7 @@ const NovoRegistroCamararia: React.FC = () => {
 
     // Avisar se há outros registros pendentes
     if (temOutrosRegistros) {
-      alert(
+      notificar(
         `Atenção: Você ainda tem ${registrosAntigos.length - 1} registro(s) antigo(s) pendente(s).\n\n` +
         'Após concluir este registro, será necessário processar os demais.'
       );
@@ -502,7 +503,7 @@ const NovoRegistroCamararia: React.FC = () => {
 
   const iniciarRegistro = () => {
     if (!suiteSelecionada || !tipoServico) {
-      alert('Por favor, selecione a suíte e o tipo de serviço');
+      notificar('Por favor, selecione a suíte e o tipo de serviço');
       return;
     }
 
@@ -528,7 +529,7 @@ const NovoRegistroCamararia: React.FC = () => {
       if (resultado) {
         setRegistroAtivo(resultado);
       } else {
-        alert('Erro ao iniciar registro');
+        notificar('Erro ao iniciar registro');
       }
       setSaving(false);
     });
@@ -564,7 +565,7 @@ const NovoRegistroCamararia: React.FC = () => {
 
     if (!salvo) {
       setRegistroAtivo(registroAtivo);
-      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
+      notificar('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
       return;
     }
 
@@ -604,7 +605,7 @@ const NovoRegistroCamararia: React.FC = () => {
           behavior: 'smooth'
         });
 
-        alert('Registro encerrado com sucesso!');
+        notificar('Registro encerrado com sucesso!');
 
         // Verificar se ainda há registros antigos pendentes
         if (registrosAntigos.length > 0) {
@@ -612,17 +613,17 @@ const NovoRegistroCamararia: React.FC = () => {
           setShowOldRecordModal(true);
         }
       } else {
-        alert('Erro ao encerrar registro');
+        notificar('Erro ao encerrar registro');
       }
     } catch (error) {
-      alert('Erro ao encerrar registro');
+      notificar('Erro ao encerrar registro');
     } finally {
       setSaving(false);
     }
   };
 
-  const cancelarRegistro = () => {
-    if (confirm('Tem certeza que deseja cancelar? Todos os dados serão perdidos.')) {
+  const cancelarRegistro = async () => {
+    if (await confirmar('Tem certeza que deseja cancelar? Todos os dados serão perdidos.')) {
       setSaving(true);
       
       const cancelarAsync = async () => {
@@ -652,7 +653,7 @@ const NovoRegistroCamararia: React.FC = () => {
               setSuiteSelecionada('');
               setTipoServico('');
               setObservacoes('');
-              alert('Registro cancelado! Voltou para a lista de programações.');
+              notificar('Registro cancelado! Voltou para a lista de programações.');
 
               // Verificar se ainda há registros antigos pendentes
               if (registrosAntigos.length > 0) {
@@ -660,7 +661,7 @@ const NovoRegistroCamararia: React.FC = () => {
                 setShowOldRecordModal(true);
               }
             } else {
-              alert('Erro ao cancelar registro');
+              notificar('Erro ao cancelar registro');
             }
           } else {
             // Se foi criado manualmente, excluir completamente
@@ -683,7 +684,7 @@ const NovoRegistroCamararia: React.FC = () => {
               setSuiteSelecionada('');
               setTipoServico('');
               setObservacoes('');
-              alert('Registro cancelado e salvo na auditoria!');
+              notificar('Registro cancelado e salvo na auditoria!');
 
               // Verificar se ainda há registros antigos pendentes
               if (registrosAntigos.length > 0) {
@@ -691,11 +692,11 @@ const NovoRegistroCamararia: React.FC = () => {
                 setShowOldRecordModal(true);
               }
             } else {
-              alert('Erro ao cancelar registro');
+              notificar('Erro ao cancelar registro');
             }
           }
         } catch (error) {
-          alert('Erro ao cancelar registro');
+          notificar('Erro ao cancelar registro');
         } finally {
           setSaving(false);
         }

@@ -23,6 +23,7 @@ import {
   Shield,
   Check
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 const Empresa: React.FC = () => {
   const { user, hasAccess } = useAuth();
@@ -99,7 +100,7 @@ const Empresa: React.FC = () => {
     e.preventDefault();
 
     if (!isAdmin) {
-      alert('Apenas Administradores podem criar ou editar empresas');
+      notificar('Apenas Administradores podem criar ou editar empresas');
       return;
     }
 
@@ -147,30 +148,30 @@ const Empresa: React.FC = () => {
 
         // Validações para novo gestor
         if (!gestorData.login || !gestorData.password || !gestorData.nomeGestor) {
-          alert('Todos os campos do gestor são obrigatórios para criar um novo gestor');
+          notificar('Todos os campos do gestor são obrigatórios para criar um novo gestor');
           setSaving(false);
           return;
         }
 
         if (!validarTelefone(gestorData.telefoneGestor)) {
-          alert('O telefone do gestor deve ter 10 ou 11 dígitos');
+          notificar('O telefone do gestor deve ter 10 ou 11 dígitos');
           setSaving(false);
           return;
         }
 
         if (gestorData.password.length < 6) {
-          alert('A senha do gestor deve ter pelo menos 6 caracteres');
+          notificar('A senha do gestor deve ter pelo menos 6 caracteres');
           setSaving(false);
           return;
         }
 
         if (gestorData.password !== gestorData.confirmPassword) {
-          alert('As senhas do gestor não coincidem');
+          notificar('As senhas do gestor não coincidem');
           setSaving(false);
           return;
         }
       } else {
-        alert('Selecione um gestor existente ou marque a opção para criar um novo');
+        notificar('Selecione um gestor existente ou marque a opção para criar um novo');
         setSaving(false);
         return;
       }
@@ -178,7 +179,7 @@ const Empresa: React.FC = () => {
     
     // Validar WhatsApp da empresa
     if (!validarTelefone(empresaData.whatsapp)) {
-      alert('O WhatsApp da empresa deve ter 10 ou 11 dígitos');
+      notificar('O WhatsApp da empresa deve ter 10 ou 11 dígitos');
       setSaving(false);
       return;
     }
@@ -206,13 +207,13 @@ const Empresa: React.FC = () => {
 
             if (updateUsersError) {
 
-              alert('Empresa atualizada, mas houve erro ao inativar os usuários vinculados.');
+              notificar('Empresa atualizada, mas houve erro ao inativar os usuários vinculados.');
             } else {
 
             }
           } catch (userUpdateError) {
 
-            alert('Empresa atualizada, mas houve erro ao inativar os usuários vinculados.');
+            notificar('Empresa atualizada, mas houve erro ao inativar os usuários vinculados.');
           }
         }
 
@@ -221,12 +222,12 @@ const Empresa: React.FC = () => {
         setEditingEmpresa(null);
         
         if (empresaFoiInativada) {
-          alert(`Empresa "${empresaData.nome}" foi inativada com sucesso!\n\nTodos os usuários vinculados a esta empresa também foram inativados automaticamente.`);
+          notificar(`Empresa "${empresaData.nome}" foi inativada com sucesso!\n\nTodos os usuários vinculados a esta empresa também foram inativados automaticamente.`);
         } else {
-          alert('Empresa atualizada com sucesso!');
+          notificar('Empresa atualizada com sucesso!');
         }
       } else {
-        alert('Erro ao atualizar empresa');
+        notificar('Erro ao atualizar empresa');
       }
     } else {
       // Criar nova empresa + vincular ou criar usuário gestor
@@ -238,11 +239,11 @@ const Empresa: React.FC = () => {
 
         // Mensagens de erro específicas baseadas no código do erro
         if (empresaResult.error.code === 'PGRST301' || empresaResult.error.message?.includes('permission denied')) {
-          alert('Erro de permissão ao criar empresa.\n\nVerifique se você tem perfil de administrador.\n\nSe o problema persistir, entre em contato com o suporte técnico.');
+          notificar('Erro de permissão ao criar empresa.\n\nVerifique se você tem perfil de administrador.\n\nSe o problema persistir, entre em contato com o suporte técnico.');
         } else if (empresaResult.error.code === '23505') {
-          alert('Já existe uma empresa com estes dados.\n\nVerifique se o nome ou email já estão cadastrados.');
+          notificar('Já existe uma empresa com estes dados.\n\nVerifique se o nome ou email já estão cadastrados.');
         } else {
-          alert(`Erro ao criar empresa: ${empresaResult.error.message || 'Erro desconhecido'}\n\nVerifique os dados e tente novamente.`);
+          notificar(`Erro ao criar empresa: ${empresaResult.error.message || 'Erro desconhecido'}\n\nVerifique os dados e tente novamente.`);
         }
 
         setSaving(false);
@@ -264,9 +265,9 @@ const Empresa: React.FC = () => {
             await carregarEmpresas();
             setShowModal(false);
             setEditingEmpresa(null);
-            alert(`Empresa "${empresaData.nome}" criada com sucesso!\n\nGestor "${gestorVinculado?.name}" vinculado à empresa.`);
+            notificar(`Empresa "${empresaData.nome}" criada com sucesso!\n\nGestor "${gestorVinculado?.name}" vinculado à empresa.`);
           } else {
-            alert(`Empresa "${empresaData.nome}" criada com sucesso!\n\nMas houve erro ao vincular o gestor. Vincule manualmente na seção Usuários.`);
+            notificar(`Empresa "${empresaData.nome}" criada com sucesso!\n\nMas houve erro ao vincular o gestor. Vincule manualmente na seção Usuários.`);
           }
         } else {
           // Criar novo usuário gestor usando AuthService
@@ -286,9 +287,9 @@ const Empresa: React.FC = () => {
             await carregarEmpresas();
             setShowModal(false);
             setEditingEmpresa(null);
-            alert(`Empresa "${empresaData.nome}" criada com sucesso!\n\nUsuário gestor "${gestorDataCompleto.nomeGestor}" criado e vinculado à empresa.\n\nLogin: ${gestorDataCompleto.login}\nPerfil: Gestor`);
+            notificar(`Empresa "${empresaData.nome}" criada com sucesso!\n\nUsuário gestor "${gestorDataCompleto.nomeGestor}" criado e vinculado à empresa.\n\nLogin: ${gestorDataCompleto.login}\nPerfil: Gestor`);
           } else {
-            alert(`Empresa "${empresaData.nome}" criada com sucesso!\n\nMas houve erro ao criar o usuário gestor: ${error}\n\nCrie o usuário gestor manualmente na seção Usuários.`);
+            notificar(`Empresa "${empresaData.nome}" criada com sucesso!\n\nMas houve erro ao criar o usuário gestor: ${error}\n\nCrie o usuário gestor manualmente na seção Usuários.`);
           }
         }
       } else if (empresaCriada) {
@@ -296,7 +297,7 @@ const Empresa: React.FC = () => {
         await carregarEmpresas();
         setShowModal(false);
         setEditingEmpresa(null);
-        alert(`Empresa "${empresaData.nome}" criada com sucesso!`);
+        notificar(`Empresa "${empresaData.nome}" criada com sucesso!`);
       }
 
       result = empresaCriada; // Para manter compatibilidade com o código existente
@@ -373,7 +374,7 @@ const Empresa: React.FC = () => {
   const handleVincularGestor = async (gestorId: string) => {
     if (!editingEmpresa) return;
 
-    if (confirm('Tem certeza que deseja vincular este gestor a esta empresa?')) {
+    if (await confirmar('Tem certeza que deseja vincular este gestor a esta empresa?')) {
       try {
         const { error } = await supabase
           .from('usuarios')
@@ -381,13 +382,13 @@ const Empresa: React.FC = () => {
           .eq('id', gestorId);
 
         if (!error) {
-          alert('Gestor vinculado com sucesso!');
+          notificar('Gestor vinculado com sucesso!');
           await carregarGestores(editingEmpresa.id);
         } else {
-          alert('Erro ao vincular gestor');
+          notificar('Erro ao vincular gestor');
         }
       } catch (error) {
-        alert('Erro ao vincular gestor');
+        notificar('Erro ao vincular gestor');
       }
     }
   };
@@ -395,7 +396,7 @@ const Empresa: React.FC = () => {
   const handleDesvincularGestor = async (gestorId: string) => {
     if (!editingEmpresa) return;
 
-    if (confirm('Tem certeza que deseja desvincular este gestor desta empresa?\n\nO gestor ficará sem empresa vinculada.')) {
+    if (await confirmar('Tem certeza que deseja desvincular este gestor desta empresa?\n\nO gestor ficará sem empresa vinculada.')) {
       try {
         const { error } = await supabase
           .from('usuarios')
@@ -403,13 +404,13 @@ const Empresa: React.FC = () => {
           .eq('id', gestorId);
 
         if (!error) {
-          alert('Gestor desvinculado com sucesso!');
+          notificar('Gestor desvinculado com sucesso!');
           await carregarGestores(editingEmpresa.id);
         } else {
-          alert('Erro ao desvincular gestor');
+          notificar('Erro ao desvincular gestor');
         }
       } catch (error) {
-        alert('Erro ao desvincular gestor');
+        notificar('Erro ao desvincular gestor');
       }
     }
   };
@@ -442,7 +443,7 @@ const Empresa: React.FC = () => {
     setModulosSelecionados(prev => {
       if (prev.includes(moduloId)) {
         if (prev.length === 1) {
-          alert('A empresa deve ter ao menos 1 módulo contratado');
+          notificar('A empresa deve ter ao menos 1 módulo contratado');
           return prev;
         }
         return prev.filter(m => m !== moduloId);
@@ -537,17 +538,17 @@ const Empresa: React.FC = () => {
 
   const handleDeleteEmpresa = async (id: string) => {
     if (!isAdmin) {
-      alert('Apenas administradores podem excluir empresas');
+      notificar('Apenas administradores podem excluir empresas');
       return;
     }
 
-    if (confirm('⚠️ ATENÇÃO: O sistema verificará se a empresa pode ser excluída ou deve ser inativada.\n\n• Se tem apenas 1 usuário e nenhum registro: será EXCLUÍDA\n• Se tem múltiplos usuários ou registros: será INATIVADA\n\nDeseja continuar?')) {
+    if (await confirmar('⚠️ ATENÇÃO: O sistema verificará se a empresa pode ser excluída ou deve ser inativada.\n\n• Se tem apenas 1 usuário e nenhum registro: será EXCLUÍDA\n• Se tem múltiplos usuários ou registros: será INATIVADA\n\nDeseja continuar?')) {
       const success = await empresaService.deleteEmpresa(id);
       if (success) {
         await carregarEmpresas();
         // A mensagem de sucesso já é exibida no serviço
       } else {
-        alert('Erro ao processar solicitação de exclusão/inativação');
+        notificar('Erro ao processar solicitação de exclusão/inativação');
       }
     }
   };

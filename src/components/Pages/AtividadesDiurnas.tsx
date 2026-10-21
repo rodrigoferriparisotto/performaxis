@@ -12,6 +12,7 @@ import {
   X,
   Save
 } from 'lucide-react';
+import { notificar, confirmar } from '../../lib/feedback';
 
 // Função helper para obter empresa_id do usuário atual
 async function getCurrentUserEmpresaId(): Promise<string | null> {
@@ -115,13 +116,13 @@ const AtividadesDiurnas: React.FC = () => {
   };
 
   const handleDeleteAtividade = async (id: string) => {
-    if (confirm('Tem certeza que deseja excluir esta atividade?')) {
+    if (await confirmar('Tem certeza que deseja excluir esta atividade?')) {
       const success = await atividadeService.deleteAtividade(id);
       if (success) {
         await carregarAtividades();
-        alert('Atividade excluída com sucesso!');
+        notificar('Atividade excluída com sucesso!');
       } else {
-        alert('Erro ao excluir atividade');
+        notificar('Erro ao excluir atividade');
       }
     }
   };
@@ -170,10 +171,10 @@ const AtividadesDiurnas: React.FC = () => {
       setEditingActivity(null);
       setSelectedDias([]);
       setSelectedTiposExtras([]);
-      alert(editingActivity ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
+      notificar(editingActivity ? 'Atividade atualizada com sucesso!' : 'Atividade criada com sucesso!');
     } else {
 
-      alert('Erro ao salvar atividade');
+      notificar('Erro ao salvar atividade');
     }
     
     setSaving(false);
@@ -249,7 +250,7 @@ const AtividadesDiurnas: React.FC = () => {
     if (success) {
       setAtividades(sortedAtividades);
     } else {
-      alert('Erro ao reordenar atividades');
+      notificar('Erro ao reordenar atividades');
       await carregarAtividades();
     }
 
@@ -297,7 +298,7 @@ const AtividadesDiurnas: React.FC = () => {
       if (success) {
         setAtividades(reorderedAtividades);
       } else {
-        alert('Erro ao reordenar atividades');
+        notificar('Erro ao reordenar atividades');
         carregarAtividades(); // Recarregar em caso de erro
       }
     });
