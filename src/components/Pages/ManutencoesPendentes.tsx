@@ -86,7 +86,8 @@ const ManutencoesPendentes: React.FC = () => {
   const iniciarManutencao = async (manutencaoId: string) => {
     setUpdating(true);
     try {
-      const resultado = await manutencaoService.updateManutencao(manutencaoId, {
+      // claim atômico: se outra pessoa assumiu no mesmo instante, volta null
+      const resultado = await manutencaoService.claimManutencao(manutencaoId, {
         status: 'em_andamento',
         hora_inicio: getDataHoraAtual(),
         usuario_id: user?.id
@@ -96,7 +97,8 @@ const ManutencoesPendentes: React.FC = () => {
         await activityMarkingService.registrarInicio('manutencao');
         await carregarManutencoes();
       } else {
-        alert('Erro ao iniciar manutenção');
+        alert('Esta manutenção acabou de ser assumida por outra pessoa. A lista será atualizada.');
+        await carregarManutencoes();
       }
     } catch (error) {
 
@@ -109,9 +111,11 @@ const ManutencoesPendentes: React.FC = () => {
   const pausarManutencao = async (manutencaoId: string) => {
     setUpdating(true);
     try {
-      const manutencao = manutencoes.find(m => m.id === manutencaoId);
+      // busca o estado atual no banco para não sobrescrever pausas feitas
+      // por outra pessoa com uma cópia velha da lista local
+      const manutencao = await manutencaoService.getManutencaoById(manutencaoId);
       if (!manutencao) return;
-      
+
       const novasPausas = [...(manutencao.pausas || [])];
       novasPausas.push({
         hora_pausa: getDataHoraAtual()
@@ -138,9 +142,10 @@ const ManutencoesPendentes: React.FC = () => {
   const retomarManutencao = async (manutencaoId: string) => {
     setUpdating(true);
     try {
-      const manutencao = manutencoes.find(m => m.id === manutencaoId);
+      // estado fresco do banco (mesmo motivo do pausar)
+      const manutencao = await manutencaoService.getManutencaoById(manutencaoId);
       if (!manutencao) return;
-      
+
       const novasPausas = [...(manutencao.pausas || [])];
       if (novasPausas.length > 0 && !novasPausas[novasPausas.length - 1].hora_retomada) {
         novasPausas[novasPausas.length - 1].hora_retomada = getDataHoraAtual();

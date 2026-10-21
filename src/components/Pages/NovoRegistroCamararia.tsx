@@ -274,7 +274,15 @@ const NovoRegistroCamararia: React.FC = () => {
         observacoes: registro.observacoes ? `ORIGEM:PROGRAMADO ${registro.observacoes}` : 'ORIGEM:PROGRAMADO'
       };
 
-      const resultado = await registroCamarariaService.updateRegistro(registro.id, registroAtualizado);
+      // claim atômico: se outra camareira assumiu esta suíte no mesmo instante,
+      // volta null e avisamos em vez de sobrescrever o registro dela
+      const resultado = await registroCamarariaService.claimRegistroProgramado(registro.id, registroAtualizado);
+
+      if (!resultado) {
+        alert('Esta suíte acabou de ser assumida por outra pessoa. A lista será atualizada.');
+        await carregarRegistrosProgramados();
+        return;
+      }
 
       if (resultado) {
         await activityMarkingService.registrarInicio('camararia');
@@ -547,11 +555,18 @@ const NovoRegistroCamararia: React.FC = () => {
 
     setRegistroAtivo(registroAtualizado);
 
-    // Salvar no Supabase
-    registroCamarariaService.updateRegistro(registroAtivo.id, {
+    // Salvar no Supabase — se falhar, desfaz o check na tela e avisa
+    // (antes a falha passava em silêncio e a marcação se perdia)
+    const salvo = await registroCamarariaService.updateRegistro(registroAtivo.id, {
       atividades: atividadesAtualizadas,
       observacoes
     });
+
+    if (!salvo) {
+      setRegistroAtivo(registroAtivo);
+      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
+      return;
+    }
 
     await activityMarkingService.registrarAtividadeMarcada('camararia');
   };

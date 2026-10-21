@@ -229,12 +229,18 @@ const NovoRegistroNoturnas: React.FC = () => {
     setRegistroAtivo(registroAtualizado);
 
     try {
-      await registroNoturnasService.updateRegistro(registroAtivo.id, {
+      const salvo = await registroNoturnasService.updateRegistro(registroAtivo.id, {
         atividades: atividadesAtualizadas,
         observacoes
       });
+      if (!salvo) {
+        throw new Error('Falha ao salvar a marcação');
+      }
       await activityMarkingService.registrarAtividadeMarcada('noturnas');
     } catch (error) {
+      // desfaz o check na tela: a marcação NÃO foi gravada no banco
+      setRegistroAtivo(registroAtivo);
+      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
     }
   };
 

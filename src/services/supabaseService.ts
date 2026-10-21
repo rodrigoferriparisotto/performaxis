@@ -939,6 +939,30 @@ export const registroCamarariaService = {
     } catch (error) {
       return [];
     }
+  },
+
+  // Assume um registro PROGRAMADO de forma atômica: os filtros status='programado'
+  // e usuario_executor_id IS NULL garantem que duas camareiras não levem a mesma
+  // suíte — a segunda recebe null e a tela avisa/recarrega.
+  async claimRegistroProgramado(id: string, registroData: any) {
+    try {
+      const { data, error } = await supabase
+        .from('registros_camararia')
+        .update(registroData)
+        .eq('id', id)
+        .eq('status', 'programado')
+        .is('usuario_executor_id', null)
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      return null;
+    }
   }
 };
 
@@ -2122,6 +2146,49 @@ export const manutencaoService = {
         .eq('id', id)
         .select()
         .single();
+
+      if (error) {
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  // Assume uma manutenção SEM dono de forma atômica: o filtro usuario_id IS NULL
+  // garante que, se duas pessoas clicarem juntas, só a primeira leva (a segunda
+  // recebe null e a tela avisa/recarrega).
+  async claimManutencao(id: string, manutencaoData: any) {
+    try {
+      const { data, error } = await supabase
+        .from('manutencoes')
+        .update(manutencaoData)
+        .eq('id', id)
+        .is('usuario_id', null)
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  // Busca o estado ATUAL de uma manutenção (para pausar/retomar sem sobrescrever
+  // as pausas com uma cópia velha da lista local).
+  async getManutencaoById(id: string) {
+    try {
+      const { data, error } = await supabase
+        .from('manutencoes')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
 
       if (error) {
         return null;

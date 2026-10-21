@@ -213,28 +213,40 @@ export class VersionService {
     }
   }
 
-  static clearCache(): void {
+  static async clearCache(): Promise<void> {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        registrations.forEach((registration) => {
-          registration.unregister();
-        });
-      });
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      for (const registration of registrations) {
+        // NUNCA desregistrar o service worker do Firebase Messaging:
+        // isso matava a assinatura de push silenciosamente a cada "Atualizar"
+        const scriptURL =
+          registration.active?.scriptURL ||
+          registration.waiting?.scriptURL ||
+          registration.installing?.scriptURL ||
+          '';
+        if (scriptURL.includes('firebase-messaging-sw')) {
+          continue;
+        }
+        await registration.unregister().catch(() => {});
+      }
 
       if ('caches' in window) {
-        caches.keys().then((names) => {
-          names.forEach((name) => {
-            caches.delete(name);
-          });
-        });
+        const names = await caches.keys();
+        for (const name of names) {
+          await caches.delete(name).catch(() => {});
+        }
       }
     }
   }
 
-  static reloadApp(): void {
-    this.clearCache();
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
+  static async reloadApp(): Promise<void> {
+    // aguarda a limpeza terminar de verdade antes de recarregar
+    // (antes era fire-and-forget com 500ms fixos — podia recarregar no meio)
+    try {
+      await this.clearCache();
+    } catch {
+      // mesmo se a limpeza falhar, recarregamos
+    }
+    window.location.reload();
   }
 }

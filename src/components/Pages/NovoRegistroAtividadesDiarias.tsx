@@ -230,12 +230,18 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
     setRegistroAtivo(registroAtualizado);
 
     try {
-      await registroAtividadesDiariasService.updateRegistro(registroAtivo.id, {
+      const salvo = await registroAtividadesDiariasService.updateRegistro(registroAtivo.id, {
         atividades: atividadesAtualizadas,
         observacoes
       });
+      if (!salvo) {
+        throw new Error('Falha ao salvar a marcação');
+      }
       await activityMarkingService.registrarAtividadeMarcada('atividades_diarias');
     } catch (error) {
+      // desfaz o check na tela: a marcação NÃO foi gravada no banco
+      setRegistroAtivo(registroAtivo);
+      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
     }
   };
 

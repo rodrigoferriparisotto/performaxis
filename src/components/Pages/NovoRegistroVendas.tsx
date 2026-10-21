@@ -223,15 +223,21 @@ const NovoRegistroVendas: React.FC = () => {
     setRegistroAtivo(registroAtualizado);
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('registros_vendas')
         .update({
           atividades: atividadesAtualizadas,
           observacoes
         })
         .eq('id', registroAtivo.id);
+      if (error) {
+        throw error;
+      }
       await activityMarkingService.registrarAtividadeMarcada('vendas');
     } catch (error) {
+      // desfaz o check na tela: a marcação NÃO foi gravada no banco
+      setRegistroAtivo(registroAtivo);
+      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
     }
   };
 

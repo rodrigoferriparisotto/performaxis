@@ -219,12 +219,18 @@ const NovoRegistroGestao: React.FC = () => {
     setRegistroAtivo(registroAtualizado);
 
     try {
-      await registroGestaoService.updateRegistro(registroAtivo.id, {
+      const salvo = await registroGestaoService.updateRegistro(registroAtivo.id, {
         atividades: atividadesAtualizadas,
         observacoes
       });
+      if (!salvo) {
+        throw new Error('Falha ao salvar a marcação');
+      }
       await activityMarkingService.registrarAtividadeMarcada('gestao');
     } catch (error) {
+      // desfaz o check na tela: a marcação NÃO foi gravada no banco
+      setRegistroAtivo(registroAtivo);
+      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
     }
   };
 

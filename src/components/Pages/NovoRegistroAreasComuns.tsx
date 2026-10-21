@@ -221,12 +221,18 @@ const NovoRegistroAreasComuns: React.FC = () => {
     setRegistroAtivo(registroAtualizado);
 
     try {
-      await registroAreasComunsService.updateRegistro(registroAtivo.id, {
+      const salvo = await registroAreasComunsService.updateRegistro(registroAtivo.id, {
         atividades: atividadesAtualizadas,
         observacoes
       });
+      if (!salvo) {
+        throw new Error('Falha ao salvar a marcação');
+      }
       await activityMarkingService.registrarAtividadeMarcada('areas_comuns');
     } catch (error) {
+      // desfaz o check na tela: a marcação NÃO foi gravada no banco
+      setRegistroAtivo(registroAtivo);
+      alert('Não foi possível salvar a marcação. Verifique sua conexão e tente novamente.');
     }
   };
 
