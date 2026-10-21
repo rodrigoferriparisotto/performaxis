@@ -36,35 +36,34 @@ const ManutencoesPendentes: React.FC = () => {
 
   useEffect(() => {
     carregarManutencoes();
-    
-    // Timer para atualizar tempo em tempo real
-    const interval = setInterval(() => {
-      const emAndamento = manutencoes.find(m => 
-        m.status === 'em_andamento' && m.usuario_id === user?.id
-      );
-      
-      if (emAndamento && emAndamento.hora_inicio) {
-        const agora = Date.now();
-        const inicio = new Date(emAndamento.hora_inicio).getTime();
-        
-        // Calcular tempo total menos pausas
-        let tempoPausas = 0;
-        emAndamento.pausas.forEach((pausa: any) => {
-          if (pausa.hora_retomada) {
-            tempoPausas += new Date(pausa.hora_retomada).getTime() - new Date(pausa.hora_pausa).getTime();
-          } else {
-            // Pausa ativa
-            tempoPausas += agora - new Date(pausa.hora_pausa).getTime();
-          }
-        });
-        
-        const tempoDecorrido = Math.floor((agora - inicio - tempoPausas) / (1000 * 60));
-        setTempoAtual(tempoDecorrido);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
   }, [user]);
+
+  // Cronômetro da manutenção em andamento do usuário. Depende da lista
+  // atual (antes o timer lia uma cópia vazia da lista e ficava em zero).
+  useEffect(() => {
+    const emAndamento = manutencoes.find(m =>
+      m.status === 'em_andamento' && m.usuario_id === user?.id
+    );
+    if (!emAndamento?.hora_inicio) {
+      setTempoAtual(0);
+      return;
+    }
+
+    const calcular = () => {
+      const agora = Date.now();
+      const inicio = new Date(emAndamento.hora_inicio).getTime();
+      let tempoPausas = 0;
+      (emAndamento.pausas || []).forEach((pausa: any) => {
+        const fimPausa = pausa.hora_retomada ? new Date(pausa.hora_retomada).getTime() : agora;
+        tempoPausas += fimPausa - new Date(pausa.hora_pausa).getTime();
+      });
+      setTempoAtual(Math.max(0, Math.floor((agora - inicio - tempoPausas) / 60000)));
+    };
+
+    calcular();
+    const interval = setInterval(calcular, 30000);
+    return () => clearInterval(interval);
+  }, [manutencoes, user?.id]);
 
   const carregarManutencoes = async () => {
     setLoading(true);
@@ -410,10 +409,6 @@ const ManutencoesPendentes: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Manutenções</h1>
-        <p className="text-gray-600">Gerencie e execute as manutenções pendentes</p>
-      </div>
 
       {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -665,7 +660,7 @@ const ManutencoesPendentes: React.FC = () => {
 
       {/* Modal de Finalização */}
       {showFinalizarModal && manutencaoParaFinalizar && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">

@@ -387,7 +387,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
           isCollapsed ? 'lg:left-20' : 'lg:left-72'
         }`}>
           <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <ChefHat className="w-5 h-5 text-teal-600" />
@@ -398,7 +398,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-3">
                 <div className="text-right">
                   <div className="text-lg font-bold text-teal-600">
                     {progressPercentage}%
@@ -408,7 +408,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
                   </div>
                 </div>
 
-                <div className="w-32 bg-gray-200 rounded-full h-3">
+                <div className="flex-1 sm:flex-none sm:w-32 bg-gray-200 rounded-full h-3">
                   <div
                     className="bg-teal-600 h-3 rounded-full transition-all duration-500 ease-out"
                     style={{
@@ -419,7 +419,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
 
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
                   <Clock className="w-4 h-4" />
-                  <span>{Math.floor((new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" })).getTime() - new Date(registroAtivo.hora_inicio).getTime()) / (1000 * 60))} min</span>
+                  <span>{Math.max(0, Math.floor((Date.now() - new Date(registroAtivo.hora_inicio).getTime()) / 60000))} min</span>
                 </div>
               </div>
             </div>
@@ -437,10 +437,6 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
 
       {registroAtivo && <div className={progressPercentage >= 25 ? "h-24" : "h-16"}></div>}
 
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Novo Registro - Cozinha</h1>
-        <p className="text-gray-600">Registre as atividades diárias da cozinha</p>
-      </div>
 
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
         <div className="flex items-center justify-between">
@@ -603,14 +599,14 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
               </div>
 
               <div className="pt-4 border-t border-gray-200">
-                <div className="flex space-x-3">
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
                   <button
                     onClick={cancelarRegistro}
                     disabled={saving}
                     className={`flex-1 px-6 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 ${
                       saving
                         ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-gray-500 text-white hover:bg-gray-600'
+                        : 'bg-white text-red-600 border border-red-300 hover:bg-red-50'
                     }`}
                   >
                     <X className="w-5 h-5" />
@@ -622,7 +618,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
                     className={`flex-1 px-6 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 ${
                       saving
                         ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-teal-600 text-white hover:bg-teal-700 font-semibold'
                     }`}
                   >
                     <Save className="w-5 h-5" />

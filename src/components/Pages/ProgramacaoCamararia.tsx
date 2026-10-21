@@ -337,11 +337,7 @@ const ProgramacaoCamararia: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800">Programação - Governança</h1>
-          <p className="text-gray-600">Programe registros de governança antecipadamente</p>
-        </div>
+      <div className="flex justify-end">
         <button 
           onClick={handleNewRegistro}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2 transition-colors duration-200"
@@ -440,7 +436,7 @@ const ProgramacaoCamararia: React.FC = () => {
 
       {/* Modal de Programação */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70]">
           <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">

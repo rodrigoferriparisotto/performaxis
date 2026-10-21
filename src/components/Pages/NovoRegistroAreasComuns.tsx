@@ -22,6 +22,7 @@ import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgCol
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
+import { ActiveRecordBar } from '../ui/ActiveRecordBar';
 
 const NovoRegistroAreasComuns: React.FC = () => {
   const { user } = useAuth();
@@ -382,57 +383,17 @@ const NovoRegistroAreasComuns: React.FC = () => {
 
       {/* Indicador de Progresso Fixo */}
       {registroAtivo && (
-        <div className={`fixed top-[60px] lg:top-0 left-0 right-0 z-[50] bg-white shadow-lg border-b border-gray-200 space-y-2 transition-all duration-300 ${
-          isCollapsed ? 'lg:left-20' : 'lg:left-72'
-        }`}>
-          <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <Building className="w-5 h-5 text-indigo-600" />
-                  <span className="font-medium text-gray-800">Áreas Comuns</span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  {getTipoAreaComumNome(tipoSelecionado)}
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <div className="text-right">
-                  <div className="text-lg font-bold text-indigo-600">
-                    {progressPercentage}%
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {registroAtivo.atividades.filter((a: any) => a.status === 'realizada').length}/{registroAtivo.atividades.length} concluídas
-                  </div>
-                </div>
-                
-                <div className="w-32 bg-gray-200 rounded-full h-3">
-                  <div 
-                    className="bg-indigo-600 h-3 rounded-full transition-all duration-500 ease-out"
-                    style={{ 
-                      width: `${progressPercentage}%` 
-                    }}
-                  ></div>
-                </div>
-                
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <Clock className="w-4 h-4" />
-                  <span>{Math.floor((Date.now() - new Date(registroAtivo.hora_inicio).getTime()) / (1000 * 60))} min</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <ActiveRecordBar
+          modulo="areas_comuns"
+          icon={Building}
+          detalhe={<>{getTipoAreaComumNome(tipoSelecionado)}</>}
+          concluidas={registroAtivo.atividades.filter((a: any) => a.status === 'realizada').length}
+          total={registroAtivo.atividades.length}
+          inicio={registroAtivo.hora_inicio}
+          menuRecolhido={isCollapsed}
+        />
       )}
-
-      {/* Espaçamento para o indicador fixo */}
-      {registroAtivo && <div className="h-16"></div>}
       
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Novo Registro - Áreas Comuns</h1>
-        <p className="text-gray-600">Registre as atividades de limpeza e manutenção das áreas comuns</p>
-      </div>
 
       {/* Data Atual */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
@@ -603,14 +564,14 @@ const NovoRegistroAreasComuns: React.FC = () => {
 
               {/* Botão Encerrar */}
               <div className="pt-4 border-t border-gray-200">
-                <div className="flex space-x-3">
+                <div className="flex flex-col-reverse sm:flex-row gap-3">
                   <button
                     onClick={cancelarRegistro}
                     disabled={saving}
                     className={`flex-1 px-6 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 ${
                       saving 
                         ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-gray-500 text-white hover:bg-gray-600'
+                        : 'bg-white text-red-600 border border-red-300 hover:bg-red-50'
                     }`}
                   >
                     <X className="w-5 h-5" />
@@ -622,7 +583,7 @@ const NovoRegistroAreasComuns: React.FC = () => {
                     className={`flex-1 px-6 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 ${
                       saving 
                         ? 'bg-gray-400 cursor-not-allowed' 
-                        : 'bg-red-600 text-white hover:bg-red-700'
+                        : 'bg-indigo-600 text-white hover:bg-indigo-700 font-semibold'
                     }`}
                   >
                     <Save className="w-5 h-5" />

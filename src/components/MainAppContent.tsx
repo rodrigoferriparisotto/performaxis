@@ -54,9 +54,6 @@ import Camararia from './Pages/Camararia';
 import Revisao from './Pages/Revisao';
 import AreasComuns from './Pages/AreasComuns';
 import Manutencao from './Pages/Manutencao';
-import NovoRegistroManutencao from './Pages/NovoRegistroManutencao';
-import ManutencoesPendentes from './Pages/ManutencoesPendentes';
-import HistoricoManutencao from './Pages/HistoricoManutencao';
 import Perfis from './Pages/Perfis';
 import Acessos from './Pages/Acessos';
 import VerAcessos from './Pages/VerAcessos';
@@ -501,11 +498,11 @@ const MainAppContent: React.FC = () => {
       case 'manutencao':
         return <Manutencao />;
       case 'novo-registro-manutencao':
-        return <NovoRegistroManutencao />;
+        return <Manutencao key="m-novo" abaInicial="novo-registro" />;
       case 'manutencoes-pendentes':
-        return <ManutencoesPendentes />;
+        return <Manutencao key="m-pend" abaInicial="manutencoes" />;
       case 'historico-manutencao':
-        return <HistoricoManutencao />;
+        return <Manutencao key="m-hist" abaInicial="historico" />;
       case 'dashboard-relatorios':
         return <DashboardRelatorios />;
       case 'analise-operacional':

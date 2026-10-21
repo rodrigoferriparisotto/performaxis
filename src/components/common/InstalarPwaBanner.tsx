@@ -79,7 +79,7 @@ export function InstalarPwaBanner() {
 
       {mostrarPassosIos && (
         <div
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black bg-opacity-60"
+          className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center bg-black bg-opacity-60"
           onClick={() => setMostrarPassosIos(false)}
         >
           <div

@@ -36,49 +36,7 @@ import { supabase } from '../../lib/supabase';
 import { TEMAS_MODULO } from '../../constants/moduleTheme';
 import { formatarData, getBrazilDate, getDataAtualFormatada } from '../../utils/dateUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-
-const agoraEmSaoPaulo = () =>
-  new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-
-const saudacaoDoHorario = (d: Date) => {
-  const hora = d.getHours();
-  if (hora < 12) return 'Bom dia';
-  if (hora < 18) return 'Boa tarde';
-  return 'Boa noite';
-};
-
-// Relógio e saudação têm estado próprio: atualizam sozinhos sem
-// re-renderizar a página e os gráficos (antes, o relógio no estado da
-// página inteira redesenhava todos os gráficos a cada segundo).
-const Saudacao: React.FC<{ nome?: string }> = ({ nome }) => {
-  const [saudacao, setSaudacao] = useState(() => saudacaoDoHorario(agoraEmSaoPaulo()));
-  useEffect(() => {
-    const id = setInterval(() => setSaudacao(saudacaoDoHorario(agoraEmSaoPaulo())), 60 * 1000);
-    return () => clearInterval(id);
-  }, []);
-  return <h1 className="text-xl lg:text-3xl font-bold">{saudacao}, {nome}!</h1>;
-};
-
-const RelogioAoVivo: React.FC = () => {
-  const [agora, setAgora] = useState(() => new Date());
-  useEffect(() => {
-    const id = setInterval(() => setAgora(new Date()), 1000);
-    return () => clearInterval(id);
-  }, []);
-  return (
-    <div className="text-xl lg:text-2xl font-bold">
-      {agora.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit',
-        timeZone: 'America/Sao_Paulo'
-      })}
-      <span className="text-base lg:text-lg">:{agora.toLocaleTimeString('pt-BR', {
-        second: '2-digit',
-        timeZone: 'America/Sao_Paulo'
-      }).split(':')[2]}</span>
-    </div>
-  );
-};
+import { Saudacao, RelogioAoVivo } from '../ui/Relogio';
 
 const DadosGerais: React.FC = () => {
   const { user } = useAuth();

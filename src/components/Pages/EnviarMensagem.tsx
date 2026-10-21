@@ -793,7 +793,7 @@ export const EnviarMensagem: React.FC = () => {
 
       {/* Delete Single Message Modal */}
       {deleteModalOpen && messageToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center pt-20 lg:pt-4 px-4 pb-4 z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center pt-20 lg:pt-4 px-4 pb-4 z-[70]">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[calc(100vh-80px)] lg:max-h-[90vh] flex flex-col">
             {/* Header - Fixed */}
             <div className="flex items-start space-x-3 p-6 pb-4 border-b border-gray-200">
@@ -888,7 +888,7 @@ export const EnviarMensagem: React.FC = () => {
 
       {/* Bulk Delete Modal */}
       {bulkDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center pt-20 lg:pt-4 px-4 pb-4 z-50">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center pt-20 lg:pt-4 px-4 pb-4 z-[70]">
           <div className="bg-white rounded-lg max-w-3xl w-full max-h-[calc(100vh-80px)] lg:max-h-[90vh] flex flex-col">
             {/* Header - Fixed */}
             <div className="flex items-start space-x-3 p-6 pb-4 border-b border-gray-200">

@@ -33,43 +33,19 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDataAtual, getDataAtualFormatada } from '../../utils/dateUtils';
+import { Saudacao, RelogioAoVivo } from '../ui/Relogio';
 
 const Dashboard: React.FC = () => {
   const { user, hasModuleAccess } = useAuth();
-  const [timeOfDay, setTimeOfDay] = useState('');
-  const [currentTime, setCurrentTime] = useState(new Date());
   const [loading, setLoading] = useState(true);
   const [registrosRecentes, setRegistrosRecentes] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [suites, setSuites] = useState<any[]>([]);
 
   useEffect(() => {
-    // Configurar horário
-    const updateTimeOfDay = () => {
-      // Usar horário brasileiro
-      const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
-      const hour = now.getHours();
-      setCurrentTime(now);
-      if (hour < 12) setTimeOfDay('Bom dia');
-      else if (hour < 18) setTimeOfDay('Boa tarde');
-      else setTimeOfDay('Boa noite');
-    };
-    
-    updateTimeOfDay();
-    
-    // Atualizar horário a cada segundo
-    const timeInterval = setInterval(() => {
-      updateTimeOfDay();
-    }, 1000);
-    
-    // Carregar dados se não for admin
     if (user?.profile !== 'admin') {
       carregarRegistrosRecentes();
     }
-    
-    return () => {
-      clearInterval(timeInterval);
-    };
   }, [user]);
 
   const carregarRegistrosRecentes = async () => {
@@ -84,11 +60,11 @@ const Dashboard: React.FC = () => {
         usuariosData,
         suitesData
       ] = await Promise.all([
-        registroRecepcaoService.getRegistros(20),
-        registroCamarariaService.getRegistros(20),
-        registroRevisaoService.getRegistros(20),
-        registroAreasComunsService.getRegistros(20),
-        manutencaoService.getManutencoesByStatus(['concluida']),
+        registroRecepcaoService.getRegistros(0, 20),
+        registroCamarariaService.getRegistros(0, 20),
+        registroRevisaoService.getRegistros(0, 20),
+        registroAreasComunsService.getRegistros(0, 20),
+        manutencaoService.getManutencoesByStatus(['concluida'], 0, 20),
         usuarioService.getUsuarios(),
         suiteService.getSuites()
       ]);
@@ -544,23 +520,13 @@ const Dashboard: React.FC = () => {
               <ThemeIcon className="w-6 h-6 lg:w-8 lg:h-8" />
             </div>
             <div>
-              <h1 className="text-xl lg:text-3xl font-bold">{timeOfDay}, {user?.name}!</h1>
+              <Saudacao nome={user?.name} />
               <p className="text-white text-opacity-90 mt-1 text-sm lg:text-base">{theme.title}</p>
               <p className="text-white text-opacity-75 text-xs lg:text-sm mt-1 capitalize hidden lg:block">{dataAtual}</p>
             </div>
           </div>
           <div className="text-right hidden lg:block">
-            <div className="text-xl lg:text-2xl font-bold">
-              {currentTime.toLocaleTimeString('pt-BR', { 
-                hour: '2-digit',
-                minute: '2-digit',
-                timeZone: 'America/Sao_Paulo'
-              })}
-              <span className="text-base lg:text-lg">:{currentTime.toLocaleTimeString('pt-BR', { 
-                second: '2-digit',
-                timeZone: 'America/Sao_Paulo'
-              }).split(':')[2]}</span>
-            </div>
+            <RelogioAoVivo />
             <div className="text-white text-opacity-75 text-sm">Horário atual</div>
           </div>
         </div>

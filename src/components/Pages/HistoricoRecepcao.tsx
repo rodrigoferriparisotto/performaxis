@@ -121,10 +121,6 @@ const HistoricoRecepcao: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Histórico - Recepção</h1>
-        <p className="text-gray-600">Consulte os registros diários da recepção</p>
-      </div>
 
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
         <div className="p-6 border-b border-gray-200">
