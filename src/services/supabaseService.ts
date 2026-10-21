@@ -62,6 +62,67 @@ async function obterContextoUsuario(): Promise<ContextoUsuario> {
   return promessa;
 }
 
+// ---------------------------------------------------------------------------
+// Busca enxuta para telas de relatório: mesmos filtros de getRegistrosByPeriodo
+// (empresa + data entre início e fim), mas só com as colunas pedidas em vez de
+// select('*'). Pagina de 1000 em 1000 para nunca truncar no limite do PostgREST
+// (em volume normal é 1 requisição só). Em caso de erro devolve [], como os
+// métodos antigos.
+// ---------------------------------------------------------------------------
+const TAMANHO_PAGINA_RELATORIO = 1000;
+
+async function buscarColunasPorPeriodo(
+  tabela: string,
+  colunas: string,
+  dataInicio: string,
+  dataFim: string,
+  opcoes: { semProgramados?: boolean; usuarioId?: string } = {}
+): Promise<any[]> {
+  try {
+    const { user, userData, userError } = await obterContextoUsuario();
+    if (!user) return [];
+
+    if (userError || !userData?.empresa_id) {
+      return [];
+    }
+
+    const resultado: any[] = [];
+    for (let pagina = 0; ; pagina++) {
+      let query = supabase
+        .from(tabela)
+        .select(colunas)
+        .eq('empresa_id', userData.empresa_id)
+        .gte('data', dataInicio)
+        .lte('data', dataFim);
+
+      if (opcoes.semProgramados) {
+        query = query.neq('status', 'programado');
+      }
+      if (opcoes.usuarioId) {
+        query = query.eq('usuario_id', opcoes.usuarioId);
+      }
+
+      const inicio = pagina * TAMANHO_PAGINA_RELATORIO;
+      const { data, error } = await query
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: true })
+        .range(inicio, inicio + TAMANHO_PAGINA_RELATORIO - 1);
+
+      if (error) {
+        return [];
+      }
+
+      const linhas = data || [];
+      resultado.push(...linhas);
+      if (linhas.length < TAMANHO_PAGINA_RELATORIO) break;
+    }
+
+    return resultado;
+  } catch (error) {
+    return [];
+  }
+}
+
 // Serviço para Empresas
 export const empresaService = {
   async getEmpresa() {
@@ -716,6 +777,11 @@ export const registroRecepcaoService = {
     } catch (error) {
       return [];
     }
+  },
+
+  // Relatórios: mesmo filtro de getRegistrosByPeriodo, só com as colunas pedidas
+  async getColunasByPeriodo(dataInicio: string, dataFim: string, colunas: string) {
+    return buscarColunasPorPeriodo('registros_recepcao', colunas, dataInicio, dataFim);
   }
 };
 
@@ -946,6 +1012,12 @@ export const registroCamarariaService = {
     } catch (error) {
       return null;
     }
+  },
+
+  // Relatórios: mesmo filtro de getRegistrosByPeriodo (inclusive sem os
+  // 'programado'), só com as colunas pedidas
+  async getColunasByPeriodo(dataInicio: string, dataFim: string, colunas: string) {
+    return buscarColunasPorPeriodo('registros_camararia', colunas, dataInicio, dataFim, { semProgramados: true });
   }
 };
 
@@ -1174,6 +1246,11 @@ export const registroRevisaoService = {
     } catch (error) {
       return [];
     }
+  },
+
+  // Relatórios: mesmo filtro de getRegistrosByPeriodo, só com as colunas pedidas
+  async getColunasByPeriodo(dataInicio: string, dataFim: string, colunas: string) {
+    return buscarColunasPorPeriodo('registros_revisao', colunas, dataInicio, dataFim);
   }
 };
 
@@ -1349,6 +1426,11 @@ export const registroAreasComunsService = {
     } catch (error) {
       return [];
     }
+  },
+
+  // Relatórios: mesmo filtro de getRegistrosByPeriodo, só com as colunas pedidas
+  async getColunasByPeriodo(dataInicio: string, dataFim: string, colunas: string) {
+    return buscarColunasPorPeriodo('registros_areas_comuns', colunas, dataInicio, dataFim);
   }
 };
 
@@ -1524,6 +1606,11 @@ export const registroGestaoService = {
     } catch (error) {
       return [];
     }
+  },
+
+  // Relatórios: mesmo filtro de getRegistrosByPeriodo, só com as colunas pedidas
+  async getColunasByPeriodo(dataInicio: string, dataFim: string, colunas: string) {
+    return buscarColunasPorPeriodo('registros_gestao', colunas, dataInicio, dataFim);
   }
 };
 
@@ -1699,6 +1786,11 @@ export const registroAtividadesExtrasService = {
     } catch (error) {
       return [];
     }
+  },
+
+  // Relatórios: mesmo filtro de getRegistrosByPeriodo, só com as colunas pedidas
+  async getColunasByPeriodo(dataInicio: string, dataFim: string, colunas: string) {
+    return buscarColunasPorPeriodo('registros_atividades_extras', colunas, dataInicio, dataFim);
   }
 };
 
@@ -1887,6 +1979,11 @@ export const registroAtividadesDiariasService = {
     } catch (error) {
       return [];
     }
+  },
+
+  // Relatórios: mesmo filtro de getRegistrosByPeriodo, só com as colunas pedidas
+  async getColunasByPeriodo(dataInicio: string, dataFim: string, colunas: string) {
+    return buscarColunasPorPeriodo('registros_atividades_diarias', colunas, dataInicio, dataFim);
   }
 };
 
@@ -2155,6 +2252,36 @@ export const cancelamentoService = {
         .from('cancelamentos')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
+        .gte('data_hora', dataInicio)
+        .lte('data_hora', dataFim)
+        .order('data_hora', { ascending: false });
+
+      if (error) {
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      return [];
+    }
+  },
+
+  // Cancelamentos de UM usuário no período (mesmo filtro de
+  // getCancelamentosByPeriodo + usuario_id), só com as colunas usadas em tela
+  async getCancelamentosByPeriodoUsuario(dataInicio: string, dataFim: string, usuarioId: string) {
+    try {
+      const { user, userData, userError } = await obterContextoUsuario();
+      if (!user) return [];
+
+      if (userError || !userData?.empresa_id) {
+        return [];
+      }
+
+      const { data, error } = await supabase
+        .from('cancelamentos')
+        .select('id, tipo, usuario_id, data_hora, motivo')
+        .eq('empresa_id', userData.empresa_id)
+        .eq('usuario_id', usuarioId)
         .gte('data_hora', dataInicio)
         .lte('data_hora', dataFim)
         .order('data_hora', { ascending: false });
