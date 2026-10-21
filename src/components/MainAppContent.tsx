@@ -6,7 +6,6 @@ import LoginForm from './Auth/LoginForm';
 import RegisterForm from './Auth/RegisterForm';
 import PasswordReset from './Auth/PasswordReset';
 import LandingPage from './LandingPage';
-import { InstallPWAPrompt } from './common/InstallPWAPrompt';
 import NotificationPermissionModal from './common/NotificationPermissionModal';
 import BatteryOptimizationModal from './common/BatteryOptimizationModal';
 import PendingRecordsBadge from './common/PendingRecordsBadge';
@@ -602,8 +601,6 @@ const MainAppContent: React.FC = () => {
             {renderPage()}
           </div>
         </main>
-
-        <InstallPWAPrompt />
 
         <NotificationPermissionModal
           isOpen={showNotificationModal}
