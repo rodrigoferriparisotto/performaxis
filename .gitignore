@@ -29,3 +29,6 @@ dev-dist
 
 # Netlify CLI local state
 .netlify
+
+# Cópias de trabalho de agentes / config local do Claude
+.claude/
