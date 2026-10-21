@@ -22,6 +22,28 @@ export interface UserVersionSeen {
 export class VersionService {
   private static channel: RealtimeChannel | null = null;
 
+  /** Identificador do build que este navegador está rodando. */
+  static getBuildId(): string {
+    return typeof __BUILD_ID__ !== 'undefined' ? __BUILD_ID__ : 'dev';
+  }
+
+  /**
+   * Detecção automática de deploy: compara o build embutido neste bundle
+   * com o /version.json publicado junto do deploy mais recente. Divergiu,
+   * tem versão nova no ar — sem depender de publicação manual.
+   */
+  static async checkBuildUpdate(): Promise<boolean> {
+    if (!import.meta.env.PROD) return false;
+    try {
+      const resp = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
+      if (!resp.ok) return false;
+      const { buildId } = await resp.json();
+      return Boolean(buildId) && buildId !== this.getBuildId();
+    } catch {
+      return false;
+    }
+  }
+
   static async getCurrentVersion(): Promise<string | null> {
     try {
       const { data, error } = await supabase

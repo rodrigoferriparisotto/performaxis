@@ -2,10 +2,29 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// Identificador único de cada build: fica embutido no bundle (__BUILD_ID__)
+// e publicado em /version.json. Quando os dois divergem, o app no ar está
+// desatualizado e o modal de atualização aparece sozinho.
+const buildId = new Date().toISOString();
+
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    __BUILD_ID__: JSON.stringify(buildId),
+  },
   plugins: [
     react(),
+    {
+      name: 'emitir-version-json',
+      apply: 'build',
+      generateBundle() {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'version.json',
+          source: JSON.stringify({ buildId }),
+        });
+      },
+    },
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src',

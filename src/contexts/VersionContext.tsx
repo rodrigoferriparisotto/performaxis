@@ -66,6 +66,18 @@ export const VersionProvider: React.FC<VersionProviderProps> = ({ children }) =>
     }
 
     const checkUserVersion = async () => {
+      // 1) Detecção automática: o deploy no ar é mais novo que este bundle?
+      //    (newVersion fica null de propósito: o modal mostra o aviso sem
+      //    número, e o handleUpdate não grava "versão vista" — depois do
+      //    reload os builds coincidem e o aviso se resolve sozinho)
+      const buildDesatualizado = await VersionService.checkBuildUpdate();
+      if (buildDesatualizado) {
+        setNewVersion(null);
+        setNeedsUpdate(true);
+        return;
+      }
+
+      // 2) Publicação manual (anúncio de versão com número, super admin)
       const latestVersion = await VersionService.getCurrentVersion();
       if (!latestVersion) return;
 
