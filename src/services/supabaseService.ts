@@ -1,18 +1,72 @@
 import { supabase, Database } from '../lib/supabase';
 import { AuthUser } from '../types';
 
+// ---------------------------------------------------------------------------
+// Contexto do usuário logado (id + empresa) com cache.
+//
+// Antes, cada função deste arquivo fazia supabase.auth.getUser() — uma ida ao
+// servidor de autenticação — seguida de uma consulta em `usuarios` só para
+// descobrir o empresa_id: 2 requisições em série ANTES de cada consulta real
+// (~180 mil chamadas registradas no banco). Agora o id vem da sessão local e o
+// empresa_id é buscado uma única vez por login. A segurança não muda: o RLS do
+// banco continua validando o token em toda requisição.
+// ---------------------------------------------------------------------------
+type ContextoUsuario = {
+  user: { id: string } | null;
+  userData: { empresa_id: string | null } | null;
+  userError: unknown;
+};
+
+let cacheEmpresa: { userId: string; empresaId: string | null } | null = null;
+let buscaEmAndamento: { userId: string; promessa: Promise<ContextoUsuario> } | null = null;
+
+supabase.auth.onAuthStateChange((evento, sessao) => {
+  if (evento === 'SIGNED_OUT' || !sessao || sessao.user.id !== cacheEmpresa?.userId) {
+    cacheEmpresa = null;
+    buscaEmAndamento = null;
+  }
+});
+
+async function obterContextoUsuario(): Promise<ContextoUsuario> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ? { id: session.user.id } : null;
+  if (!user) {
+    return { user: null, userData: null, userError: null };
+  }
+
+  if (cacheEmpresa?.userId === user.id) {
+    return { user, userData: { empresa_id: cacheEmpresa.empresaId }, userError: null };
+  }
+
+  // várias telas pedem o contexto ao mesmo tempo no carregamento: uma busca só
+  if (buscaEmAndamento?.userId === user.id) {
+    return buscaEmAndamento.promessa;
+  }
+
+  const promessa = (async (): Promise<ContextoUsuario> => {
+    const { data, error } = await supabase
+      .from('usuarios')
+      .select('empresa_id')
+      .eq('id', user.id)
+      .single();
+
+    if (!error && data) {
+      cacheEmpresa = { userId: user.id, empresaId: data.empresa_id };
+    }
+    buscaEmAndamento = null;
+    return { user, userData: data, userError: error };
+  })();
+
+  buscaEmAndamento = { userId: user.id, promessa };
+  return promessa;
+}
+
 // Serviço para Empresas
 export const empresaService = {
   async getEmpresa() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -244,14 +298,8 @@ export const usuarioService = {
 export const suiteService = {
   async getSuites() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -275,14 +323,8 @@ export const suiteService = {
 
   async saveSuite(suiteData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -348,14 +390,8 @@ export const suiteService = {
 export const atividadeService = {
   async getAtividades() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -380,14 +416,8 @@ export const atividadeService = {
 
   async getAtividadesByType(type: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -517,14 +547,8 @@ export const atividadeService = {
 export const registroRecepcaoService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -552,14 +576,8 @@ export const registroRecepcaoService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -604,14 +622,8 @@ export const registroRecepcaoService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -675,14 +687,8 @@ export const registroRecepcaoService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -716,14 +722,8 @@ export const registroRecepcaoService = {
 export const registroCamarariaService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -752,14 +752,8 @@ export const registroCamarariaService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -834,14 +828,8 @@ export const registroCamarariaService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -904,14 +892,8 @@ export const registroCamarariaService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -970,14 +952,8 @@ export const registroCamarariaService = {
 export const registroRevisaoService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1005,14 +981,8 @@ export const registroRevisaoService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -1110,14 +1080,8 @@ export const registroRevisaoService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -1181,14 +1145,8 @@ export const registroRevisaoService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1222,14 +1180,8 @@ export const registroRevisaoService = {
 export const registroAreasComunsService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1257,14 +1209,8 @@ export const registroAreasComunsService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -1309,14 +1255,8 @@ export const registroAreasComunsService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -1380,14 +1320,8 @@ export const registroAreasComunsService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1421,14 +1355,8 @@ export const registroAreasComunsService = {
 export const registroGestaoService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1456,14 +1384,8 @@ export const registroGestaoService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -1508,14 +1430,8 @@ export const registroGestaoService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -1579,14 +1495,8 @@ export const registroGestaoService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1620,14 +1530,8 @@ export const registroGestaoService = {
 export const registroAtividadesExtrasService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1655,14 +1559,8 @@ export const registroAtividadesExtrasService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -1707,14 +1605,8 @@ export const registroAtividadesExtrasService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -1778,14 +1670,8 @@ export const registroAtividadesExtrasService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1819,14 +1705,8 @@ export const registroAtividadesExtrasService = {
 export const registroAtividadesDiariasService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -1854,14 +1734,8 @@ export const registroAtividadesDiariasService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -1906,14 +1780,8 @@ export const registroAtividadesDiariasService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -1990,14 +1858,8 @@ export const registroAtividadesDiariasService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -2031,14 +1893,8 @@ export const registroAtividadesDiariasService = {
 export const manutencaoService = {
   async getManutencoesByStatus(status: string[], currentPage?: number, pageSize?: number) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -2074,14 +1930,8 @@ export const manutencaoService = {
 
   async getManutencoesCount(status: string[]) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -2105,14 +1955,8 @@ export const manutencaoService = {
 
   async saveManutencao(manutencaoData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -2219,14 +2063,8 @@ export const manutencaoService = {
 
   async getManutencoesByPeriodo(dataInicio: string, dataFim: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -2277,14 +2115,8 @@ export const manutencaoService = {
 export const cancelamentoService = {
   async saveCancelamento(cancelamentoData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -2311,14 +2143,8 @@ export const cancelamentoService = {
 
   async getCancelamentosByPeriodo(dataInicio: string, dataFim: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -2347,14 +2173,8 @@ export const cancelamentoService = {
 export const registroCozinhaService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -2382,14 +2202,8 @@ export const registroCozinhaService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -2434,14 +2248,8 @@ export const registroCozinhaService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -2505,14 +2313,8 @@ export const registroCozinhaService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -2546,14 +2348,8 @@ export const registroCozinhaService = {
 export const registroVendasService = {
   async getRegistros(page = 0, pageSize = 15) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
@@ -2581,14 +2377,8 @@ export const registroVendasService = {
 
   async getRegistrosCount() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return 0;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return 0;
@@ -2633,14 +2423,8 @@ export const registroVendasService = {
 
   async saveRegistro(registroData: any) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return null;
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return null;
@@ -2704,14 +2488,8 @@ export const registroVendasService = {
 
   async getRegistrosByPeriodo(dataInicio: string, dataFim: string, usuarioId?: string) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return [];
-
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
