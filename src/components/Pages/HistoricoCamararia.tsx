@@ -270,7 +270,7 @@ const HistoricoCamararia: React.FC = () => {
                                });
                              }
                            }}
-                           className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors duration-200"
+                           className="p-2 text-red-600 hover:bg-red-100 rounded transition-colors duration-200"
                            title="Excluir registro"
                          >
                            <Trash2 className="w-4 h-4" />

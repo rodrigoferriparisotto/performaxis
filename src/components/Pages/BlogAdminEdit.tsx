@@ -3,6 +3,7 @@ import { ArrowLeft, Save, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { notificar } from '../../lib/feedback';
+import { PageHeader } from '../ui/PageHeader';
 
 interface BlogAdminEditProps {
   postId?: string;
@@ -202,25 +203,23 @@ const BlogAdminEdit: React.FC<BlogAdminEditProps> = ({ postId }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => window.location.hash = 'blog-admin'}
-          className="text-gray-600 hover:text-gray-900"
-        >
-          <ArrowLeft className="w-6 h-6" />
-        </button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {isEditMode ? 'Editar Post' : 'Novo Post'}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {isEditMode ? 'Atualize as informações do post' : 'Crie um novo post para o blog'}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        titulo={isEditMode ? 'Editar Post' : 'Novo Post'}
+        subtitulo={isEditMode ? 'Atualize as informações do post' : 'Crie um novo post para o blog'}
+        acoes={
+          <button
+            type="button"
+            onClick={() => window.location.hash = 'blog-admin'}
+            className="inline-flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Voltar
+          </button>
+        }
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-lg shadow p-6 space-y-6">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Título *
@@ -365,7 +364,7 @@ const BlogAdminEdit: React.FC<BlogAdminEditProps> = ({ postId }) => {
           </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap gap-2 sm:gap-4">
           <button
             type="submit"
             disabled={loading}

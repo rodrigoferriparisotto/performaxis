@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Trophy, Filter, Users } from 'lucide-react';
+import { Filter, Users } from 'lucide-react';
 import PerformanceDiaria from '../Dashboard/PerformanceDiaria';
 import PerformanceMensal from '../Dashboard/PerformanceMensal';
-import { getBrazilDateString, getBrazilDate } from '../../utils/dateUtils';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState } from '../ui/Estados';
 
 const RankingPorMeritocracia: React.FC = () => {
   const { empresa } = useAuth();
@@ -23,40 +24,21 @@ const RankingPorMeritocracia: React.FC = () => {
   ];
 
   if (!empresa?.id) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <Trophy className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Carregando dados da empresa...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState texto="Carregando dados da empresa..." />;
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl">
-            <Trophy className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              Ranking por Meritocracia
-            </h1>
-            <p className="text-sm text-gray-600">
-              Sistema de avaliação baseado em performance e resultados
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-gray-600" />
+      <PageHeader
+        titulo="Ranking por Meritocracia"
+        subtitulo="Sistema de avaliação baseado em performance e resultados"
+        acoes={
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Filter className="w-5 h-5 text-gray-600 flex-shrink-0" />
             <select
               value={selectedPerfilFilter || ''}
               onChange={(e) => setSelectedPerfilFilter(e.target.value || undefined)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             >
               {perfis.map((perfil) => (
                 <option key={perfil.value || 'all'} value={perfil.value || ''}>
@@ -65,10 +47,10 @@ const RankingPorMeritocracia: React.FC = () => {
               ))}
             </select>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-6">
+      <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-lg p-4 sm:p-6">
         <div className="flex items-start gap-3">
           <Users className="w-6 h-6 text-purple-600 flex-shrink-0 mt-1" />
           <div>

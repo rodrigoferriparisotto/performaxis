@@ -281,7 +281,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                   setError('');
                   setHasError(false);
                 }}
-                className="flex-shrink-0 text-red-600 hover:text-red-800 transition-colors duration-200 hover:bg-red-100 rounded p-1"
+                className="flex-shrink-0 text-red-600 hover:text-red-800 transition-colors duration-200 hover:bg-red-100 rounded p-2"
                 aria-label="Fechar alerta"
               >
                 <X className="w-5 h-5" />
@@ -456,8 +456,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {[
                 'Recepção',
-                'Atividades diurnas',
-                'Atividades noturnas',
+                'Atividades diárias',
                 'Governança',
                 'Revisão da governança',
                 'Atividades extras',

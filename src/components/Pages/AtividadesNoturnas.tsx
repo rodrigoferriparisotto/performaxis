@@ -502,7 +502,7 @@ const AtividadesNoturnas: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-2 -m-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 >
                   <X className="w-5 h-5" />
                 </button>

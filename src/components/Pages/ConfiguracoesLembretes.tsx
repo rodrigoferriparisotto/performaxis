@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, BellOff, Moon, Volume2, VolumeX, Smartphone, TestTube, Clock, Zap, Speaker, Info, AlertCircle, CheckCircle, BatteryWarning } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { reminderService } from '../../services/reminderService';
@@ -10,6 +10,8 @@ import BackgroundNotificationInfo from '../common/BackgroundNotificationInfo';
 import BatteryOptimizationModal from '../common/BatteryOptimizationModal';
 import { getBatteryGuide } from '../../constants/batteryOptimizationGuides';
 import { obterContextoUsuario } from '../../services/supabaseService';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState } from '../ui/Estados';
 
 interface AdvancedSettings {
   intensidade_vibracao: 'fraca' | 'media' | 'forte';
@@ -216,25 +218,16 @@ export default function ConfiguracoesLembretes() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Carregando configurações...</div>
-      </div>
-    );
+    return <LoadingState texto="Carregando configurações..." />;
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <Bell className="w-8 h-8 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Configurações de Lembretes</h1>
-            <p className="text-sm text-gray-600">
-              Gerencie como você recebe lembretes de atividades pendentes
-            </p>
-          </div>
-        </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <PageHeader
+        titulo="Configurações de Lembretes"
+        subtitulo="Gerencie como você recebe lembretes de atividades pendentes"
+      />
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
 
         {message && (
           <div
@@ -360,7 +353,7 @@ export default function ConfiguracoesLembretes() {
                 </p>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:ml-8">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Início (opcional)
@@ -456,14 +449,14 @@ export default function ConfiguracoesLembretes() {
                     Testar
                   </button>
                 </div>
-                <div className="grid grid-cols-3 gap-2 ml-8">
+                <div className="grid grid-cols-3 gap-2 sm:ml-8">
                   {(['fraca', 'media', 'forte'] as const).map((intensity) => (
                     <button
                       key={intensity}
                       onClick={() =>
                         setAdvancedSettings({ ...advancedSettings, intensidade_vibracao: intensity })
                       }
-                      className={`py-2 px-4 rounded-lg border-2 transition-colors ${
+                      className={`py-2 px-2 sm:px-4 rounded-lg border-2 transition-colors ${
                         advancedSettings.intensidade_vibracao === intensity
                           ? 'border-purple-600 bg-purple-50 text-purple-900 font-semibold'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -520,7 +513,7 @@ export default function ConfiguracoesLembretes() {
                     Testar
                   </button>
                 </div>
-                <div className="grid grid-cols-2 gap-2 ml-8">
+                <div className="grid grid-cols-2 gap-2 sm:ml-8">
                   {[
                     { value: 'info', label: 'Suave', ativo: 'border-blue-600 bg-blue-50 text-blue-900' },
                     { value: 'warning', label: 'Moderado', ativo: 'border-yellow-600 bg-yellow-50 text-yellow-900' },
@@ -535,7 +528,7 @@ export default function ConfiguracoesLembretes() {
                           tipo_som_preferido: sound.value as any,
                         })
                       }
-                      className={`py-2 px-4 rounded-lg border-2 transition-colors ${
+                      className={`py-2 px-2 sm:px-4 rounded-lg border-2 transition-colors ${
                         advancedSettings.tipo_som_preferido === sound.value
                           ? `${sound.ativo} font-semibold`
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -557,7 +550,7 @@ export default function ConfiguracoesLembretes() {
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 ml-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:ml-8">
                   {[
                     { value: 0, label: 'Imediato' },
                     { value: 1, label: '1 hora' },
@@ -572,7 +565,7 @@ export default function ConfiguracoesLembretes() {
                           tempo_minimo_badge_horas: option.value,
                         })
                       }
-                      className={`py-2 px-4 rounded-lg border-2 transition-colors ${
+                      className={`py-2 px-2 sm:px-4 rounded-lg border-2 transition-colors ${
                         advancedSettings.tempo_minimo_badge_horas === option.value
                           ? 'border-indigo-600 bg-indigo-50 text-indigo-900 font-semibold'
                           : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
@@ -707,7 +700,7 @@ export default function ConfiguracoesLembretes() {
             )}
           </div>
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex flex-wrap gap-3 pt-4">
             <button
               onClick={handleSave}
               disabled={saving}

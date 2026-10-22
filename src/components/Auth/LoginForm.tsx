@@ -194,7 +194,7 @@ const LoginForm: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleCloseError}
-                  className="flex-shrink-0 text-red-600 hover:text-red-800 transition-colors duration-200 hover:bg-red-100 rounded p-1"
+                  className="flex-shrink-0 text-red-600 hover:text-red-800 transition-colors duration-200 hover:bg-red-100 rounded p-2"
                   aria-label="Fechar alerta"
                 >
                   <X className="w-5 h-5" />

@@ -72,7 +72,7 @@ export default function NotificationPermissionModal({
           console.log('[Modal] Push notification token registered successfully');
           setRegisteredToken(token.slice(-8));
         } else {
-          setError('Não foi possível registrar o token FCM. Tentando novamente...');
+          setError('Não foi possível registrar este dispositivo. Tentando novamente...');
 
           await new Promise(resolve => setTimeout(resolve, 2000));
 
@@ -129,7 +129,7 @@ export default function NotificationPermissionModal({
           {registeredToken && (
             <div className="w-full mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-xs text-green-700 font-medium">
-                ✓ Token FCM registrado com sucesso! (***{registeredToken})
+                ✓ Dispositivo registrado com sucesso! (***{registeredToken})
               </p>
             </div>
           )}

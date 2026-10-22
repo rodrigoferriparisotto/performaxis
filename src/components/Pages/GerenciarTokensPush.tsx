@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Smartphone, Activity, X, Check, TestTube, RefreshCw, Search, Filter } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { fcmPushService } from '../../services/fcmPushService';
 import type { PushToken } from '../../services/fcmPushService';
 import { parseDeviceInfo } from '../../utils/deviceInfoParser';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState } from '../ui/Estados';
 
 export default function GerenciarTokensPush() {
   const [tokens, setTokens] = useState<PushToken[]>([]);
@@ -42,7 +44,7 @@ export default function GerenciarTokensPush() {
       setTokens(data || []);
     } catch (error) {
       console.error('Error loading tokens:', error);
-      setMessage({ type: 'error', text: 'Erro ao carregar tokens' });
+      setMessage({ type: 'error', text: 'Erro ao carregar dispositivos' });
     } finally {
       setLoading(false);
     }
@@ -106,15 +108,15 @@ export default function GerenciarTokensPush() {
       if (success) {
         setMessage({
           type: 'success',
-          text: currentStatus ? 'Token desativado' : 'Token reativado',
+          text: currentStatus ? 'Dispositivo desativado' : 'Dispositivo reativado',
         });
         await loadTokens();
       } else {
-        setMessage({ type: 'error', text: 'Erro ao atualizar token' });
+        setMessage({ type: 'error', text: 'Erro ao atualizar dispositivo' });
       }
     } catch (error) {
       console.error('Error toggling token:', error);
-      setMessage({ type: 'error', text: 'Erro ao atualizar token' });
+      setMessage({ type: 'error', text: 'Erro ao atualizar dispositivo' });
     }
 
     setTimeout(() => setMessage(null), 3000);
@@ -141,24 +143,15 @@ export default function GerenciarTokensPush() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Carregando tokens...</div>
-      </div>
-    );
+    return <LoadingState texto="Carregando dispositivos..." />;
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Smartphone className="w-8 h-8 text-blue-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Gerenciar Tokens Push</h1>
-              <p className="text-sm text-gray-600">Visualize e gerencie todos os dispositivos registrados</p>
-            </div>
-          </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <PageHeader
+        titulo="Dispositivos de notificação"
+        subtitulo="Visualize e gerencie todos os dispositivos registrados para notificações push"
+        acoes={
           <button
             onClick={loadTokens}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -166,7 +159,9 @@ export default function GerenciarTokensPush() {
             <RefreshCw className="w-4 h-4" />
             Atualizar
           </button>
-        </div>
+        }
+      />
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
 
         {message && (
           <div
@@ -180,11 +175,11 @@ export default function GerenciarTokensPush() {
           </div>
         )}
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-900">Total de Tokens</p>
+                <p className="text-sm font-medium text-blue-900">Total de Dispositivos</p>
                 <p className="text-3xl font-bold text-blue-600">{stats.total}</p>
               </div>
               <Smartphone className="w-8 h-8 text-blue-400" />
@@ -194,7 +189,7 @@ export default function GerenciarTokensPush() {
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-900">Tokens Ativos</p>
+                <p className="text-sm font-medium text-green-900">Ativos</p>
                 <p className="text-3xl font-bold text-green-600">{stats.active}</p>
               </div>
               <Activity className="w-8 h-8 text-green-400" />
@@ -204,7 +199,7 @@ export default function GerenciarTokensPush() {
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-900">Tokens Inativos</p>
+                <p className="text-sm font-medium text-gray-900">Inativos</p>
                 <p className="text-3xl font-bold text-gray-600">{stats.inactive}</p>
               </div>
               <X className="w-8 h-8 text-gray-400" />
@@ -212,7 +207,7 @@ export default function GerenciarTokensPush() {
           </div>
         </div>
 
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
@@ -255,7 +250,7 @@ export default function GerenciarTokensPush() {
               {filteredTokens.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                    Nenhum token encontrado
+                    Nenhum dispositivo encontrado
                   </td>
                 </tr>
               ) : (
@@ -341,7 +336,7 @@ export default function GerenciarTokensPush() {
 
         {filteredTokens.length > 0 && (
           <div className="mt-4 text-sm text-gray-600 text-center">
-            Mostrando {filteredTokens.length} de {tokens.length} tokens
+            Mostrando {filteredTokens.length} de {tokens.length} dispositivos
           </div>
         )}
       </div>

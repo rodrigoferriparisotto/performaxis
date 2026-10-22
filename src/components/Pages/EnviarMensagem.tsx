@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Send, CheckCircle, AlertCircle, MessageSquare, Info, AlertTriangle, Users, Eye, Bell, TrendingUp, Trash2, CheckSquare, Square, Filter, Calendar, Percent } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, MessageSquare, Info, AlertTriangle, Eye, Bell, TrendingUp, Trash2, CheckSquare, Square, Filter } from 'lucide-react';
 import { BroadcastMessageService, BroadcastMessage } from '../../services/broadcastMessageService';
 import { useAuth } from '../../contexts/AuthContext';
 import { format, differenceInDays } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { confirmar } from '../../lib/feedback';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState, EmptyState } from '../ui/Estados';
 
 export const EnviarMensagem: React.FC = () => {
   const { user } = useAuth();
@@ -28,14 +30,14 @@ export const EnviarMensagem: React.FC = () => {
 
   if (user?.profile === 'admin' && !user?.empresaId) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 sm:p-6">
           <div className="flex items-start space-x-3">
             <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
             <div>
               <h2 className="text-lg font-semibold text-gray-900 mb-2">Acesso Restrito</h2>
               <p className="text-gray-700">
-                O envio de mensagens broadcast é exclusivo para <strong>Gestores de Empresa</strong>.
+                O envio de mensagens gerais é exclusivo para <strong>Gestores de Empresa</strong>.
               </p>
               <p className="text-gray-600 mt-2 text-sm">
                 Super administradores não podem enviar mensagens globais. Cada empresa deve gerenciar suas próprias comunicações através do perfil de Gestor.
@@ -357,13 +359,13 @@ export const EnviarMensagem: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex items-center space-x-3 mb-6">
-          <MessageSquare className="w-8 h-8 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Enviar Mensagem para Todos</h1>
-        </div>
+    <div className="max-w-6xl mx-auto space-y-6">
+      <PageHeader
+        titulo="Enviar Mensagem para Todos"
+        subtitulo="Comunique avisos importantes a toda a equipe"
+      />
 
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex items-start space-x-2">
             <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -495,22 +497,16 @@ export const EnviarMensagem: React.FC = () => {
       </div>
 
       {/* Sent messages history */}
-      <div className="bg-white rounded-lg shadow-md p-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center space-x-2">
           <Info className="w-5 h-5 text-blue-600" />
           <span>Mensagens Enviadas</span>
         </h2>
 
         {loadingMessages ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="text-gray-500 mt-2">Carregando...</p>
-          </div>
+          <LoadingState texto="Carregando..." compacto />
         ) : sentMessages.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-400" />
-            <p>Nenhuma mensagem enviada ainda</p>
-          </div>
+          <EmptyState icon={MessageSquare} titulo="Nenhuma mensagem enviada ainda" />
         ) : (
           <>
             {/* Statistics */}
@@ -605,7 +601,7 @@ export const EnviarMensagem: React.FC = () => {
                 </div>
 
                 {selectedMessages.size > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                     <span className="text-sm font-medium text-red-900">
                       {selectedMessages.size} mensagem(ns) selecionada(s)
                     </span>
@@ -644,9 +640,9 @@ export const EnviarMensagem: React.FC = () => {
                         )}
                       </button>
 
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex-1">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2 mb-1 flex-wrap">
                               <h3 className="font-semibold text-gray-900">{msg.titulo}</h3>
                               <span className={`text-xs px-2 py-1 rounded ${getTipoBadgeColor(msg.tipo)}`}>
@@ -671,7 +667,7 @@ export const EnviarMensagem: React.FC = () => {
                             <p className="text-sm text-gray-600 line-clamp-2">{msg.conteudo}</p>
                           </div>
 
-                          <div className="ml-4 flex space-x-2">
+                          <div className="sm:ml-4 flex gap-3">
                             {msg.ativa && (
                               <button
                                 onClick={() => handleDeactivate(msg.id)}
@@ -693,7 +689,7 @@ export const EnviarMensagem: React.FC = () => {
 
                         <div className="mt-3 pt-3 border-t">
                           <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                            <div className="flex items-center space-x-4">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
                               <span>Por: {msg.autor?.name || 'Desconhecido'}</span>
                               <span>
                                 {format(new Date(msg.created_at), "d 'de' MMM 'às' HH:mm", { locale: ptBR })}
@@ -747,7 +743,7 @@ export const EnviarMensagem: React.FC = () => {
         )}
       </div>
 
-      <div className="bg-gray-50 rounded-lg shadow-md p-6 mt-6">
+      <div className="bg-gray-50 rounded-lg shadow-md p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Como Funciona</h2>
         <ul className="space-y-2 text-sm text-gray-700">
           <li className="flex items-start space-x-2">
@@ -793,7 +789,7 @@ export const EnviarMensagem: React.FC = () => {
 
       {/* Delete Single Message Modal */}
       {deleteModalOpen && messageToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center pt-20 lg:pt-4 px-4 pb-4 z-[70]">
+        <div className="fixed inset-0 !mt-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center pt-20 lg:pt-4 px-4 pb-4 z-[70]">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[calc(100vh-80px)] lg:max-h-[90vh] flex flex-col">
             {/* Header - Fixed */}
             <div className="flex items-start space-x-3 p-6 pb-4 border-b border-gray-200">
@@ -888,7 +884,7 @@ export const EnviarMensagem: React.FC = () => {
 
       {/* Bulk Delete Modal */}
       {bulkDeleteModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center pt-20 lg:pt-4 px-4 pb-4 z-[70]">
+        <div className="fixed inset-0 !mt-0 bg-black bg-opacity-50 flex items-start lg:items-center justify-center pt-20 lg:pt-4 px-4 pb-4 z-[70]">
           <div className="bg-white rounded-lg max-w-3xl w-full max-h-[calc(100vh-80px)] lg:max-h-[90vh] flex flex-col">
             {/* Header - Fixed */}
             <div className="flex items-start space-x-3 p-6 pb-4 border-b border-gray-200">

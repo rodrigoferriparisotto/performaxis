@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
 import { obterContextoUsuario } from '../../services/supabaseService';
+import { PageHeader } from '../ui/PageHeader';
 
 interface TipoFuncaoComercial {
   id: string;
@@ -190,25 +191,22 @@ const TiposFuncoesComerciais: React.FC = () => {
 
   return (
     <div className="space-y-4 max-w-7xl">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-800">Tipos de Funções Comerciais</h1>
-        <p className="text-gray-600">Gerencie os diferentes tipos de funções comerciais</p>
-      </div>
+      <PageHeader titulo="Tipos de Funções Comerciais" subtitulo="Gerencie os diferentes tipos de funções comerciais" />
 
-      <div className="flex items-center justify-between">
-        <div className="relative">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="relative w-full sm:w-auto">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
             type="text"
             placeholder="Buscar tipos..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+            className="w-full sm:w-72 pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
           />
         </div>
         <button
           onClick={handleNewTipo}
-          className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex items-center space-x-2 transition-colors duration-200"
+          className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex items-center justify-center space-x-2 transition-colors duration-200"
         >
           <Plus className="w-4 h-4" />
           <span>Novo Tipo</span>
@@ -238,7 +236,7 @@ const TiposFuncoesComerciais: React.FC = () => {
                     <div className="flex space-x-1">
                       <button
                         onClick={() => handleEditTipo(tipo)}
-                        className="p-1 text-pink-600 hover:bg-pink-100 rounded transition-colors duration-200"
+                        className="p-2 text-pink-600 hover:bg-pink-100 rounded transition-colors duration-200"
                         title="Editar tipo"
                       >
                         <Edit className="w-4 h-4" />
@@ -246,7 +244,7 @@ const TiposFuncoesComerciais: React.FC = () => {
                       {(user?.profile === 'admin' || user?.profile === 'gestor') && (
                         <button
                           onClick={() => handleDeleteTipo(tipo.id)}
-                          className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors duration-200"
+                          className="p-2 text-red-600 hover:bg-red-100 rounded transition-colors duration-200"
                           title="Excluir tipo"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -275,7 +273,7 @@ const TiposFuncoesComerciais: React.FC = () => {
               <p className="text-gray-600 mb-4">Comece criando seu primeiro tipo de função comercial</p>
               <button
                 onClick={handleNewTipo}
-                className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex items-center space-x-2 mx-auto transition-colors duration-200"
+                className="bg-pink-600 text-white px-4 py-2 rounded-lg hover:bg-pink-700 flex items-center justify-center space-x-2 mx-auto transition-colors duration-200"
               >
                 <Plus className="w-4 h-4" />
                 <span>Novo Tipo</span>
@@ -295,7 +293,7 @@ const TiposFuncoesComerciais: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-2 -m-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 >
                   <X className="w-5 h-5" />
                 </button>

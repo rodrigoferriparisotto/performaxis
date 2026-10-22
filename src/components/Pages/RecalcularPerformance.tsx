@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { RefreshCw, AlertCircle, CheckCircle, TrendingUp, Clock, Users, Calendar, Zap } from 'lucide-react';
+import { RefreshCw, AlertCircle, CheckCircle, TrendingUp, Clock, Calendar, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getBrazilDateString, subtractDaysBrazil } from '../../utils/dateUtils';
+import { PageHeader } from '../ui/PageHeader';
 
 const formatarDataLocal = (dataString: string): string => {
   const [ano, mes, dia] = dataString.split('-').map(Number);
@@ -166,23 +167,13 @@ const RecalcularPerformance: React.FC = () => {
   const totalDias = calcularDiasEntreDatas();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center gap-4">
-            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-lg">
-              <RefreshCw className="w-8 h-8 text-white" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Recalcular Performance</h1>
-              <p className="text-gray-600 mt-1">
-                Calcule ou recalcule a performance de todos os funcionários para um período específico
-              </p>
-            </div>
-          </div>
-        </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+        <PageHeader
+          titulo="Recalcular Performance"
+          subtitulo="Calcule ou recalcule a performance de todos os funcionários para um período específico"
+        />
 
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg shadow-lg p-6 mb-6 text-white">
+        <div className="bg-blue-600 rounded-lg shadow-lg p-4 sm:p-6 text-white">
           <div className="flex items-start gap-3">
             <Zap className="w-6 h-6 flex-shrink-0 mt-1" />
             <div>
@@ -197,7 +188,7 @@ const RecalcularPerformance: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
             <Calendar className="w-5 h-5 text-blue-600" />
             Período do Cálculo
@@ -264,7 +255,7 @@ const RecalcularPerformance: React.FC = () => {
             className={`w-full flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-200 ${
               calculando
                 ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl'
+                : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl'
             }`}
           >
             <RefreshCw className={`w-5 h-5 ${calculando ? 'animate-spin' : ''}`} />
@@ -273,7 +264,7 @@ const RecalcularPerformance: React.FC = () => {
         </div>
 
         {calculando && (
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+          <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
               <div className="flex-1">
@@ -293,7 +284,7 @@ const RecalcularPerformance: React.FC = () => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                 <div
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 h-3 rounded-full transition-all duration-300 ease-out"
+                  className="bg-blue-600 h-3 rounded-full transition-all duration-300 ease-out"
                   style={{ width: `${progresso.total > 0 ? (progresso.atual / progresso.total) * 100 : 0}%` }}
                 />
               </div>
@@ -402,7 +393,6 @@ const RecalcularPerformance: React.FC = () => {
             )}
           </div>
         )}
-      </div>
     </div>
   );
 };

@@ -3,6 +3,8 @@ import { Activity, CheckCircle, AlertCircle, Clock, TrendingUp, Calendar, Users,
 import { useAuth } from '../../contexts/AuthContext';
 import { buscarLogsCalculo } from '../../services/performanceService';
 import { format } from 'date-fns';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState, EmptyState } from '../ui/Estados';
 
 interface LogCalculo {
   id: string;
@@ -142,34 +144,15 @@ const MonitoramentoPerformance: React.FC = () => {
   const stats = calcularEstatisticas();
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState texto="Carregando logs..." />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-slate-100 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-lg">
-                <Activity className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Monitoramento de Performance</h1>
-                <p className="text-gray-600 mt-1">Acompanhe o histórico de cálculos e processamento</p>
-              </div>
-            </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+        <PageHeader
+          titulo="Monitoramento de Performance"
+          subtitulo="Acompanhe o histórico de cálculos e processamento"
+          acoes={
             <button
               onClick={carregarLogs}
               className="flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
@@ -177,12 +160,12 @@ const MonitoramentoPerformance: React.FC = () => {
               <RefreshCw className="w-4 h-4" />
               Atualizar
             </button>
-          </div>
-        </div>
+          }
+        />
 
         {/* Mensagem de Erro */}
         {erro && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
               <div>
@@ -193,7 +176,7 @@ const MonitoramentoPerformance: React.FC = () => {
         )}
 
         {/* Estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-white rounded-lg shadow-md p-5">
             <div className="flex items-center gap-3 mb-3">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -239,7 +222,7 @@ const MonitoramentoPerformance: React.FC = () => {
         </div>
 
         {/* Filtros */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div className="bg-white rounded-lg shadow-md p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 mb-2">Tipo de Cálculo</label>
@@ -275,15 +258,15 @@ const MonitoramentoPerformance: React.FC = () => {
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="overflow-x-auto">
             {logsFiltrados.length === 0 ? (
-              <div className="text-center py-12">
-                <Activity className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Nenhum log encontrado</p>
-                <p className="text-gray-400 text-sm mt-2">
-                  {filtroTipo !== 'todos' || filtroStatus !== 'todos'
+              <EmptyState
+                icon={Activity}
+                titulo="Nenhum log encontrado"
+                descricao={
+                  filtroTipo !== 'todos' || filtroStatus !== 'todos'
                     ? 'Tente ajustar os filtros'
-                    : 'Os logs aparecerão aqui após os cálculos'}
-                </p>
-              </div>
+                    : 'Os logs aparecerão aqui após os cálculos'
+                }
+              />
             ) : (
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
@@ -355,7 +338,7 @@ const MonitoramentoPerformance: React.FC = () => {
         </div>
 
         {/* Info sobre Cron Job */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <TrendingUp className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-900">
@@ -368,7 +351,6 @@ const MonitoramentoPerformance: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, AlertTriangle, CheckCircle2, Trash2 } from 'lucide-react';
 import { TabelaRegistro } from '../../services/historicalCleanupService';
 
@@ -52,7 +52,7 @@ export default function ConfirmacaoLimpezaModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+    <div className="fixed inset-0 !mt-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
       <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-red-600 text-white p-6 flex items-center justify-between rounded-t-lg">
           <div className="flex items-center gap-3">

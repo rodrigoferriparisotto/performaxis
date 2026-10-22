@@ -6,6 +6,8 @@ import { PermissionsService } from '../../services/permissionsService';
 import { useAuth } from '../../contexts/AuthContext';
 import { modulosService } from '../../services/modulosService';
 import { notificar, confirmar } from '../../lib/feedback';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState } from '../ui/Estados';
 
 const Usuarios: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -429,27 +431,20 @@ const Usuarios: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <LoadingState />
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <Users className="h-8 w-8 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Usuários</h1>
-            {empresa && (
-              <p className="text-sm text-gray-600">
-                {usuarios.filter(u => u.active).length}/{empresa.numero_usuarios} usuários ativos
-              </p>
-            )}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        titulo="Usuários"
+        subtitulo={
+          empresa
+            ? `${usuarios.filter(u => u.active).length}/${empresa.numero_usuarios} usuários ativos`
+            : undefined
+        }
+        acoes={
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -486,8 +481,8 @@ const Usuarios: React.FC = () => {
               }
             </span>
           </button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Profile Filter - Available for all users */}
       <div className="bg-white p-4 rounded-lg shadow-md space-y-4">
@@ -876,16 +871,18 @@ const Usuarios: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex space-x-2">
+                        <div className="flex gap-1">
                           <button
                             onClick={() => handleEdit(usuario)}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="p-2 rounded-lg text-blue-600 hover:text-blue-900 hover:bg-blue-50"
+                            title="Editar"
                           >
                             <Edit2 className="h-4 w-4" />
                           </button>
                           <button
                             onClick={() => handleDelete(usuario.id)}
-                            className="text-red-600 hover:text-red-900"
+                            className="p-2 rounded-lg text-red-600 hover:text-red-900 hover:bg-red-50"
+                            title="Excluir"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>

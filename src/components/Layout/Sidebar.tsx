@@ -148,13 +148,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
     { id: 'configuracao-metas', label: 'Configuração de Metas', icon: TrendingUp, access: hasAccess('configuracao_metas') },
     { id: 'recalcular-performance', label: 'Recalcular Performance', icon: Activity, access: hasAccess('recalcular_performance') },
     { id: 'monitoramento-performance', label: 'Monitoramento', icon: Activity, access: hasAccess('monitoramento_performance') },
-    { id: 'gerenciar-tokens-push', label: 'Gerenciar Tokens Push', icon: Bell, access: user?.profile === 'admin' },
-    { id: 'monitoramento-push', label: 'Dashboard de Push', icon: Bell, access: user?.profile === 'admin' },
+    { id: 'gerenciar-tokens-push', label: 'Dispositivos de notificação', icon: Bell, access: user?.profile === 'admin' },
+    { id: 'monitoramento-push', label: 'Painel de notificações push', icon: Bell, access: user?.profile === 'admin' },
     { id: 'limpeza-historico', label: 'Limpeza de Histórico', icon: Trash2, access: user?.profile === 'admin' || user?.profile === 'gestor' },
     { id: 'publicar-versao', label: 'Publicar Versão', icon: Package, access: user?.profile === 'admin' },
     { id: 'enviar-mensagem', label: 'Enviar Mensagem', icon: MessageSquare, access: user?.profile === 'gestor' },
-    { id: 'teste-notificacoes', label: 'Teste Push Notifications', icon: Bell, access: user?.profile === 'admin' },
-    { id: 'blog-admin', label: 'Blog', icon: FileText, access: user?.profile === 'admin' }
+    { id: 'teste-notificacoes', label: 'Teste de notificações push', icon: Bell, access: user?.profile === 'admin' },
+    { id: 'blog-admin', label: 'Gerenciar Blog', icon: FileText, access: user?.profile === 'admin' }
   ];
 
   // Verificar se algum item de cadastros está ativo (sem admin)

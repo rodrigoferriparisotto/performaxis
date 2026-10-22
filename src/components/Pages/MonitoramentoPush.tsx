@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Bell, TrendingUp, CheckCircle, XCircle, Clock, BarChart3, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { fcmPushService } from '../../services/fcmPushService';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState } from '../ui/Estados';
 
 interface PushLog {
   id: string;
@@ -91,7 +93,7 @@ export default function MonitoramentoPush() {
     const labels: Record<string, string> = {
       reminder: 'Lembrete',
       inactivity: 'Inatividade',
-      broadcast: 'Broadcast',
+      broadcast: 'Mensagem geral',
       update: 'Atualização',
       test: 'Teste',
       custom: 'Personalizado',
@@ -112,24 +114,15 @@ export default function MonitoramentoPush() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600">Carregando dados...</div>
-      </div>
-    );
+    return <LoadingState texto="Carregando dados..." />;
   }
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <BarChart3 className="w-8 h-8 text-blue-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard de Push Notifications</h1>
-              <p className="text-sm text-gray-600">Monitore o desempenho das notificações push</p>
-            </div>
-          </div>
+      <PageHeader
+        titulo="Painel de notificações push"
+        subtitulo="Monitore o desempenho das notificações push"
+        acoes={
           <button
             onClick={loadData}
             className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
@@ -137,7 +130,10 @@ export default function MonitoramentoPush() {
             <RefreshCw className="w-4 h-4" />
             Atualizar
           </button>
-        </div>
+        }
+      />
+
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -146,7 +142,7 @@ export default function MonitoramentoPush() {
               <TrendingUp className="w-4 h-4 text-blue-400" />
             </div>
             <p className="text-2xl font-bold text-blue-900">{stats.activeTokens}</p>
-            <p className="text-sm text-blue-700">Tokens Ativos</p>
+            <p className="text-sm text-blue-700">Dispositivos Ativos</p>
           </div>
 
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -176,8 +172,8 @@ export default function MonitoramentoPush() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
           <h2 className="text-xl font-bold text-gray-900">Histórico de Notificações</h2>
           <select
             value={filterType}
@@ -187,7 +183,7 @@ export default function MonitoramentoPush() {
             <option value="all">Todos os Tipos</option>
             <option value="reminder">Lembretes</option>
             <option value="inactivity">Inatividade</option>
-            <option value="broadcast">Broadcast</option>
+            <option value="broadcast">Mensagem geral</option>
             <option value="update">Atualizações</option>
             <option value="test">Testes</option>
           </select>
@@ -201,7 +197,7 @@ export default function MonitoramentoPush() {
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Tipo</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Título</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-gray-900">Destinatário</th>
-                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Tokens</th>
+                <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Dispositivos</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Sucesso</th>
                 <th className="px-4 py-3 text-center text-sm font-semibold text-gray-900">Falha</th>
               </tr>

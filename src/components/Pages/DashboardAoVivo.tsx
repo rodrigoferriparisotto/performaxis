@@ -412,7 +412,7 @@ const DashboardAoVivo: React.FC = () => {
             ) : realtimeStatus === 'error' || realtimeStatus === 'timeout' ? (
               <>
                 <div className="w-3 h-3 bg-red-500 rounded-full flex-shrink-0"></div>
-                <span className="text-xs sm:text-sm font-medium text-red-800 whitespace-nowrap">Offline</span>
+                <span className="text-xs sm:text-sm font-medium text-red-800 whitespace-nowrap">Sem conexão</span>
               </>
             ) : realtimeStatus === 'connecting' ? (
               <>

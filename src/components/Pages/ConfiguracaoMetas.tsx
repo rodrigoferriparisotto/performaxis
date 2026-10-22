@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Target, Save, AlertCircle, CheckCircle, Info, TrendingUp, Clock, Award } from 'lucide-react';
+import { Target, Save, AlertCircle, CheckCircle, Info, TrendingUp, Clock } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { buscarMetasPerformance, salvarMetaPerformance, MetaPerformanceData } from '../../services/performanceService';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState } from '../ui/Estados';
 
 const ConfiguracaoMetas: React.FC = () => {
   const { user } = useAuth();
@@ -143,35 +145,16 @@ const ConfiguracaoMetas: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white rounded-lg shadow-lg p-8">
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState texto="Carregando metas..." />;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-lg">
-                <Target className="w-8 h-8 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Configuração de Metas de Performance</h1>
-                <p className="text-gray-600 mt-1">Configure as metas e pesos de avaliação para cada perfil</p>
-              </div>
-            </div>
-            <div className="flex gap-3">
+    <div className="max-w-7xl mx-auto space-y-6">
+        <PageHeader
+          titulo="Configuração de Metas de Performance"
+          subtitulo="Configure as metas e pesos de avaliação para cada perfil"
+          acoes={
+            <>
               <button
                 onClick={aplicarMetasPadrao}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
@@ -181,17 +164,18 @@ const ConfiguracaoMetas: React.FC = () => {
               <button
                 onClick={salvarTodasMetas}
                 disabled={saving}
-                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 <Save className="w-5 h-5" />
                 {saving ? 'Salvando...' : 'Salvar Todas'}
               </button>
-            </div>
-          </div>
+            </>
+          }
+        />
 
           {/* Mensagem de feedback */}
           {message && (
-            <div className={`mt-4 p-4 rounded-lg flex items-center gap-3 ${
+            <div className={`p-4 rounded-lg flex items-center gap-3 ${
               message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
             }`}>
               {message.type === 'success' ? (
@@ -202,10 +186,9 @@ const ConfiguracaoMetas: React.FC = () => {
               <span>{message.text}</span>
             </div>
           )}
-        </div>
 
         {/* Info Box */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-600 mt-0.5" />
             <div className="text-sm text-blue-900">
@@ -228,7 +211,7 @@ const ConfiguracaoMetas: React.FC = () => {
             const pesosValidos = validarPesos(meta);
 
             return (
-              <div key={meta.perfil} className="bg-white rounded-lg shadow-lg p-6">
+              <div key={meta.perfil} className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
                 {/* Header do Card */}
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-xl font-bold text-gray-900">{perfilInfo?.label}</h3>
@@ -388,7 +371,6 @@ const ConfiguracaoMetas: React.FC = () => {
             );
           })}
         </div>
-      </div>
     </div>
   );
 };

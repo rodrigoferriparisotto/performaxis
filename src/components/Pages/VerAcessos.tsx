@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Key, Search, Copy, Eye, EyeOff, ExternalLink, Check, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { acessosService, Acesso, AreaVinculada } from '../../services/acessosService';
 import { checkIfEncrypted } from '../../services/encryptionService';
+import { TEMAS_MODULO } from '../../constants/moduleTheme';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState, EmptyState } from '../ui/Estados';
 
 const AREA_LABELS: Record<AreaVinculada, string> = {
   recepcao: 'Recepção',
@@ -19,17 +22,17 @@ const AREA_LABELS: Record<AreaVinculada, string> = {
 };
 
 const AREA_COLORS: Record<AreaVinculada, string> = {
-  recepcao: 'bg-blue-100 text-blue-800',
-  camararia: 'bg-green-100 text-green-800',
-  revisao: 'bg-cyan-100 text-cyan-800',
-  gestao: 'bg-orange-100 text-orange-800',
-  vendas: 'bg-pink-100 text-pink-800',
-  cozinha: 'bg-yellow-100 text-yellow-800',
-  areas_comuns: 'bg-gray-100 text-gray-800',
-  atividades_diarias: 'bg-teal-100 text-teal-800',
-  atividades_extras: 'bg-emerald-100 text-emerald-800',
-  manutencao: 'bg-red-100 text-red-800',
-  geral: 'bg-slate-100 text-slate-800',
+  recepcao: TEMAS_MODULO.recepcao.badge,
+  camararia: TEMAS_MODULO.camararia.badge,
+  revisao: TEMAS_MODULO.revisao.badge,
+  gestao: TEMAS_MODULO.gestao.badge,
+  vendas: TEMAS_MODULO.vendas.badge,
+  cozinha: TEMAS_MODULO.cozinha.badge,
+  areas_comuns: TEMAS_MODULO.areas_comuns.badge,
+  atividades_diarias: TEMAS_MODULO.atividades_diarias.badge,
+  atividades_extras: TEMAS_MODULO.atividades_extras.badge,
+  manutencao: TEMAS_MODULO.manutencao.badge,
+  geral: 'bg-gray-100 text-gray-800',
 };
 
 export default function VerAcessos() {
@@ -156,27 +159,22 @@ export default function VerAcessos() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-cyan-500 to-blue-600 p-3 rounded-xl shadow-lg">
-            <Eye className="text-white" size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Visualizar Acessos</h1>
-            <p className="text-sm text-gray-600">Consulte credenciais e informações de acesso</p>
-          </div>
-        </div>
-        <button
-          onClick={loadAcessos}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all shadow-sm"
-        >
-          <RefreshCw size={18} />
-          Atualizar
-        </button>
-      </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <PageHeader
+        titulo="Visualizar Acessos"
+        subtitulo="Consulte credenciais e informações de acesso"
+        acoes={
+          <button
+            onClick={loadAcessos}
+            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all shadow-sm"
+          >
+            <RefreshCw size={18} />
+            Atualizar
+          </button>
+        }
+      />
 
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <input
@@ -202,21 +200,18 @@ export default function VerAcessos() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando acessos...</p>
-        </div>
+        <LoadingState texto="Carregando acessos..." />
       ) : filteredAcessos.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <Key size={48} className="mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 mb-2">
-            {searchTerm || selectedArea !== 'todos' ? 'Nenhum acesso encontrado' : 'Nenhum acesso cadastrado'}
-          </p>
-          <p className="text-sm text-gray-500">
-            {searchTerm || selectedArea !== 'todos'
-              ? 'Tente ajustar os filtros de busca'
-              : 'Entre em contato com o administrador para cadastrar acessos'}
-          </p>
+        <div className="bg-gray-50 rounded-lg">
+          <EmptyState
+            icon={Key}
+            titulo={searchTerm || selectedArea !== 'todos' ? 'Nenhum acesso encontrado' : 'Nenhum acesso cadastrado'}
+            descricao={
+              searchTerm || selectedArea !== 'todos'
+                ? 'Tente ajustar os filtros de busca'
+                : 'Entre em contato com o administrador para cadastrar acessos'
+            }
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

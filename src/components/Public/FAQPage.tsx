@@ -11,7 +11,7 @@ const FAQPage: React.FC = () => {
       questions: [
         {
           question: 'O que é o PERFORMAXIS?',
-          answer: 'O PERFORMAXIS é um sistema completo de gestão operacional para hotéis e pousadas. Ele permite controlar todas as atividades diárias dos setores (recepção, camararia, cozinha, manutenção, etc.), monitorar performance em tempo real e gerar relatórios detalhados.',
+          answer: 'O PERFORMAXIS é um sistema completo de gestão operacional para hotéis e pousadas. Ele permite controlar todas as atividades diárias dos setores (recepção, governança, cozinha, manutenção, etc.), monitorar performance em tempo real e gerar relatórios detalhados.',
         },
         {
           question: 'Quem pode usar o sistema?',

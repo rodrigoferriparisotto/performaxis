@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Bell, CheckCircle, XCircle, Play, Loader, AlertTriangle } from 'lucide-react';
 import { PushNotificationTester } from '../../utils/testPushNotifications';
 import { useAuth } from '../../contexts/AuthContext';
 import { notificar } from '../../lib/feedback';
+import { PageHeader } from '../ui/PageHeader';
 
 interface TestResult {
   step: string;
@@ -99,15 +100,10 @@ export default function TesteNotificacoesPush() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Teste de Notificações Push</h1>
-          <p className="text-gray-600 mt-1">
-            Execute testes para verificar a configuração do Firebase e envio de notificações
-          </p>
-        </div>
-        <Bell className="h-8 w-8 text-blue-600" />
-      </div>
+      <PageHeader
+        titulo="Teste de Notificações Push"
+        subtitulo="Execute testes para verificar a configuração do Firebase e envio de notificações"
+      />
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start space-x-3">
@@ -163,7 +159,7 @@ export default function TesteNotificacoesPush() {
       </div>
 
       {testing && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow p-4 sm:p-6">
           <div className="flex items-center space-x-3">
             <Loader className="h-6 w-6 animate-spin text-blue-600" />
             <div>
@@ -176,7 +172,7 @@ export default function TesteNotificacoesPush() {
 
       {results.length > 0 && (
         <div className="space-y-4">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Resumo dos Testes</h2>
             <div className="grid grid-cols-3 gap-4">
               <div className="text-center">
@@ -217,12 +213,12 @@ export default function TesteNotificacoesPush() {
           </div>
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+            <div className="px-4 sm:px-6 py-4 bg-gray-50 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900">Detalhes dos Testes</h2>
             </div>
             <div className="divide-y divide-gray-200">
               {results.map((result, index) => (
-                <div key={index} className="p-6">
+                <div key={index} className="p-4 sm:p-6">
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0 mt-1">
                       {result.success ? (
@@ -252,8 +248,8 @@ export default function TesteNotificacoesPush() {
         </div>
       )}
 
-      <div className="bg-gray-50 rounded-lg p-6">
-        <h3 className="font-semibold text-gray-900 mb-3">Troubleshooting</h3>
+      <div className="bg-gray-50 rounded-lg p-4 sm:p-6">
+        <h3 className="font-semibold text-gray-900 mb-3">Solução de problemas</h3>
         <div className="space-y-2 text-sm text-gray-700">
           <p><strong>Erro: Firebase não está configurado</strong></p>
           <p className="ml-4">- Verifique se todas as variáveis VITE_FIREBASE_* estão no arquivo .env</p>
@@ -266,7 +262,7 @@ export default function TesteNotificacoesPush() {
           <p className="ml-4">- Verifique se o arquivo firebase-messaging-sw.js existe em /public</p>
 
           <p className="mt-3"><strong>Erro: Edge Function não responde</strong></p>
-          <p className="ml-4">- Verifique se a função está deployada no Supabase</p>
+          <p className="ml-4">- Verifique se a função está publicada no Supabase</p>
           <p className="ml-4">- Verifique se as variáveis FIREBASE_SERVICE_ACCOUNT_JSON e FIREBASE_PROJECT_ID estão configuradas no Supabase</p>
 
           <p className="mt-3"><strong>Notificação não aparece</strong></p>
