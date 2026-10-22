@@ -48,12 +48,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     timeout: 20000,
     heartbeatIntervalMs: 15000
   },
-  global: {
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    },
-  },
+  // sem cabeçalhos globais: um Content-Type fixo em application/json fazia o
+  // upload de fotos chegar ao storage como JSON (recusado com "invalid mime type")
 });
 
 // Listener para eventos de autenticação

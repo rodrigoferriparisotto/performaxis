@@ -16,7 +16,8 @@ import {
   ChevronDown,
   User,
   Trash2,
-  Camera
+  Camera,
+  Image as ImageIcon
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
 
@@ -93,7 +94,7 @@ const NovoRegistroManutencao: React.FC = () => {
       fotos = [...fotos, ...urls];
       if (falhas > 0) {
         const continuar = await confirmar(
-          `${falhas} foto(s) não puderam ser enviadas (conexão ou tamanho). Salvar a manutenção mesmo assim?`
+          `${falhas} foto(s) não puderam ser enviadas. Salvar a manutenção mesmo assim?`
         );
         if (!continuar) {
           setSaving(false);
@@ -366,25 +367,40 @@ const NovoRegistroManutencao: React.FC = () => {
                 </div>
               )}
 
-              <input
-                id="input-fotos-manutencao"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                multiple
-                className="hidden"
-                onChange={(e) => {
-                  adicionarFotos(e.target.files);
-                  e.target.value = '';
-                }}
-              />
-              <label
-                htmlFor="input-fotos-manutencao"
-                className="inline-flex items-center space-x-2 px-4 py-2 border border-orange-300 text-orange-700 bg-orange-50 rounded-md hover:bg-orange-100 cursor-pointer transition-colors duration-200"
-              >
-                <Camera className="w-4 h-4" />
-                <span>Tirar foto / escolher da galeria</span>
-              </label>
+              {/* câmera e galeria separadas: com capture o Android abre só a câmera */}
+              {[
+                { id: 'input-fotos-camera', capture: true },
+                { id: 'input-fotos-galeria', capture: false },
+              ].map(({ id, capture }) => (
+                <input
+                  key={id}
+                  id={id}
+                  type="file"
+                  accept="image/*"
+                  {...(capture ? { capture: 'environment' as const } : { multiple: true })}
+                  className="hidden"
+                  onChange={(e) => {
+                    adicionarFotos(e.target.files);
+                    e.target.value = '';
+                  }}
+                />
+              ))}
+              <div className="flex flex-wrap gap-2">
+                <label
+                  htmlFor="input-fotos-camera"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-orange-300 text-orange-700 bg-orange-50 rounded-md hover:bg-orange-100 cursor-pointer transition-colors duration-200"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>Tirar foto</span>
+                </label>
+                <label
+                  htmlFor="input-fotos-galeria"
+                  className="inline-flex items-center gap-2 px-4 py-2 border border-orange-300 text-orange-700 bg-white rounded-md hover:bg-orange-50 cursor-pointer transition-colors duration-200"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Escolher da galeria</span>
+                </label>
+              </div>
 
               {fotosSelecionadas.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3">
