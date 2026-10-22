@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { SidebarProvider } from '../contexts/SidebarContext';
 import { Menu } from 'lucide-react';
@@ -6,20 +6,9 @@ import LoginForm from './Auth/LoginForm';
 import RegisterForm from './Auth/RegisterForm';
 import PasswordReset from './Auth/PasswordReset';
 import LandingPage from './LandingPage';
-import NotificationPermissionModal from './common/NotificationPermissionModal';
 import BatteryOptimizationModal from './common/BatteryOptimizationModal';
 import PendingRecordsBadge from './common/PendingRecordsBadge';
 import { getBatteryGuide } from '../constants/batteryOptimizationGuides';
-import SobrePage from './Public/SobrePage';
-import RecursosPage from './Public/RecursosPage';
-import FAQPage from './Public/FAQPage';
-import ContatoPage from './Public/ContatoPage';
-import DemoPage from './Public/DemoPage';
-import VideosPage from './Public/VideosPage';
-import BlogListPage from './Public/BlogListPage';
-import BlogPostPage from './Public/BlogPostPage';
-import BlogAdmin from './Pages/BlogAdmin';
-import BlogAdminEdit from './Pages/BlogAdminEdit';
 import Sidebar from './Layout/Sidebar';
 import { useReminderChecker } from '../hooks/useReminderChecker';
 import { useRecordSync } from '../hooks/useRecordSync';
@@ -32,62 +21,77 @@ import { activityMarkingService } from '../services/activityMarkingService';
 import { notificationHealthCheckService } from '../services/notificationHealthCheckService';
 import { getDataHoraAtual } from '../utils/dateUtils';
 import { mapModuloToUrl, mapModuloToHistoricoUrl } from '../utils/moduleUrlMapper';
-import Dashboard from './Pages/Dashboard';
-import Empresa from './Pages/Empresa';
-import Usuarios from './Pages/Usuarios';
-import AtividadesRecepcao from './Pages/AtividadesRecepcao';
-import AtividadesCamararia from './Pages/AtividadesCamararia';
-import AtividadesRevisao from './Pages/AtividadesRevisao';
-import AtividadesAreasComuns from './Pages/AtividadesAreasComuns';
-import AtividadesGestao from './Pages/AtividadesGestao';
-import AtividadesNoturnas from './Pages/AtividadesNoturnas';
-import AtividadesDiurnas from './Pages/AtividadesDiurnas';
-import TiposCozinha from './Pages/TiposCozinha';
-import AtividadesCozinha from './Pages/AtividadesCozinha';
-import Cozinha from './Pages/Cozinha';
-import Suites from './Pages/Suites';
-import AtividadesExtras from './Pages/AtividadesExtras';
-import AtividadesDiarias from './Pages/AtividadesDiarias';
-import Gestao from './Pages/Gestao';
-import Recepcao from './Pages/Recepcao';
-import Camararia from './Pages/Camararia';
-import Revisao from './Pages/Revisao';
-import AreasComuns from './Pages/AreasComuns';
-import Manutencao from './Pages/Manutencao';
-import Perfis from './Pages/Perfis';
-import Acessos from './Pages/Acessos';
-import VerAcessos from './Pages/VerAcessos';
-import TiposRecepcao from './Pages/TiposRecepcao';
-import ServicosCamararia from './Pages/ServicosCamararia';
-import ItensCamararia from './Pages/ItensCamararia';
-import FotosCamararia from './Pages/FotosCamararia';
-import FotosCozinha from './Pages/FotosCozinha';
-import TiposGestao from './Pages/TiposGestao';
-import TiposAtividades from './Pages/TiposAtividades';
-import DashboardRelatorios from './Pages/DashboardRelatorios';
-import AnaliseOperacional from './Pages/AnaliseOperacional';
-import AnaliseFuncionario from './Pages/AnaliseFuncionario';
-import DadosGerais from './Pages/DadosGerais';
-import EficienciaArea from './Pages/EficienciaArea';
-import TiposExtras from './Pages/TiposExtras';
-import TiposAreasComuns from './Pages/TiposAreasComuns';
-import Vendas from './Pages/Vendas';
-import TiposFuncoesComerciais from './Pages/TiposFuncoesComerciais';
-import AtividadesComerciais from './Pages/AtividadesComerciais';
-import DashboardAoVivo from './Pages/DashboardAoVivo';
-import RecalcularPerformance from './Pages/RecalcularPerformance';
-import MonitoramentoPerformance from './Pages/MonitoramentoPerformance';
-import ConfiguracaoMetas from './Pages/ConfiguracaoMetas';
-import RankingPorMeritocracia from './Pages/RankingPorMeritocracia';
-import { PublicarVersao } from './Pages/PublicarVersao';
-import { EnviarMensagem } from './Pages/EnviarMensagem';
-import ConfiguracoesLembretes from './Pages/ConfiguracoesLembretes';
-import ConfiguracoesSom from './Pages/ConfiguracoesSom';
-import LimpezaHistorico from './Pages/LimpezaHistorico';
-import TesteNotificacoesPush from './Pages/TesteNotificacoesPush';
-import GerenciarTokensPush from './Pages/GerenciarTokensPush';
-import MonitoramentoPush from './Pages/MonitoramentoPush';
-import { DiagnosticoNotificacoes } from './Pages/DiagnosticoNotificacoes';
+import { LoadingState } from './ui/Estados';
+
+// Telas carregadas sob demanda: cada uma vira um arquivo separado,
+// baixado só quando é aberta (antes o app inteiro vinha num pacote de 2,5 MB).
+const NotificationPermissionModal = lazy(() => import('./common/NotificationPermissionModal'));
+const SobrePage = lazy(() => import('./Public/SobrePage'));
+const RecursosPage = lazy(() => import('./Public/RecursosPage'));
+const FAQPage = lazy(() => import('./Public/FAQPage'));
+const ContatoPage = lazy(() => import('./Public/ContatoPage'));
+const DemoPage = lazy(() => import('./Public/DemoPage'));
+const VideosPage = lazy(() => import('./Public/VideosPage'));
+const BlogListPage = lazy(() => import('./Public/BlogListPage'));
+const BlogPostPage = lazy(() => import('./Public/BlogPostPage'));
+const BlogAdmin = lazy(() => import('./Pages/BlogAdmin'));
+const BlogAdminEdit = lazy(() => import('./Pages/BlogAdminEdit'));
+const Dashboard = lazy(() => import('./Pages/Dashboard'));
+const Empresa = lazy(() => import('./Pages/Empresa'));
+const Usuarios = lazy(() => import('./Pages/Usuarios'));
+const AtividadesRecepcao = lazy(() => import('./Pages/AtividadesRecepcao'));
+const AtividadesCamararia = lazy(() => import('./Pages/AtividadesCamararia'));
+const AtividadesRevisao = lazy(() => import('./Pages/AtividadesRevisao'));
+const AtividadesAreasComuns = lazy(() => import('./Pages/AtividadesAreasComuns'));
+const AtividadesGestao = lazy(() => import('./Pages/AtividadesGestao'));
+const AtividadesNoturnas = lazy(() => import('./Pages/AtividadesNoturnas'));
+const AtividadesDiurnas = lazy(() => import('./Pages/AtividadesDiurnas'));
+const TiposCozinha = lazy(() => import('./Pages/TiposCozinha'));
+const AtividadesCozinha = lazy(() => import('./Pages/AtividadesCozinha'));
+const Cozinha = lazy(() => import('./Pages/Cozinha'));
+const Suites = lazy(() => import('./Pages/Suites'));
+const AtividadesExtras = lazy(() => import('./Pages/AtividadesExtras'));
+const AtividadesDiarias = lazy(() => import('./Pages/AtividadesDiarias'));
+const Gestao = lazy(() => import('./Pages/Gestao'));
+const Recepcao = lazy(() => import('./Pages/Recepcao'));
+const Camararia = lazy(() => import('./Pages/Camararia'));
+const Revisao = lazy(() => import('./Pages/Revisao'));
+const AreasComuns = lazy(() => import('./Pages/AreasComuns'));
+const Manutencao = lazy(() => import('./Pages/Manutencao'));
+const Perfis = lazy(() => import('./Pages/Perfis'));
+const Acessos = lazy(() => import('./Pages/Acessos'));
+const VerAcessos = lazy(() => import('./Pages/VerAcessos'));
+const TiposRecepcao = lazy(() => import('./Pages/TiposRecepcao'));
+const ServicosCamararia = lazy(() => import('./Pages/ServicosCamararia'));
+const ItensCamararia = lazy(() => import('./Pages/ItensCamararia'));
+const FotosCamararia = lazy(() => import('./Pages/FotosCamararia'));
+const FotosCozinha = lazy(() => import('./Pages/FotosCozinha'));
+const TiposGestao = lazy(() => import('./Pages/TiposGestao'));
+const TiposAtividades = lazy(() => import('./Pages/TiposAtividades'));
+const DashboardRelatorios = lazy(() => import('./Pages/DashboardRelatorios'));
+const AnaliseOperacional = lazy(() => import('./Pages/AnaliseOperacional'));
+const AnaliseFuncionario = lazy(() => import('./Pages/AnaliseFuncionario'));
+const DadosGerais = lazy(() => import('./Pages/DadosGerais'));
+const EficienciaArea = lazy(() => import('./Pages/EficienciaArea'));
+const TiposExtras = lazy(() => import('./Pages/TiposExtras'));
+const TiposAreasComuns = lazy(() => import('./Pages/TiposAreasComuns'));
+const Vendas = lazy(() => import('./Pages/Vendas'));
+const TiposFuncoesComerciais = lazy(() => import('./Pages/TiposFuncoesComerciais'));
+const AtividadesComerciais = lazy(() => import('./Pages/AtividadesComerciais'));
+const DashboardAoVivo = lazy(() => import('./Pages/DashboardAoVivo'));
+const RecalcularPerformance = lazy(() => import('./Pages/RecalcularPerformance'));
+const MonitoramentoPerformance = lazy(() => import('./Pages/MonitoramentoPerformance'));
+const ConfiguracaoMetas = lazy(() => import('./Pages/ConfiguracaoMetas'));
+const RankingPorMeritocracia = lazy(() => import('./Pages/RankingPorMeritocracia'));
+const PublicarVersao = lazy(() => import('./Pages/PublicarVersao').then((m) => ({ default: m.PublicarVersao })));
+const EnviarMensagem = lazy(() => import('./Pages/EnviarMensagem').then((m) => ({ default: m.EnviarMensagem })));
+const ConfiguracoesLembretes = lazy(() => import('./Pages/ConfiguracoesLembretes'));
+const ConfiguracoesSom = lazy(() => import('./Pages/ConfiguracoesSom'));
+const LimpezaHistorico = lazy(() => import('./Pages/LimpezaHistorico'));
+const TesteNotificacoesPush = lazy(() => import('./Pages/TesteNotificacoesPush'));
+const GerenciarTokensPush = lazy(() => import('./Pages/GerenciarTokensPush'));
+const MonitoramentoPush = lazy(() => import('./Pages/MonitoramentoPush'));
+const DiagnosticoNotificacoes = lazy(() => import('./Pages/DiagnosticoNotificacoes').then((m) => ({ default: m.DiagnosticoNotificacoes })));
 
 const MainAppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
@@ -353,7 +357,7 @@ const MainAppContent: React.FC = () => {
     if (isPublicPage) {
       const publicContent = renderPublicPage();
       if (publicContent) {
-        return publicContent;
+        return <Suspense fallback={<LoadingState />}>{publicContent}</Suspense>;
       }
     }
 
@@ -395,7 +399,7 @@ const MainAppContent: React.FC = () => {
   if (isPublicPage) {
     const publicContent = renderPublicPage();
     if (publicContent) {
-      return publicContent;
+      return <Suspense fallback={<LoadingState />}>{publicContent}</Suspense>;
     }
   }
 
@@ -592,16 +596,20 @@ const MainAppContent: React.FC = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 lg:p-6 pt-[60px] lg:pt-6">
-            {renderPage()}
+            <Suspense fallback={<LoadingState />}>{renderPage()}</Suspense>
           </div>
         </main>
 
-        <NotificationPermissionModal
-          isOpen={showNotificationModal}
-          onClose={handleDeclineNotifications}
-          onAccept={handleAcceptNotifications}
-          usuarioId={user?.id}
-        />
+        {showNotificationModal && (
+          <Suspense fallback={null}>
+            <NotificationPermissionModal
+              isOpen={showNotificationModal}
+              onClose={handleDeclineNotifications}
+              onAccept={handleAcceptNotifications}
+              usuarioId={user?.id}
+            />
+          </Suspense>
+        )}
 
         <BatteryOptimizationModal
           isOpen={showBatteryGuideModal}
