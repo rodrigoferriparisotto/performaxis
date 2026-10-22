@@ -1,3 +1,4 @@
+import { format } from 'date-fns';
 import React, { useState, useEffect } from 'react';
 import {
   TrendingUp,
@@ -116,12 +117,12 @@ const DashboardRelatorios: React.FC = () => {
     inicioSemanaPassada.setDate(inicioSemanaPassada.getDate() - 6);
 
     const semanaAtual = {
-      inicio: inicioSemanaAtual.toISOString().split('T')[0],
-      fim: hoje.toISOString().split('T')[0]
+      inicio: format(inicioSemanaAtual, 'yyyy-MM-dd'),
+      fim: format(hoje, 'yyyy-MM-dd')
     };
     const semanaPassada = {
-      inicio: inicioSemanaPassada.toISOString().split('T')[0],
-      fim: fimSemanaPassada.toISOString().split('T')[0]
+      inicio: format(inicioSemanaPassada, 'yyyy-MM-dd'),
+      fim: format(fimSemanaPassada, 'yyyy-MM-dd')
     };
 
     // Últimos 7 dias (datas locais do fuso de Brasília)

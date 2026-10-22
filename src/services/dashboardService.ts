@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { differenceInMinutes } from 'date-fns';
-import { getBrazilDate, getBrazilDateString } from '../utils/dateUtils';
+import { getBrazilDateString } from '../utils/dateUtils';
 
 // Os dados da tela Dashboard ao Vivo vêm da RPC dashboard_ao_vivo
 // (supabase/migrations/20261022010000_dashboard_ao_vivo_rpc.sql).
@@ -54,7 +54,7 @@ export class DashboardService {
 
     try {
       const inicio = new Date(horaInicio);
-      const agora = getBrazilDate();
+      const agora = new Date();
 
       if (isNaN(inicio.getTime())) {
         return 0;

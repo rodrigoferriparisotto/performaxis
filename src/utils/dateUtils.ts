@@ -1,11 +1,14 @@
 // Utilitários para formatação de datas
 import { format, subDays } from 'date-fns';
-import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 
 // Configuração do fuso horário brasileiro
 const BRAZIL_TIMEZONE = 'America/Sao_Paulo';
 
-// Função para obter data/hora atual no fuso horário brasileiro
+// Atenção: o Date devolvido NÃO é o instante real — é um relógio "de parede"
+// de São Paulo para extrair dia/mês/hora com date-fns (format, getHours...).
+// Para gravar no banco, medir tempo decorrido ou passar para toLocale*String
+// com timeZone, use new Date() (o instante real).
 export const getBrazilDate = (): Date => {
   return toZonedTime(new Date(), BRAZIL_TIMEZONE);
 };
@@ -35,6 +38,9 @@ const convertToBrazilTime = (dateString: string): Date => {
   return toZonedTime(utcDate, BRAZIL_TIMEZONE);
 };
 
+// instante real; a conversão para São Paulo fica a cargo do timeZone do toLocale*
+const instante = (dateString: string): Date => new Date(dateString);
+
 export const formatarData = (dataString: string): string => {
   if (!dataString) return '';
   
@@ -52,7 +58,7 @@ export const formatarDataCompleta = (dataString: string): string => {
   
   // Se é uma data ISO com horário, converter para fuso brasileiro
   if (dataString.includes('T')) {
-    const data = convertToBrazilTime(dataString);
+    const data = instante(dataString);
     return data.toLocaleDateString('pt-BR', {
       weekday: 'long',
       year: 'numeric',
@@ -62,10 +68,10 @@ export const formatarDataCompleta = (dataString: string): string => {
     });
   }
   
-  // Para datas simples YYYY-MM-DD
+  // Para datas simples YYYY-MM-DD: meio-dia UTC cai no mesmo dia em São Paulo
   const [ano, mes, dia] = dataString.split('-');
-  const data = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
-  
+  const data = new Date(Date.UTC(parseInt(ano), parseInt(mes) - 1, parseInt(dia), 12));
+
   return data.toLocaleDateString('pt-BR', {
     weekday: 'long',
     year: 'numeric',
@@ -77,8 +83,8 @@ export const formatarDataCompleta = (dataString: string): string => {
 
 export const formatarHorario = (dataHoraString: string): string => {
   if (!dataHoraString) return '';
-  
-  const data = convertToBrazilTime(dataHoraString);
+
+  const data = instante(dataHoraString);
   return data.toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
@@ -91,14 +97,13 @@ export const getDataAtual = (): string => {
 };
 
 export const getDataHoraAtual = (): string => {
-  const agora = getBrazilDate();
-  return agora.toISOString();
+  return new Date().toISOString();
 };
 
 export const formatarDataHoraBrasil = (dataHoraString: string): string => {
   if (!dataHoraString) return '';
-  
-  const data = convertToBrazilTime(dataHoraString);
+
+  const data = instante(dataHoraString);
   return data.toLocaleString('pt-BR', {
     year: 'numeric',
     month: '2-digit',
@@ -115,7 +120,7 @@ export const calcularTempoDecorrido = (horaInicio: string, horaFim?: string): st
 
   try {
     const inicio = new Date(horaInicio);
-    const fim = horaFim ? new Date(horaFim) : getBrazilDate();
+    const fim = horaFim ? new Date(horaFim) : new Date();
 
     if (isNaN(inicio.getTime()) || isNaN(fim.getTime())) {
       return '0min';
@@ -140,7 +145,7 @@ export const calcularTempoDecorrido = (horaInicio: string, horaFim?: string): st
 
 // Função para obter o horário atual formatado para exibição
 export const getHorarioAtualBrasil = (): string => {
-  const agora = getBrazilDate();
+  const agora = new Date();
   return agora.toLocaleTimeString('pt-BR', {
     hour: '2-digit',
     minute: '2-digit',
@@ -151,7 +156,7 @@ export const getHorarioAtualBrasil = (): string => {
 
 // Função para obter a data atual formatada para exibição
 export const getDataAtualFormatada = (): string => {
-  const hoje = getBrazilDate();
+  const hoje = new Date();
   return hoje.toLocaleDateString('pt-BR', {
     weekday: 'long',
     year: 'numeric',

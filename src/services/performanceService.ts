@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { getBrazilDate, subtractDaysBrazil } from '../utils/dateUtils';
 
 export interface PerformanceDiariaData {
   id: string;
@@ -444,11 +445,9 @@ export async function calcularPerformanceRetroativa(
 
     // Gerar lista de datas (hoje até N dias atrás)
     const datas: string[] = [];
-    const hoje = new Date();
+    const hoje = getBrazilDate();
     for (let i = 0; i < dias; i++) {
-      const data = new Date(hoje);
-      data.setDate(data.getDate() - i);
-      datas.push(data.toISOString().split('T')[0]);
+      datas.push(subtractDaysBrazil(i));
     }
 
     resultado.detalhes.push(`Calculando performance para ${datas.length} dias`);
