@@ -236,7 +236,7 @@ const Suites: React.FC = () => {
                     <div className="flex space-x-1">
                       <button 
                         onClick={() => handleEditSuite(suite)}
-                        className="p-1 text-blue-600 hover:bg-blue-100 rounded transition-colors duration-200"
+                        className="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors duration-200"
                         title="Editar suíte"
                       >
                         <Edit className="w-4 h-4" />
@@ -244,7 +244,7 @@ const Suites: React.FC = () => {
                       {user?.profile === 'admin' && (
                         <button 
                           onClick={() => handleDeleteSuite(suite.id)}
-                          className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors duration-200"
+                          className="p-2 text-red-600 hover:bg-red-100 rounded transition-colors duration-200"
                           title="Excluir suíte"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -304,7 +304,7 @@ const Suites: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-2 -m-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 >
                   <X className="w-5 h-5" />
                 </button>

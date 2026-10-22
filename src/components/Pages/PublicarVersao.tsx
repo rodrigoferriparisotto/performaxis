@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { RefreshCw, CheckCircle, AlertCircle, Package } from 'lucide-react';
 import { VersionService } from '../../services/versionService';
 import { useAuth } from '../../contexts/AuthContext';
+import { PageHeader } from '../ui/PageHeader';
 
 export const PublicarVersao: React.FC = () => {
   const { user } = useAuth();
@@ -62,12 +63,13 @@ export const PublicarVersao: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div className="flex items-center space-x-3 mb-6">
-          <Package className="w-8 h-8 text-blue-600" />
-          <h1 className="text-2xl font-bold text-gray-900">Publicar Nova Versão</h1>
-        </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <PageHeader
+        titulo="Publicar Nova Versão"
+        subtitulo="Force a atualização do aplicativo para todos os usuários"
+      />
+
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <p className="text-sm text-blue-800">
@@ -152,7 +154,7 @@ export const PublicarVersao: React.FC = () => {
         </form>
       </div>
 
-      <div className="bg-gray-50 rounded-lg shadow-md p-6">
+      <div className="bg-gray-50 rounded-lg shadow-md p-4 sm:p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Como Funciona</h2>
         <ul className="space-y-2 text-sm text-gray-700">
           <li className="flex items-start space-x-2">
@@ -166,7 +168,7 @@ export const PublicarVersao: React.FC = () => {
           <li className="flex items-start space-x-2">
             <span className="text-blue-600 font-bold">3.</span>
             <span>
-              Todos os usuários conectados receberão notificação instantânea via Realtime
+              Todos os usuários conectados receberão notificação instantânea em tempo real
             </span>
           </li>
           <li className="flex items-start space-x-2">

@@ -70,7 +70,7 @@ export function InstalarPwaBanner() {
           <button
             onClick={dispensar}
             aria-label="Dispensar"
-            className="p-1 text-blue-300 hover:text-white flex-shrink-0"
+            className="p-2 text-blue-300 hover:text-white flex-shrink-0"
           >
             <X className="w-5 h-5" />
           </button>

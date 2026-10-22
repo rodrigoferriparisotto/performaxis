@@ -5,6 +5,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { notificar, confirmar } from '../../lib/feedback';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState, EmptyState } from '../ui/Estados';
 
 interface BlogPost {
   id: string;
@@ -105,22 +107,22 @@ const BlogAdmin: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Blog Admin</h1>
-          <p className="text-gray-600 mt-1">Gerencie os posts do blog</p>
-        </div>
-        <button
-          onClick={() => window.location.hash = 'blog-admin-edit/novo'}
-          className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-5 h-5" />
-          Novo Post
-        </button>
-      </div>
+      <PageHeader
+        titulo="Gerenciar Blog"
+        subtitulo="Gerencie os posts do blog"
+        acoes={
+          <button
+            onClick={() => window.location.hash = 'blog-admin-edit/novo'}
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Novo Post
+          </button>
+        }
+      />
 
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b border-gray-200">
+        <div className="p-4 sm:p-6 border-b border-gray-200">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -147,20 +149,19 @@ const BlogAdmin: React.FC = () => {
 
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Carregando posts...</p>
-            </div>
+            <LoadingState texto="Carregando posts..." />
           ) : filteredPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">Nenhum post encontrado.</p>
-              <button
-                onClick={() => window.location.hash = 'blog-admin-edit/novo'}
-                className="mt-4 text-blue-600 hover:text-blue-700"
-              >
-                Criar seu primeiro post
-              </button>
-            </div>
+            <EmptyState
+              titulo="Nenhum post encontrado"
+              acao={
+                <button
+                  onClick={() => window.location.hash = 'blog-admin-edit/novo'}
+                  className="text-blue-600 hover:text-blue-700"
+                >
+                  Criar seu primeiro post
+                </button>
+              }
+            />
           ) : (
             <table className="w-full">
               <thead className="bg-gray-50">
@@ -178,7 +179,7 @@ const BlogAdmin: React.FC = () => {
                     Data
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Views
+                    Visualizações
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Ações
@@ -202,7 +203,7 @@ const BlogAdmin: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadge(post.status)}`}>
+                      <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full capitalize ${getStatusBadge(post.status)}`}>
                         {post.status}
                       </span>
                     </td>
@@ -218,11 +219,11 @@ const BlogAdmin: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1">
                         {post.status === 'publicado' && (
                           <button
                             onClick={() => window.location.hash = `blog-post/${post.slug}`}
-                            className="text-gray-600 hover:text-gray-900"
+                            className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                             title="Visualizar"
                           >
                             <Eye className="w-5 h-5" />
@@ -230,14 +231,14 @@ const BlogAdmin: React.FC = () => {
                         )}
                         <button
                           onClick={() => window.location.hash = `blog-admin-edit/${post.id}`}
-                          className="text-blue-600 hover:text-blue-900"
+                          className="p-2 rounded-lg text-blue-600 hover:text-blue-900 hover:bg-blue-50"
                           title="Editar"
                         >
                           <Edit className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => handleDelete(post.id, post.titulo)}
-                          className="text-red-600 hover:text-red-900"
+                          className="p-2 rounded-lg text-red-600 hover:text-red-900 hover:bg-red-50"
                           title="Excluir"
                         >
                           <Trash2 className="w-5 h-5" />

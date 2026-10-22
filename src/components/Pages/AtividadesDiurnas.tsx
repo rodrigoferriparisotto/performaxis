@@ -489,11 +489,11 @@ const AtividadesDiurnas: React.FC = () => {
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-800">
-                  {editingActivity ? 'Editar Atividade' : 'Nova Atividade Diurna'}
+                  {editingActivity ? 'Editar Atividade' : 'Nova Atividade Extra'}
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-2 -m-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 >
                   <X className="w-5 h-5" />
                 </button>

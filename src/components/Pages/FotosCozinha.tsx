@@ -417,7 +417,7 @@ const FotosCozinha: React.FC = () => {
                         </span>
                         <button
                           onClick={() => handleEditFoto(foto)}
-                          className="p-1 text-teal-600 hover:bg-teal-100 rounded transition-colors duration-200"
+                          className="p-2 text-teal-600 hover:bg-teal-100 rounded transition-colors duration-200"
                           title="Editar foto"
                         >
                           <Edit className="w-3 h-3" />
@@ -425,7 +425,7 @@ const FotosCozinha: React.FC = () => {
                         {(user?.profile === 'admin' || user?.profile === 'gestor') && (
                           <button
                             onClick={() => handleDeleteFoto(foto.id)}
-                            className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors duration-200"
+                            className="p-2 text-red-600 hover:bg-red-100 rounded transition-colors duration-200"
                             title="Excluir foto"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -508,7 +508,7 @@ const FotosCozinha: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-2 -m-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 >
                   <X className="w-5 h-5" />
                 </button>

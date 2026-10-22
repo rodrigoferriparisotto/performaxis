@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Volume2, Volume1, VolumeX, Play, Save } from 'lucide-react';
 import { soundService } from '../../services/soundService';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { PageHeader } from '../ui/PageHeader';
 
 export default function ConfiguracoesSom() {
   const { user } = useAuth();
@@ -85,11 +86,13 @@ export default function ConfiguracoesSom() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          Configurações de Som
-        </h1>
+    <div className="max-w-2xl mx-auto space-y-6">
+      <PageHeader
+        titulo="Configurações de Som"
+        subtitulo="Ajuste e teste o volume dos sons de notificação"
+      />
+
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6">
 
         <div className="space-y-6">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -100,11 +103,11 @@ export default function ConfiguracoesSom() {
               Ajuste o volume dos sons de notificação do sistema. Use os botões abaixo para testar cada tipo de som.
             </p>
 
-            <div className="flex items-center gap-4 mb-4">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4">
               <div className="text-blue-600">
                 {getVolumeIcon()}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 min-w-[8rem]">
                 <input
                   type="range"
                   min="0"

@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Key, Plus, Search, Edit2, Trash2, Copy, Eye, EyeOff, ExternalLink, Check, X, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { acessosService, Acesso, AcessoInsert, AreaVinculada } from '../../services/acessosService';
+import { TEMAS_MODULO } from '../../constants/moduleTheme';
+import { PageHeader } from '../ui/PageHeader';
+import { LoadingState, EmptyState } from '../ui/Estados';
 
 const AREA_LABELS: Record<AreaVinculada, string> = {
   recepcao: 'Recepção',
@@ -17,16 +20,17 @@ const AREA_LABELS: Record<AreaVinculada, string> = {
 };
 
 const AREA_COLORS: Record<AreaVinculada, string> = {
-  recepcao: 'bg-blue-100 text-blue-800',
-  camararia: 'bg-green-100 text-green-800',
-  revisao: 'bg-cyan-100 text-cyan-800',
-  gestao: 'bg-orange-100 text-orange-800',
-  vendas: 'bg-pink-100 text-pink-800',
-  cozinha: 'bg-yellow-100 text-yellow-800',
-  areas_comuns: 'bg-gray-100 text-gray-800',
-  atividades_diarias: 'bg-teal-100 text-teal-800',
-  atividades_extras: 'bg-emerald-100 text-emerald-800',
-  manutencao: 'bg-red-100 text-red-800',
+  recepcao: TEMAS_MODULO.recepcao.badge,
+  camararia: TEMAS_MODULO.camararia.badge,
+  revisao: TEMAS_MODULO.revisao.badge,
+  gestao: TEMAS_MODULO.gestao.badge,
+  vendas: TEMAS_MODULO.vendas.badge,
+  cozinha: TEMAS_MODULO.cozinha.badge,
+  areas_comuns: TEMAS_MODULO.areas_comuns.badge,
+  atividades_diarias: TEMAS_MODULO.atividades_diarias.badge,
+  atividades_extras: TEMAS_MODULO.atividades_extras.badge,
+  manutencao: TEMAS_MODULO.manutencao.badge,
+  geral: 'bg-gray-100 text-gray-800',
 };
 
 export default function Acessos() {
@@ -290,29 +294,24 @@ export default function Acessos() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-blue-500 to-cyan-600 p-3 rounded-xl shadow-lg">
-            <Key className="text-white" size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Gerenciamento de Acessos</h1>
-            <p className="text-sm text-gray-600">Gerencie credenciais e informações de acesso</p>
-          </div>
-        </div>
-        <button
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg hover:from-blue-700 hover:to-cyan-700 transition-all shadow-md"
-        >
-          <Plus size={20} />
-          Adicionar Acesso
-        </button>
-      </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      <PageHeader
+        titulo="Gerenciamento de Acessos"
+        subtitulo="Gerencie credenciais e informações de acesso"
+        acoes={
+          <button
+            onClick={() => handleOpenModal()}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus size={20} />
+            Adicionar Acesso
+          </button>
+        }
+      />
 
       {notification && (
         <div
-          className={`mb-4 p-4 rounded-lg flex items-center gap-2 ${
+          className={`p-4 rounded-lg flex items-center gap-2 ${
             notification.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
           }`}
         >
@@ -321,7 +320,7 @@ export default function Acessos() {
         </div>
       )}
 
-      <div className="mb-6 flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <input
@@ -347,21 +346,18 @@ export default function Acessos() {
       </div>
 
       {loading ? (
-        <div className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando acessos...</p>
-        </div>
+        <LoadingState texto="Carregando acessos..." />
       ) : filteredAcessos.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-lg">
-          <Key size={48} className="mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600 mb-2">
-            {searchTerm || selectedArea !== 'todos' ? 'Nenhum acesso encontrado' : 'Nenhum acesso cadastrado'}
-          </p>
-          <p className="text-sm text-gray-500">
-            {searchTerm || selectedArea !== 'todos'
-              ? 'Tente ajustar os filtros de busca'
-              : 'Clique em "Adicionar Acesso" para começar'}
-          </p>
+        <div className="bg-gray-50 rounded-lg">
+          <EmptyState
+            icon={Key}
+            titulo={searchTerm || selectedArea !== 'todos' ? 'Nenhum acesso encontrado' : 'Nenhum acesso cadastrado'}
+            descricao={
+              searchTerm || selectedArea !== 'todos'
+                ? 'Tente ajustar os filtros de busca'
+                : 'Clique em "Adicionar Acesso" para começar'
+            }
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -533,7 +529,7 @@ export default function Acessos() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[70]">
+        <div className="fixed inset-0 !mt-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[70]">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">
@@ -693,7 +689,7 @@ export default function Acessos() {
       )}
 
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[70]">
+        <div className="fixed inset-0 !mt-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[70]">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-red-100 rounded-full">

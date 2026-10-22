@@ -755,7 +755,7 @@ const Empresa: React.FC = () => {
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="p-2 -m-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1503,7 +1503,7 @@ const Empresa: React.FC = () => {
                 <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-yellow-800 text-sm">
                     ⚠️ <strong>Acesso restrito:</strong> Apenas Administradores podem criar ou editar dados da empresa.
-                    Entre em contato com um Super Admin para realizar alterações.
+                    Entre em contato com um Super Administrador para realizar alterações.
                   </p>
                 </div>
               )}
