@@ -33,13 +33,31 @@ import {
 } from '../../services/supabaseService';
 import { formatarData } from '../../utils/dateUtils';
 import { getBrazilDate } from '../../utils/dateUtils';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { notificar } from '../../lib/feedback';
+
+// jsPDF + autoTable só são baixados quando alguém exporta (fora da carga
+// inicial do app)
+const carregarGeradorPDF = async () => {
+  try {
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
+    return { jsPDF, autoTable };
+  } catch (error) {
+    notificar('Não foi possível carregar o gerador de PDF. Verifique a conexão e tente novamente.', 'erro');
+    return null;
+  }
+};
 
 const AnaliseOperacional: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  // período aplicado (o que está nos dados) × rascunho (o que está nos campos)
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [rascunhoInicio, setRascunhoInicio] = useState('');
+  const [rascunhoFim, setRascunhoFim] = useState('');
+  const [erroFiltro, setErroFiltro] = useState('');
   const [analiseSetores, setAnaliseSetores] = useState<any[]>([]);
   const [usuarios, setUsuarios] = useState<any[]>([]);
   const [ordenacao, setOrdenacao] = useState<'padrao' | 'eficiencia' | 'alfabetica' | 'registros'>('padrao');
@@ -53,13 +71,32 @@ const AnaliseOperacional: React.FC = () => {
     const ano = hoje.getFullYear();
     const mes = String(hoje.getMonth() + 1).padStart(2, '0');
     const dia = String(hoje.getDate()).padStart(2, '0');
-    setDataFim(`${ano}-${mes}-${dia}`);
-    
+    const fim = `${ano}-${mes}-${dia}`;
+
     const anoInicio = trintaDiasAtras.getFullYear();
     const mesInicio = String(trintaDiasAtras.getMonth() + 1).padStart(2, '0');
     const diaInicio = String(trintaDiasAtras.getDate()).padStart(2, '0');
-    setDataInicio(`${anoInicio}-${mesInicio}-${diaInicio}`);
+    const inicio = `${anoInicio}-${mesInicio}-${diaInicio}`;
+
+    setDataInicio(inicio);
+    setDataFim(fim);
+    setRascunhoInicio(inicio);
+    setRascunhoFim(fim);
   }, []);
+
+  const aplicarFiltro = () => {
+    if (!rascunhoInicio || !rascunhoFim) {
+      setErroFiltro('Preencha as duas datas.');
+      return;
+    }
+    if (rascunhoInicio > rascunhoFim) {
+      setErroFiltro('A data de início não pode ser depois da data de fim.');
+      return;
+    }
+    setErroFiltro('');
+    setDataInicio(rascunhoInicio);
+    setDataFim(rascunhoFim);
+  };
 
   useEffect(() => {
     if (dataInicio && dataFim) {
@@ -288,8 +325,12 @@ const AnaliseOperacional: React.FC = () => {
     }
   };
 
-  const exportarPDF = () => {
+  const exportarPDF = async () => {
     if (!analiseSetores.length) return;
+
+    const gerador = await carregarGeradorPDF();
+    if (!gerador) return;
+    const { jsPDF, autoTable } = gerador;
 
     const doc = new jsPDF();
     
@@ -336,7 +377,7 @@ const AnaliseOperacional: React.FC = () => {
     });
     
     // Dados da tabela
-    let yPosition = doc.lastAutoTable?.finalY + 20;
+    let yPosition = (doc as any).lastAutoTable?.finalY + 20;
     doc.setFontSize(16);
     doc.text('Análise Detalhada por Setor', 20, yPosition);
     
@@ -357,7 +398,7 @@ const AnaliseOperacional: React.FC = () => {
     });
     
     // Detalhamento dos Funcionários por Setor
-    yPosition = doc.lastAutoTable?.finalY + 20;
+    yPosition = (doc as any).lastAutoTable?.finalY + 20;
     doc.setFontSize(16);
     doc.text('Funcionários por Setor', 20, yPosition);
     
@@ -419,15 +460,15 @@ const AnaliseOperacional: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Data Início
             </label>
             <input
               type="date"
-              value={dataInicio}
-              onChange={(e) => setDataInicio(e.target.value)}
+              value={rascunhoInicio}
+              onChange={(e) => setRascunhoInicio(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -437,12 +478,24 @@ const AnaliseOperacional: React.FC = () => {
             </label>
             <input
               type="date"
-              value={dataFim}
-              onChange={(e) => setDataFim(e.target.value)}
+              value={rascunhoFim}
+              onChange={(e) => setRascunhoFim(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <button
+            type="button"
+            onClick={aplicarFiltro}
+            disabled={loading}
+            className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-wait flex items-center justify-center space-x-2"
+          >
+            <Filter className="w-4 h-4" />
+            <span>{loading ? 'Carregando...' : 'Filtrar'}</span>
+          </button>
         </div>
+        {erroFiltro && (
+          <p className="text-sm text-red-600 mt-3">{erroFiltro}</p>
+        )}
       </div>
 
       {/* Cards de Resumo */}

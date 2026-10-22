@@ -21,14 +21,35 @@ import {
   registroGestaoService
 } from '../../services/supabaseService';
 import { formatarData, getDataAtual, getBrazilDate } from '../../utils/dateUtils';
+import { notificar } from '../../lib/feedback';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+
+// Colunas usadas no ranking de eficiência (em vez de select('*'))
+const COLUNAS_RANKING = 'data, usuario_id, usuario_executor_id, atividades';
+
+// jsPDF + autoTable só são baixados quando alguém exporta (fora da carga
+// inicial do app)
+const carregarGeradorPDF = async () => {
+  try {
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable')
+    ]);
+    return { jsPDF, autoTable };
+  } catch (error) {
+    notificar('Não foi possível carregar o gerador de PDF. Verifique a conexão e tente novamente.', 'erro');
+    return null;
+  }
+};
 
 const DashboardRelatorios: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  // período aplicado (o que está nos dados) × rascunho (o que está nos campos)
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
+  const [rascunhoInicio, setRascunhoInicio] = useState('');
+  const [rascunhoFim, setRascunhoFim] = useState('');
+  const [erroFiltro, setErroFiltro] = useState('');
   const [topPerformers, setTopPerformers] = useState<any[]>([]);
   const [topPerformersHoje, setTopPerformersHoje] = useState<any[]>([]);
   const [tendencias, setTendencias] = useState<any[]>([]);
@@ -44,12 +65,17 @@ const DashboardRelatorios: React.FC = () => {
     const ano = hoje.getFullYear();
     const mes = String(hoje.getMonth() + 1).padStart(2, '0');
     const dia = String(hoje.getDate()).padStart(2, '0');
-    setDataFim(`${ano}-${mes}-${dia}`);
-    
+    const fim = `${ano}-${mes}-${dia}`;
+
     const anoInicio = seteDiasAtras.getFullYear();
     const mesInicio = String(seteDiasAtras.getMonth() + 1).padStart(2, '0');
     const diaInicio = String(seteDiasAtras.getDate()).padStart(2, '0');
-    setDataInicio(`${anoInicio}-${mesInicio}-${diaInicio}`);
+    const inicio = `${anoInicio}-${mesInicio}-${diaInicio}`;
+
+    setDataInicio(inicio);
+    setDataFim(fim);
+    setRascunhoInicio(inicio);
+    setRascunhoFim(fim);
   }, []);
 
   useEffect(() => {
@@ -58,35 +84,116 @@ const DashboardRelatorios: React.FC = () => {
     }
   }, [dataInicio, dataFim]);
 
+  const aplicarFiltro = () => {
+    if (!rascunhoInicio || !rascunhoFim) {
+      setErroFiltro('Preencha as duas datas.');
+      return;
+    }
+    if (rascunhoInicio > rascunhoFim) {
+      setErroFiltro('A data de início não pode ser depois da data de fim.');
+      return;
+    }
+    setErroFiltro('');
+    setDataInicio(rascunhoInicio);
+    setDataFim(rascunhoFim);
+  };
+
+  // Janelas das tendências (semana atual, semana passada e últimos 7 dias).
+  // As datas são calculadas EXATAMENTE como antes (inclusive o uso de
+  // toISOString nas semanas); a diferença é que agora tudo vem de UMA carga
+  // do intervalo que cobre as três janelas, agrupada por data aqui no cliente.
+  const calcularJanelasTendencias = () => {
+    const hoje = getBrazilDate();
+    const inicioSemanaAtual = getBrazilDate();
+    inicioSemanaAtual.setDate(inicioSemanaAtual.getDate() - inicioSemanaAtual.getDay());
+
+    const fimSemanaPassada = getBrazilDate();
+    fimSemanaPassada.setTime(inicioSemanaAtual.getTime());
+    fimSemanaPassada.setDate(fimSemanaPassada.getDate() - 1);
+
+    const inicioSemanaPassada = getBrazilDate();
+    inicioSemanaPassada.setTime(fimSemanaPassada.getTime());
+    inicioSemanaPassada.setDate(inicioSemanaPassada.getDate() - 6);
+
+    const semanaAtual = {
+      inicio: inicioSemanaAtual.toISOString().split('T')[0],
+      fim: hoje.toISOString().split('T')[0]
+    };
+    const semanaPassada = {
+      inicio: inicioSemanaPassada.toISOString().split('T')[0],
+      fim: fimSemanaPassada.toISOString().split('T')[0]
+    };
+
+    // Últimos 7 dias (datas locais do fuso de Brasília)
+    const dias: { dataStr: string; rotulo: string }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const data = getBrazilDate();
+      data.setDate(data.getDate() - i);
+
+      const ano = data.getFullYear();
+      const mes = String(data.getMonth() + 1).padStart(2, '0');
+      const dia = String(data.getDate()).padStart(2, '0');
+      dias.push({
+        dataStr: `${ano}-${mes}-${dia}`,
+        rotulo: data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+      });
+    }
+
+    const todasAsDatas = [
+      semanaAtual.inicio, semanaAtual.fim,
+      semanaPassada.inicio, semanaPassada.fim,
+      ...dias.map(d => d.dataStr)
+    ].sort();
+
+    return {
+      semanaAtual,
+      semanaPassada,
+      dias,
+      inicio: todasAsDatas[0],
+      fim: todasAsDatas[todasAsDatas.length - 1]
+    };
+  };
+
   const carregarDados = async () => {
     setLoading(true);
     try {
+      const janelas = calcularJanelasTendencias();
 
-      // Carregar usuários
-      const usuariosData = await usuarioService.getUsuarios();
-      setUsuarios(usuariosData);
-
-      // Carregar todos os registros do período
+      // Tudo em paralelo: usuários + período do filtro (7 tabelas, só as
+      // colunas usadas no ranking) + janela das tendências (4 tabelas, só a
+      // coluna `data`, porque ali só se contam registros).
       const [
+        usuariosData,
         registrosRecepcao,
         registrosCamararia,
         registrosRevisao,
         registrosAreasComuns,
         registrosAtividadesExtras,
         registrosAtividadesDiarias,
-        registrosGestao
+        registrosGestao,
+        tendRecepcao,
+        tendCamararia,
+        tendRevisao,
+        tendAreasComuns
       ] = await Promise.all([
-        registroRecepcaoService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroCamarariaService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroRevisaoService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroAreasComunsService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroAtividadesExtrasService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroAtividadesDiariasService.getRegistrosByPeriodo(dataInicio, dataFim),
-        registroGestaoService.getRegistrosByPeriodo(dataInicio, dataFim)
+        usuarioService.getUsuarios(),
+        registroRecepcaoService.getColunasByPeriodo(dataInicio, dataFim, COLUNAS_RANKING),
+        registroCamarariaService.getColunasByPeriodo(dataInicio, dataFim, COLUNAS_RANKING),
+        registroRevisaoService.getColunasByPeriodo(dataInicio, dataFim, COLUNAS_RANKING),
+        registroAreasComunsService.getColunasByPeriodo(dataInicio, dataFim, COLUNAS_RANKING),
+        registroAtividadesExtrasService.getColunasByPeriodo(dataInicio, dataFim, COLUNAS_RANKING),
+        registroAtividadesDiariasService.getColunasByPeriodo(dataInicio, dataFim, COLUNAS_RANKING),
+        registroGestaoService.getColunasByPeriodo(dataInicio, dataFim, COLUNAS_RANKING),
+        registroRecepcaoService.getColunasByPeriodo(janelas.inicio, janelas.fim, 'data'),
+        registroCamarariaService.getColunasByPeriodo(janelas.inicio, janelas.fim, 'data'),
+        registroRevisaoService.getColunasByPeriodo(janelas.inicio, janelas.fim, 'data'),
+        registroAreasComunsService.getColunasByPeriodo(janelas.inicio, janelas.fim, 'data')
       ]);
 
+      setUsuarios(usuariosData);
+
       // Processar top performers
-      await processarTopPerformers(usuariosData, [
+      processarTopPerformers(usuariosData, [
         ...registrosRecepcao,
         ...registrosCamararia,
         ...registrosRevisao,
@@ -97,7 +204,12 @@ const DashboardRelatorios: React.FC = () => {
       ]);
 
       // Processar tendências
-      await processarTendencias();
+      processarTendencias(janelas, [
+        ...tendRecepcao,
+        ...tendCamararia,
+        ...tendRevisao,
+        ...tendAreasComuns
+      ]);
 
     } catch (error) {
 
@@ -106,7 +218,7 @@ const DashboardRelatorios: React.FC = () => {
     }
   };
 
-  const processarTopPerformers = async (usuariosData: any[], todosRegistros: any[]) => {
+  const processarTopPerformers = (usuariosData: any[], todosRegistros: any[]) => {
     // Calcular eficiência por usuário
     const eficienciaPorUsuario = new Map();
 
@@ -179,92 +291,32 @@ const DashboardRelatorios: React.FC = () => {
     setTopPerformersHoje(topHoje);
   };
 
-  const processarTendencias = async () => {
+  const processarTendencias = (
+    janelas: ReturnType<typeof calcularJanelasTendencias>,
+    registrosJanela: any[]
+  ) => {
     try {
+      // `data` é coluna date ('aaaa-mm-dd'): comparar texto = comparar datas,
+      // o mesmo critério do gte/lte que o banco aplicava em cada consulta.
+      const contarEntre = (inicio: string, fim: string) =>
+        registrosJanela.filter(r => r.data >= inicio && r.data <= fim).length;
+
       // Calcular semana atual vs semana passada
-      const hoje = getBrazilDate();
-      const inicioSemanaAtual = getBrazilDate();
-      inicioSemanaAtual.setDate(inicioSemanaAtual.getDate() - inicioSemanaAtual.getDay());
-      
-      const fimSemanaPassada = getBrazilDate();
-      fimSemanaPassada.setTime(inicioSemanaAtual.getTime());
-      fimSemanaPassada.setDate(fimSemanaPassada.getDate() - 1);
-      
-      const inicioSemanaPassada = getBrazilDate();
-      inicioSemanaPassada.setTime(fimSemanaPassada.getTime());
-      inicioSemanaPassada.setDate(inicioSemanaPassada.getDate() - 6);
+      const totalSemanaAtual = contarEntre(janelas.semanaAtual.inicio, janelas.semanaAtual.fim);
+      const totalSemanaPassada = contarEntre(janelas.semanaPassada.inicio, janelas.semanaPassada.fim);
 
-      // Dados da semana atual
-      const registrosSemanaAtual = await Promise.all([
-        registroRecepcaoService.getRegistrosByPeriodo(
-          inicioSemanaAtual.toISOString().split('T')[0],
-          hoje.toISOString().split('T')[0]
-        ),
-        registroCamarariaService.getRegistrosByPeriodo(
-          inicioSemanaAtual.toISOString().split('T')[0],
-          hoje.toISOString().split('T')[0]
-        ),
-        registroRevisaoService.getRegistrosByPeriodo(
-          inicioSemanaAtual.toISOString().split('T')[0],
-          hoje.toISOString().split('T')[0]
-        ),
-        registroAreasComunsService.getRegistrosByPeriodo(
-          inicioSemanaAtual.toISOString().split('T')[0],
-          hoje.toISOString().split('T')[0]
-        )
-      ]);
-
-      // Dados da semana passada
-      const registrosSemanaPassada = await Promise.all([
-        registroRecepcaoService.getRegistrosByPeriodo(
-          inicioSemanaPassada.toISOString().split('T')[0],
-          fimSemanaPassada.toISOString().split('T')[0]
-        ),
-        registroCamarariaService.getRegistrosByPeriodo(
-          inicioSemanaPassada.toISOString().split('T')[0],
-          fimSemanaPassada.toISOString().split('T')[0]
-        ),
-        registroRevisaoService.getRegistrosByPeriodo(
-          inicioSemanaPassada.toISOString().split('T')[0],
-          fimSemanaPassada.toISOString().split('T')[0]
-        ),
-        registroAreasComunsService.getRegistrosByPeriodo(
-          inicioSemanaPassada.toISOString().split('T')[0],
-          fimSemanaPassada.toISOString().split('T')[0]
-        )
-      ]);
-
-      const totalSemanaAtual = registrosSemanaAtual.flat().length;
-      const totalSemanaPassada = registrosSemanaPassada.flat().length;
-      
-      const variacao = totalSemanaPassada > 0 
-        ? ((totalSemanaAtual - totalSemanaPassada) / totalSemanaPassada) * 100 
+      const variacao = totalSemanaPassada > 0
+        ? ((totalSemanaAtual - totalSemanaPassada) / totalSemanaPassada) * 100
         : 0;
 
-      // Criar dados para gráfico de tendências (últimos 7 dias)
-      const dadosGrafico = [];
-      for (let i = 6; i >= 0; i--) {
-        const data = getBrazilDate();
-        data.setDate(data.getDate() - i);
-        
-        const ano = data.getFullYear();
-        const mes = String(data.getMonth() + 1).padStart(2, '0');
-        const dia = String(data.getDate()).padStart(2, '0');
-        const dataStr = `${ano}-${mes}-${dia}`;
-        
-        // Buscar registros do dia
-        const registrosDia = await Promise.all([
-          registroRecepcaoService.getRegistrosByPeriodo(dataStr, dataStr),
-          registroCamarariaService.getRegistrosByPeriodo(dataStr, dataStr),
-          registroRevisaoService.getRegistrosByPeriodo(dataStr, dataStr),
-          registroAreasComunsService.getRegistrosByPeriodo(dataStr, dataStr)
-        ]);
+      // Gráfico de tendências (últimos 7 dias), agrupado por data no cliente
+      const porData = new Map<string, number>();
+      registrosJanela.forEach(r => porData.set(r.data, (porData.get(r.data) || 0) + 1));
 
-        dadosGrafico.push({
-          data: data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
-          registros: registrosDia.flat().length
-        });
-      }
+      const dadosGrafico = janelas.dias.map(dia => ({
+        data: dia.rotulo,
+        registros: porData.get(dia.dataStr) || 0
+      }));
 
       setTendencias(dadosGrafico);
 
@@ -297,7 +349,11 @@ const DashboardRelatorios: React.FC = () => {
     }
   };
 
-  const exportarPDF = () => {
+  const exportarPDF = async () => {
+    const gerador = await carregarGeradorPDF();
+    if (!gerador) return;
+    const { jsPDF, autoTable } = gerador;
+
     const doc = new jsPDF();
     
     // Título
@@ -331,7 +387,7 @@ const DashboardRelatorios: React.FC = () => {
 
     // Top Performers de Hoje
     if (topPerformersHoje.length > 0) {
-      let yPosition = doc.lastAutoTable ? doc.lastAutoTable.finalY + 20 : 85;
+      let yPosition = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 20 : 85;
       doc.setFontSize(16);
       doc.text('Top Performers de Hoje', 20, yPosition);
       
@@ -353,7 +409,7 @@ const DashboardRelatorios: React.FC = () => {
 
     // Insights
     if (insights.length > 0) {
-      let yPosition = doc.lastAutoTable ? doc.lastAutoTable.finalY + 20 : 105;
+      let yPosition = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 20 : 105;
       doc.setFontSize(16);
       doc.text('Insights', 20, yPosition);
       
@@ -406,15 +462,15 @@ const DashboardRelatorios: React.FC = () => {
           <h3 className="text-lg font-semibold text-gray-800">Filtros</h3>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Data Início
             </label>
             <input
               type="date"
-              value={dataInicio}
-              onChange={(e) => setDataInicio(e.target.value)}
+              value={rascunhoInicio}
+              onChange={(e) => setRascunhoInicio(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
@@ -424,12 +480,24 @@ const DashboardRelatorios: React.FC = () => {
             </label>
             <input
               type="date"
-              value={dataFim}
-              onChange={(e) => setDataFim(e.target.value)}
+              value={rascunhoFim}
+              onChange={(e) => setRascunhoFim(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <button
+            type="button"
+            onClick={aplicarFiltro}
+            disabled={loading}
+            className="w-full px-4 py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-wait flex items-center justify-center space-x-2"
+          >
+            <Filter className="w-4 h-4" />
+            <span>{loading ? 'Carregando...' : 'Filtrar'}</span>
+          </button>
         </div>
+        {erroFiltro && (
+          <p className="text-sm text-red-600 mt-3">{erroFiltro}</p>
+        )}
       </div>
 
       {/* Top Performers */}
