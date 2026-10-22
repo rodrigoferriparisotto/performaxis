@@ -35,7 +35,7 @@ export default defineConfig({
         name: 'PERFORMAXIS - Equipes de Alta Performance',
         short_name: 'PERFORMAXIS',
         description: 'Plataforma completa para gestão e desenvolvimento de equipes de alta performance',
-        theme_color: '#1e40af',
+        theme_color: '#004aad',
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
