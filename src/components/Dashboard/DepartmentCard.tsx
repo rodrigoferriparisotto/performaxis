@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, TrendingUp, Users, ChevronRight } from 'lucide-react';
+import { Users, ChevronRight } from 'lucide-react';
 import { DepartmentData, UsuarioAtivo } from '../../types/dashboard';
 
 interface DepartmentCardProps {
@@ -123,4 +123,4 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
   );
 };
 
-export default DepartmentCard;
+export default React.memo(DepartmentCard);

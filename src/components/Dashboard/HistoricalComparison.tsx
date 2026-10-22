@@ -1,9 +1,9 @@
 import React, { useMemo } from 'react';
 import { TrendingUp, TrendingDown, Minus, Calendar } from 'lucide-react';
-import { format, subDays, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getBrazilDateString, subtractDaysBrazil, getBrazilDate } from '../../utils/dateUtils';
+import { getBrazilDateString, subtractDaysBrazil } from '../../utils/dateUtils';
 
 interface HistoricalComparisonProps {
   historicData: { [date: string]: number };
@@ -15,7 +15,6 @@ const HistoricalComparison: React.FC<HistoricalComparisonProps> = ({
   tvMode = false
 }) => {
   const { hoje, ontem, media7Dias, variacao, tendencia, chartData } = useMemo(() => {
-    const dates = Object.keys(historicData).sort().reverse();
     const today = getBrazilDateString();
     const yesterday = subtractDaysBrazil(1);
 
@@ -135,4 +134,5 @@ const HistoricalComparison: React.FC<HistoricalComparisonProps> = ({
   );
 };
 
-export default HistoricalComparison;
+// memo: o gráfico só redesenha quando o histórico ou o modo TV mudam
+export default React.memo(HistoricalComparison);

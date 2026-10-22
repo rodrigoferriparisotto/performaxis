@@ -102,4 +102,4 @@ const StatsHeader: React.FC<StatsHeaderProps> = ({
   );
 };
 
-export default StatsHeader;
+export default React.memo(StatsHeader);
