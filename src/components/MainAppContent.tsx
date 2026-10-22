@@ -20,7 +20,7 @@ import { indexedDBService } from '../services/indexedDBService';
 import { activityMarkingService } from '../services/activityMarkingService';
 import { notificationHealthCheckService } from '../services/notificationHealthCheckService';
 import { getDataHoraAtual } from '../utils/dateUtils';
-import { mapModuloToUrl, mapModuloToHistoricoUrl } from '../utils/moduleUrlMapper';
+import { mapModuloToUrl } from '../utils/moduleUrlMapper';
 import { LoadingState } from './ui/Estados';
 
 // Se um deploy novo saiu com o app aberto, os pedaços antigos somem do
@@ -317,26 +317,22 @@ const MainAppContent: React.FC = () => {
   const getReviewPage = (): string => {
     if (!user) return 'dashboard';
 
-    switch (user.profile) {
-      case 'camararia':
-        return 'camararia';
-      case 'recepcao':
-        return 'recepcao';
-      case 'areas_comuns':
-        return 'areas-comuns';
-      case 'cozinha':
-        return 'cozinha';
-      case 'gestao':
-        return 'gestao';
-      case 'vendas':
-        return 'vendas';
-      case 'revisao':
-        return 'revisao';
-      case 'noturnas':
-        return 'noturnas';
-      default:
-        return 'dashboard';
-    }
+    // perfis reais de usuarios.profile → rota do módulo
+    const paginaPorPerfil: Record<string, string> = {
+      camararia: 'camararia',
+      recepcao: 'recepcao',
+      areas_comuns: 'areas-comuns',
+      cozinha: 'cozinha',
+      gestor: 'gestao',
+      vendas: 'vendas',
+      revisao: 'revisao',
+      manutencao: 'manutencao',
+      atividades_diarias: 'atividades-diarias',
+      atividades_diurnas: 'atividades-diarias',
+      atividades_noturnas: 'atividades-diarias',
+      atividades_extras: 'atividades-extras',
+    };
+    return paginaPorPerfil[user.profile] || 'dashboard';
   };
 
   // Funções para lidar com o modal de inatividade

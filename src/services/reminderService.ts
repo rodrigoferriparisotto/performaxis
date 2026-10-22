@@ -53,8 +53,26 @@ const INACTIVITY_MARKERS: InactivityMarker[] = [
   { minutes: 120, code: '120m', level: 'critical' },
 ];
 
+const VALIDADE_CONFIG_MS = 5 * 60 * 1000;
+
 class ReminderService {
+  private cacheConfig: { userId: string; valor: ReminderSettings; em: number } | null = null;
+  private marcosJaEnviados = new Set<string>();
+
   private async getUserSettings(userId: string): Promise<ReminderSettings | null> {
+    if (this.cacheConfig?.userId === userId && Date.now() - this.cacheConfig.em < VALIDADE_CONFIG_MS) {
+      return this.cacheConfig.valor;
+    }
+    const valor = await this.buscarConfiguracoes(userId);
+    if (valor) this.cacheConfig = { userId, valor, em: Date.now() };
+    return valor;
+  }
+
+  limparCacheConfiguracoes(): void {
+    this.cacheConfig = null;
+  }
+
+  private async buscarConfiguracoes(userId: string): Promise<ReminderSettings | null> {
     try {
       const { data: reminderData, error: reminderError } = await supabase
         .from('configuracoes_lembretes_usuario')
@@ -138,6 +156,8 @@ class ReminderService {
     tipoRegistro: string,
     marcoTempo: string
   ): Promise<boolean> {
+    const chave = `${tipoRegistro}:${registroId}:${marcoTempo}`;
+    if (this.marcosJaEnviados.has(chave)) return true;
     try {
       const { data, error } = await supabase
         .from('lembretes_enviados')
@@ -149,6 +169,7 @@ class ReminderService {
 
       if (error) throw error;
 
+      if (data) this.marcosJaEnviados.add(chave);
       return !!data;
     } catch (error) {
       console.error('Error checking if reminder was sent:', error);
@@ -163,6 +184,7 @@ class ReminderService {
     userId: string,
     empresaId: string
   ): Promise<void> {
+    this.marcosJaEnviados.add(`${tipoRegistro}:${registroId}:${marcoTempo}`);
     try {
       const { error } = await supabase.from('lembretes_enviados').insert({
         registro_id: registroId,
@@ -225,12 +247,22 @@ class ReminderService {
       vendas: 'vendas',
       revisao: 'revisao',
       manutencao: 'manutencao',
-      noturnas: 'noturnas',
+      noturnas: 'atividades-diarias',
     };
     return moduleUrls[tipoRegistro] || 'dashboard';
   }
 
-  async checkAndSendReminders(userId: string, empresaId: string): Promise<number> {
+  /**
+   * Uma ida ao banco por verificação: devolve quantos registros estão em
+   * aberto e envia os lembretes dos que passaram de 6h.
+   */
+  async verificarLembretes(userId: string, empresaId: string): Promise<{ enviados: number; pendentes: number }> {
+    const registros = await this.getPendingRecords(userId);
+    const enviados = await this.checkAndSendReminders(userId, empresaId, registros);
+    return { enviados, pendentes: registros.length };
+  }
+
+  async checkAndSendReminders(userId: string, empresaId: string, registros?: PendingRecord[]): Promise<number> {
     if (!notificationService.hasPermission()) {
       return 0;
     }
@@ -245,7 +277,9 @@ class ReminderService {
       return 0;
     }
 
-    const pendingRecords = await this.getPendingRecords(userId, 6);
+    const pendingRecords = registros
+      ? registros.filter((r) => r.horas_decorridas >= 6)
+      : await this.getPendingRecords(userId, 6);
 
     if (pendingRecords.length === 0) {
       return 0;
@@ -343,6 +377,7 @@ class ReminderService {
   }
 
   async createDefaultSettings(userId: string): Promise<void> {
+    this.limparCacheConfiguracoes();
     try {
       const { error } = await supabase
         .from('configuracoes_lembretes_usuario')
@@ -365,6 +400,7 @@ class ReminderService {
   }
 
   async updateSettings(userId: string, settings: Partial<ReminderSettings>): Promise<boolean> {
+    this.limparCacheConfiguracoes();
     try {
       const { error } = await supabase
         .from('configuracoes_lembretes_usuario')

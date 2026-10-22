@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { registroAtividadesDiariasService, usuarioService, atividadeService } from '../../services/supabaseService';
 import { formatarData, formatarHorario } from '../../utils/dateUtils';
@@ -33,6 +33,8 @@ const HistoricoAtividadesDiarias: React.FC = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
+  const listasCarregadas = useRef(false);
+
   useEffect(() => {
     carregarDados();
   }, [currentPage]);
@@ -40,16 +42,19 @@ const HistoricoAtividadesDiarias: React.FC = () => {
   const carregarDados = async () => {
     setLoading(true);
     try {
+      // usuários, atividades e demais listas de apoio não mudam ao trocar de página
+      const jaCarregou = listasCarregadas.current;
       const [registrosData, usuariosData, atividadesData, count] = await Promise.all([
         registroAtividadesDiariasService.getRegistros(currentPage, PAGE_SIZE),
-        usuarioService.getUsuarios(),
-        atividadeService.getAtividades(),
+        jaCarregou ? null : usuarioService.getUsuarios(),
+        jaCarregou ? null : atividadeService.getAtividades(),
         registroAtividadesDiariasService.getRegistrosCount()
       ]);
 
       setRegistros(registrosData);
-      setUsuarios(usuariosData);
-      setAtividades(atividadesData);
+      if (usuariosData) setUsuarios(usuariosData);
+      if (atividadesData) setAtividades(atividadesData);
+      listasCarregadas.current = true;
       setTotalRecords(count);
     } catch (error) {
 

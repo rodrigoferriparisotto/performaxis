@@ -95,8 +95,8 @@ export const BroadcastMessageModal: React.FC = () => {
           {/* Author and date */}
           <div className="flex items-center justify-between text-sm text-gray-500 mb-6 pb-4 border-b">
             <span>
-              {currentMessage.autor?.nome && (
-                <>Por: <span className="font-medium">{currentMessage.autor.nome}</span></>
+              {currentMessage.autor?.name && (
+                <>Por: <span className="font-medium">{currentMessage.autor.name}</span></>
               )}
             </span>
             <span>{formattedDate}</span>

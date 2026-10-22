@@ -335,7 +335,7 @@ function mapModuloToUrlInSW(modulo: string | null): string {
     'camararia': 'camararia',
     'revisao': 'revisao',
     'vendas': 'vendas',
-    'noturnas': 'noturnas',
+    'noturnas': 'atividades-diarias',
     'atividades_extras': 'atividades-extras',
     'atividades_diarias': 'atividades-diarias',
     'manutencao': 'manutencao'
@@ -344,24 +344,10 @@ function mapModuloToUrlInSW(modulo: string | null): string {
   return moduleMap[modulo.toLowerCase()] || 'dashboard';
 }
 
+// o app não tem rotas historico-<módulo> (o histórico é uma aba dentro do
+// módulo): o alerta leva para a tela do módulo, onde está o registro aberto
 function mapModuloToHistoricoUrlInSW(modulo: string | null): string {
-  if (!modulo) return 'dashboard';
-
-  const historicoMap: Record<string, string> = {
-    'recepcao': 'historico-recepcao',
-    'gestao': 'historico-gestao',
-    'cozinha': 'historico-cozinha',
-    'areas_comuns': 'historico-areas-comuns',
-    'camararia': 'historico-camararia',
-    'revisao': 'historico-revisao',
-    'vendas': 'historico-vendas',
-    'noturnas': 'historico-noturnas',
-    'atividades_extras': 'historico-atividades-extras',
-    'atividades_diarias': 'historico-atividades-diarias',
-    'manutencao': 'historico-manutencao'
-  };
-
-  return historicoMap[modulo.toLowerCase()] || 'dashboard';
+  return mapModuloToUrlInSW(modulo);
 }
 
 async function checkMessagesInBackground() {

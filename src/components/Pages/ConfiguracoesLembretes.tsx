@@ -131,6 +131,7 @@ export default function ConfiguracoesLembretes() {
         .eq('id', userId);
 
       if (userError) throw userError;
+      reminderService.limparCacheConfiguracoes();
 
       setMessage({ type: 'success', text: 'Configurações salvas com sucesso!' });
       setTimeout(() => setMessage(null), 3000);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { manutencaoService, usuarioService } from '../../services/supabaseService';
 import { FotosRegistro } from '../common/FotosRegistro';
@@ -30,6 +30,8 @@ const HistoricoManutencao: React.FC = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
+  const listasCarregadas = useRef(false);
+
   useEffect(() => {
     carregarDados();
   }, [currentPage]);
@@ -37,14 +39,17 @@ const HistoricoManutencao: React.FC = () => {
   const carregarDados = async () => {
     setLoading(true);
     try {
+      // usuários, atividades e demais listas de apoio não mudam ao trocar de página
+      const jaCarregou = listasCarregadas.current;
       const [manutencoesData, usuariosData, count] = await Promise.all([
         manutencaoService.getManutencoesByStatus(['concluida'], currentPage, PAGE_SIZE),
-        usuarioService.getUsuarios(),
+        jaCarregou ? null : usuarioService.getUsuarios(),
         manutencaoService.getManutencoesCount(['concluida'])
       ]);
 
       setManutencoes(manutencoesData);
-      setUsuarios(usuariosData);
+      if (usuariosData) setUsuarios(usuariosData);
+      listasCarregadas.current = true;
       setTotalRecords(count);
     } catch (error) {
 

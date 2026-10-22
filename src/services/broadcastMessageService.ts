@@ -38,7 +38,7 @@ export interface MessageStatistics {
 }
 
 export class BroadcastMessageService {
-  private static channel: RealtimeChannel | null = null;
+  private static contadorCanais = 0;
 
   /**
    * Get unread messages for the current user
@@ -415,8 +415,10 @@ export class BroadcastMessageService {
     onMessageDeleted?: (messageId: string) => void,
     onMessageUpdated?: (message: BroadcastMessage) => void
   ): RealtimeChannel {
-    this.channel = supabase
-      .channel('broadcast-messages-channel')
+    // nome único por inscrição: a tela de envio e o aviso global escutam ao mesmo
+    // tempo, e um mesmo nome fazia uma derrubar (ou reaproveitar) o canal da outra
+    const channel = supabase
+      .channel(`broadcast-messages-${++this.contadorCanais}`)
       .on(
         'postgres_changes',
         {
@@ -485,17 +487,11 @@ export class BroadcastMessageService {
       )
       .subscribe();
 
-    return this.channel;
+    return channel;
   }
 
-  /**
-   * Unsubscribe from broadcast messages
-   */
-  static unsubscribe(): void {
-    if (this.channel) {
-      supabase.removeChannel(this.channel);
-      this.channel = null;
-    }
+  static cancelarInscricao(channel: RealtimeChannel): void {
+    supabase.removeChannel(channel);
   }
 
   /**

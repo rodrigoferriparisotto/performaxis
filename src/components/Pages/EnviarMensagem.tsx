@@ -85,7 +85,7 @@ export const EnviarMensagem: React.FC = () => {
       );
 
       return () => {
-        BroadcastMessageService.unsubscribe();
+        BroadcastMessageService.cancelarInscricao(channel);
       };
     }
   }, [user]);

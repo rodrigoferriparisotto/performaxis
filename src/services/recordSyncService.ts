@@ -43,7 +43,7 @@ class RecordSyncService {
       { name: 'registros_revisao', tipo: 'revisao' },
     ];
 
-    for (const table of tables) {
+    const resultados = await Promise.all(tables.map(async (table) => {
       try {
         const { data, error } = await supabase
           .from(table.name)
@@ -54,27 +54,25 @@ class RecordSyncService {
 
         if (error) {
           console.error(`Error fetching ${table.name}:`, error);
-          continue;
+          return [];
         }
 
-        if (data) {
-          for (const record of data) {
-            activeRecords.push({
-              id: record.id,
-              tipo_registro: table.tipo,
-              hora_inicio: record.hora_inicio,
-              usuario_id: record.usuario_id,
-              empresa_id: record.empresa_id,
-              info_adicional: {
-                status: record.status,
-              },
-            });
-          }
-        }
+        return (data || []).map((record): ActiveRecord => ({
+          id: record.id,
+          tipo_registro: table.tipo,
+          hora_inicio: record.hora_inicio,
+          usuario_id: record.usuario_id,
+          empresa_id: record.empresa_id,
+          info_adicional: {
+            status: record.status,
+          },
+        }));
       } catch (error) {
         console.error(`Error processing ${table.name}:`, error);
+        return [];
       }
-    }
+    }));
+    activeRecords.push(...resultados.flat());
 
     return activeRecords;
   }
@@ -130,16 +128,13 @@ class RecordSyncService {
     try {
       const localRecords = await indexedDBService.getActiveRecords(userId);
 
-      for (const localRecord of localRecords) {
-        const stillActive = await this.isRecordStillActive(
-          localRecord.id,
-          localRecord.tipo_registro,
-          empresaId
+      const ativos = await this.idsAindaAtivos(localRecords, empresaId);
+      if (ativos) {
+        await Promise.all(
+          localRecords
+            .filter((r) => !ativos.has(r.id))
+            .map((r) => indexedDBService.removeActiveRecord(r.id))
         );
-
-        if (!stillActive) {
-          await indexedDBService.removeActiveRecord(localRecord.id);
-        }
       }
 
       // Após cleanup, verificar se ainda há registros
@@ -152,11 +147,14 @@ class RecordSyncService {
     }
   }
 
-  private async isRecordStillActive(
-    recordId: string,
-    tipoRegistro: string,
+  /**
+   * Uma consulta por tabela envolvida (em paralelo) em vez de uma por registro.
+   * Devolve null se alguma consulta falhar, para não apagar nada por engano.
+   */
+  private async idsAindaAtivos(
+    registros: { id: string; tipo_registro: string }[],
     empresaId: string
-  ): Promise<boolean> {
+  ): Promise<Set<string> | null> {
     const tableMap: Record<string, string> = {
       camararia: 'registros_camararia',
       recepcao: 'registros_recepcao',
@@ -169,27 +167,33 @@ class RecordSyncService {
       revisao: 'registros_revisao',
     };
 
-    const tableName = tableMap[tipoRegistro];
-    if (!tableName) {
-      return false;
+    const porTabela = new Map<string, string[]>();
+    for (const r of registros) {
+      const tabela = tableMap[r.tipo_registro];
+      if (!tabela) continue;
+      porTabela.set(tabela, [...(porTabela.get(tabela) || []), r.id]);
     }
 
+    const ativos = new Set<string>();
     try {
-      const { data, error } = await supabase
-        .from(tableName)
-        .select('status')
-        .eq('id', recordId)
-        .eq('empresa_id', empresaId)
-        .maybeSingle();
-
-      if (error || !data) {
-        return false;
+      const respostas = await Promise.all(
+        [...porTabela.entries()].map(([tabela, ids]) =>
+          supabase
+            .from(tabela)
+            .select('id')
+            .in('id', ids)
+            .eq('empresa_id', empresaId)
+            .eq('status', 'em_andamento')
+        )
+      );
+      for (const { data, error } of respostas) {
+        if (error) return null;
+        (data || []).forEach((linha: { id: string }) => ativos.add(linha.id));
       }
-
-      return data.status === 'em_andamento';
+      return ativos;
     } catch (error) {
       logger.error('Error checking record status:', error);
-      return false;
+      return null;
     }
   }
 }

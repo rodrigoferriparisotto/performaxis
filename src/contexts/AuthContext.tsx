@@ -63,15 +63,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { user: sessionUser } = await AuthService.getCurrentSession();
         if (sessionUser) {
           setUser(sessionUser);
-          // Carregar permissões do banco de dados
-          await loadUserPermissions(sessionUser.profile);
-          // Carregar volume de som do usuário
-          await loadUserSoundVolume(sessionUser.id);
-          // Carregar dados da empresa do usuário
-          if (sessionUser.empresaId) {
-            const empresaData = await empresaService.getEmpresa();
-            setEmpresa(empresaData);
-          }
+          // permissões, volume de som e empresa não dependem um do outro: em paralelo
+          await Promise.all([
+            loadUserPermissions(sessionUser.profile),
+            loadUserSoundVolume(sessionUser.id),
+            sessionUser.empresaId
+              ? empresaService.getEmpresa().then(setEmpresa)
+              : Promise.resolve(),
+          ]);
         } else {
           setUser(null);
           setEmpresa(null);
@@ -104,15 +103,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       if (success && authUser) {
         setUser(authUser);
-        // Carregar permissões do banco de dados
-        await loadUserPermissions(authUser.profile);
-        // Carregar volume de som do usuário
-        await loadUserSoundVolume(authUser.id);
-        // Carregar dados da empresa do usuário
-        if (authUser.empresaId) {
-          const empresaData = await empresaService.getEmpresa();
-          setEmpresa(empresaData);
-        }
+        // permissões, volume de som e empresa não dependem um do outro: em paralelo
+        await Promise.all([
+          loadUserPermissions(authUser.profile),
+          loadUserSoundVolume(authUser.id),
+          authUser.empresaId
+            ? empresaService.getEmpresa().then(setEmpresa)
+            : Promise.resolve(),
+        ]);
         return true;
       }
 

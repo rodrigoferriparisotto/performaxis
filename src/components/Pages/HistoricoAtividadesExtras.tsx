@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { registroDiurnasService, usuarioService, atividadeService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
@@ -36,6 +36,8 @@ const HistoricoAtividadesExtras: React.FC = () => {
   const [totalRecords, setTotalRecords] = useState(0);
   const totalPages = Math.ceil(totalRecords / PAGE_SIZE);
 
+  const listasCarregadas = useRef(false);
+
   useEffect(() => {
     carregarDados();
   }, [currentPage]);
@@ -43,18 +45,21 @@ const HistoricoAtividadesExtras: React.FC = () => {
   const carregarDados = async () => {
     setLoading(true);
     try {
+      // usuários, atividades e demais listas de apoio não mudam ao trocar de página
+      const jaCarregou = listasCarregadas.current;
       const [registrosData, usuariosData, atividadesData, tiposData, count] = await Promise.all([
         registroDiurnasService.getRegistros(currentPage, PAGE_SIZE),
-        usuarioService.getUsuarios(),
-        atividadeService.getAtividades(),
-        carregarTiposExtras(),
+        jaCarregou ? null : usuarioService.getUsuarios(),
+        jaCarregou ? null : atividadeService.getAtividades(),
+        jaCarregou ? null : carregarTiposExtras(),
         registroDiurnasService.getRegistrosCount()
       ]);
 
       setRegistros(registrosData);
-      setUsuarios(usuariosData);
-      setAtividades(atividadesData);
-      setTiposExtras(tiposData);
+      if (usuariosData) setUsuarios(usuariosData);
+      if (atividadesData) setAtividades(atividadesData);
+      if (tiposData) setTiposExtras(tiposData);
+      listasCarregadas.current = true;
       setTotalRecords(count);
     } catch (error) {
       notificar('Erro ao carregar histórico. Tente novamente.');

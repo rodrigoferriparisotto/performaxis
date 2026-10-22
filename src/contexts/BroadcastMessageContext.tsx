@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { BroadcastMessageService, BroadcastMessage } from '../services/broadcastMessageService';
 import { useAuth } from './AuthContext';
-import { supabase } from '../lib/supabase';
 
 interface BroadcastMessageContextType {
   unreadMessages: BroadcastMessage[];
@@ -95,34 +94,20 @@ export const BroadcastMessageProvider: React.FC<BroadcastMessageProviderProps> =
       return;
     }
 
-    const handleNewMessage = async (message: BroadcastMessage) => {
-      // Check if this message is for the current user's company
-      try {
-        const { data: userData } = await supabase
-          .from('usuarios')
-          .select('empresa_id')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (message.empresa_id === null || message.empresa_id === userData?.empresa_id) {
-          setUnreadMessages((prev) => [message, ...prev]);
-
-          // If no message is currently being shown, show this one
-          if (!currentMessage) {
-            setCurrentMessage(message);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking message permissions:', error);
-      }
+    const empresaId = user.empresaId;
+    const handleNewMessage = (message: BroadcastMessage) => {
+      if (message.empresa_id !== null && message.empresa_id !== empresaId) return;
+      setUnreadMessages((prev) => [message, ...prev.filter((m) => m.id !== message.id)]);
+      // se nenhuma mensagem estiver aberta, mostra esta
+      setCurrentMessage((atual) => atual ?? message);
     };
 
     const channel = BroadcastMessageService.subscribeToMessages(handleNewMessage);
 
     return () => {
-      BroadcastMessageService.unsubscribe();
+      BroadcastMessageService.cancelarInscricao(channel);
     };
-  }, [user, currentMessage]);
+  }, [user?.id, user?.empresaId]);
 
   // Automatically show next message when current one is closed
   useEffect(() => {

@@ -46,8 +46,8 @@ export function useReminderChecker(options: UseReminderCheckerOptions) {
     setState((prev) => ({ ...prev, isChecking: true }));
 
     try {
-      const remindersSent = await reminderService.checkAndSendReminders(userId, empresaId);
-      const pendingCount = await reminderService.getPendingRecordsCount(userId);
+      const { enviados: remindersSent, pendentes: pendingCount } =
+        await reminderService.verificarLembretes(userId, empresaId);
 
       setState({
         pendingCount,

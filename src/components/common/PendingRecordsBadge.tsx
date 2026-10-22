@@ -27,12 +27,19 @@ export default function PendingRecordsBadge({ userId, onRecordsUpdate }: Pending
     if (userId) {
       loadPendingRecords();
       const interval = setInterval(loadPendingRecords, 60000);
-      return () => clearInterval(interval);
+      const aoVoltar = () => { if (!document.hidden) loadPendingRecords(); };
+      document.addEventListener('visibilitychange', aoVoltar);
+      return () => {
+        clearInterval(interval);
+        document.removeEventListener('visibilitychange', aoVoltar);
+      };
     }
   }, [userId]);
 
   const loadPendingRecords = async () => {
     if (!userId) return;
+    // o selo só aparece no cabeçalho do celular; fora dele ou com a aba oculta não consulta
+    if (document.hidden || window.matchMedia('(min-width: 1024px)').matches) return;
 
     setLoading(true);
     try {

@@ -560,51 +560,47 @@ class FCMPushService {
 
   async obterEstatisticas(empresaId?: string) {
     try {
-      let query = supabase
-        .from('push_tokens')
-        .select('*, usuarios!inner(empresa_id)', { count: 'exact' });
-
-      if (empresaId) {
-        query = query.eq('usuarios.empresa_id', empresaId);
-      }
-
-      const { count: totalTokens } = await query;
-
-      let activeQuery = supabase
-        .from('push_tokens')
-        .select('*, usuarios!inner(empresa_id)', { count: 'exact' })
-        .eq('is_active', true);
-
-      if (empresaId) {
-        activeQuery = activeQuery.eq('usuarios.empresa_id', empresaId);
-      }
-
-      const { count: activeTokens } = await activeQuery;
-
-      const logQuery = supabase
-        .from('push_notifications_log')
-        .select('*', { count: 'exact' });
-
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
-      const { count: todayNotifications } = await logQuery.gte(
-        'enviado_em',
-        today.toISOString()
-      );
-
       const weekAgo = new Date();
       weekAgo.setDate(weekAgo.getDate() - 7);
 
-      const { count: weekNotifications } = await logQuery.gte(
-        'enviado_em',
-        weekAgo.toISOString()
-      );
-
-      const { data: successRateData } = await supabase
+      // só contagens (head: true): nada de baixar as linhas inteiras
+      const contarTokens = (somenteAtivos: boolean) => {
+        let q = supabase
+          .from('push_tokens')
+          .select('id, usuarios!inner(empresa_id)', { count: 'exact', head: true });
+        if (somenteAtivos) q = q.eq('is_active', true);
+        if (empresaId) q = q.eq('usuarios.empresa_id', empresaId);
+        return q;
+      };
+      const contarEnvios = (desde: Date) => {
+        let q = supabase
+          .from('push_notifications_log')
+          .select('id', { count: 'exact', head: true })
+          .gte('enviado_em', desde.toISOString());
+        if (empresaId) q = q.eq('empresa_id', empresaId);
+        return q;
+      };
+      let taxaQuery = supabase
         .from('push_notifications_log')
         .select('sucesso_count, falha_count')
         .gte('enviado_em', weekAgo.toISOString());
+      if (empresaId) taxaQuery = taxaQuery.eq('empresa_id', empresaId);
+
+      const [
+        { count: totalTokens },
+        { count: activeTokens },
+        { count: todayNotifications },
+        { count: weekNotifications },
+        { data: successRateData },
+      ] = await Promise.all([
+        contarTokens(false),
+        contarTokens(true),
+        contarEnvios(today),
+        contarEnvios(weekAgo),
+        taxaQuery,
+      ]);
 
       let totalSuccess = 0;
       let totalFailure = 0;

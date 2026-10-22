@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { MessageDeliveryService, UnreadMessage } from '../services/messageDeliveryService';
 import { pushNotificationService } from '../services/pushNotificationService';
 
@@ -16,6 +16,7 @@ export function useMessageChecker(userId: string | null, isAuthenticated: boolea
     blockingMessage: null,
     isChecking: false,
   });
+  const jaAvisadas = useRef<{ userId: string | null; ids: Set<string> }>({ userId: null, ids: new Set() });
 
   const checkMessages = useCallback(async () => {
     if (!userId || !isAuthenticated) {
@@ -36,21 +37,21 @@ export function useMessageChecker(userId: string | null, isAuthenticated: boolea
         isChecking: false,
       });
 
-      for (const message of messages) {
-        await MessageDeliveryService.registerDeliveryAttempt(
-          userId,
-          message.mensagem_id,
-          'verificacao'
-        );
+      if (jaAvisadas.current.userId !== userId) {
+        jaAvisadas.current = { userId, ids: new Set() };
       }
+      // cada mensagem é registrada e notificada uma vez por sessão, não a cada verificação
+      const novas = messages.filter(msg => !jaAvisadas.current.ids.has(msg.mensagem_id));
+      novas.forEach(msg => jaAvisadas.current.ids.add(msg.mensagem_id));
 
-      if (messages.length > 0) {
+      if (novas.length > 0) {
+        await Promise.all(novas.map(msg =>
+          MessageDeliveryService.registerDeliveryAttempt(userId, msg.mensagem_id, 'verificacao')
+        ));
         if (pushNotificationService.hasPermission()) {
-          await pushNotificationService.notifyMultipleMessages(messages, userId);
+          await pushNotificationService.notifyMultipleMessages(novas, userId);
         }
       }
-
-      await MessageDeliveryService.updateLastCheck(userId);
     } catch (error) {
       console.error('Erro ao verificar mensagens:', error);
       setState(prev => ({ ...prev, isChecking: false }));
