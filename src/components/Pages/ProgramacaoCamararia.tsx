@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { suiteService } from '../../services/supabaseService';
+import { suiteService, obterContextoUsuario } from '../../services/supabaseService';
 import { getDataAtual, formatarData } from '../../utils/dateUtils';
 import { 
   Calendar,
@@ -66,14 +66,9 @@ const ProgramacaoCamararia: React.FC = () => {
 
   const carregarServicosCamararia = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return;
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) return;
 
@@ -94,14 +89,9 @@ const ProgramacaoCamararia: React.FC = () => {
 
   const carregarRegistrosProgramados = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) return;
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) return;
 
@@ -200,18 +190,13 @@ const ProgramacaoCamararia: React.FC = () => {
     };
 
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { user: authUser, userData, userError } = await obterContextoUsuario();
       if (!authUser) {
         notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', authUser.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         notificar('Usuário não possui empresa vinculada');

@@ -12,6 +12,7 @@ import HistoricoCamararia from './HistoricoCamararia';
 import ProgramacaoCamararia from './ProgramacaoCamararia';
 import { ModuleTabs } from '../ui/ModuleTabs';
 import { PageHeader } from '../ui/PageHeader';
+import { obterContextoUsuario } from '../../services/supabaseService';
 
 const Camararia: React.FC = () => {
   const [activeTab, setActiveTab] = useState('novo-registro');
@@ -29,7 +30,7 @@ const Camararia: React.FC = () => {
     setItensCarregando(true);
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
 
         setItensCamararia([]);
@@ -37,11 +38,6 @@ const Camararia: React.FC = () => {
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 
@@ -75,7 +71,7 @@ const Camararia: React.FC = () => {
     setFotosCarregando(true);
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
 
         setFotosCamararia([]);
@@ -83,11 +79,6 @@ const Camararia: React.FC = () => {
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 

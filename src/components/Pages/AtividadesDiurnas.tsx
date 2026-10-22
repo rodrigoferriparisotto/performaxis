@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { atividadeService } from '../../services/supabaseService';
+import { atividadeService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -17,7 +17,7 @@ import { notificar, confirmar } from '../../lib/feedback';
 // Função helper para obter empresa_id do usuário atual
 async function getCurrentUserEmpresaId(): Promise<string | null> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = await obterContextoUsuario();
     if (!user) {
 
       return null;

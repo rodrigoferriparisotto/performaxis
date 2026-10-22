@@ -9,6 +9,7 @@ import type { ReminderSettings } from '../../services/reminderService';
 import BackgroundNotificationInfo from '../common/BackgroundNotificationInfo';
 import BatteryOptimizationModal from '../common/BatteryOptimizationModal';
 import { getBatteryGuide } from '../../constants/batteryOptimizationGuides';
+import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface AdvancedSettings {
   intensidade_vibracao: 'fraca' | 'media' | 'forte';
@@ -49,9 +50,7 @@ export default function ConfiguracoesLembretes() {
 
   const loadUserAndSettings = async () => {
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const { user } = await obterContextoUsuario();
 
       if (user) {
         setUserId(user.id);

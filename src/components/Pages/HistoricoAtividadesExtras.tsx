@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { registroDiurnasService, usuarioService, atividadeService } from '../../services/supabaseService';
+import { registroDiurnasService, usuarioService, atividadeService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { formatarData, formatarHorario } from '../../utils/dateUtils';
 import { calcularTempoTotal as calcularTempo } from '../../utils/timeCalculations';
@@ -70,16 +70,11 @@ const HistoricoAtividadesExtras: React.FC = () => {
 
   const carregarTiposExtras = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         return [];
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];

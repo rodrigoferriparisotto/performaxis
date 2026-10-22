@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { atividadeService, registroDiurnasService, cancelamentoService } from '../../services/supabaseService';
+import { atividadeService, registroDiurnasService, cancelamentoService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { getDataAtual, getDataHoraAtual } from '../../utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
@@ -128,16 +128,11 @@ const NovoRegistroAtividadesExtras: React.FC = () => {
 
   const carregarTiposExtrasComEmpresa = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         return [];
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];

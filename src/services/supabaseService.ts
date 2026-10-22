@@ -28,7 +28,7 @@ supabase.auth.onAuthStateChange((evento, sessao) => {
   }
 });
 
-async function obterContextoUsuario(): Promise<ContextoUsuario> {
+export async function obterContextoUsuario(): Promise<ContextoUsuario> {
   const { data: { session } } = await supabase.auth.getSession();
   const user = session?.user ? { id: session.user.id } : null;
   if (!user) {

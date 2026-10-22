@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { usuarioService, atividadeService } from '../../services/supabaseService';
+import { usuarioService, atividadeService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { formatarData, formatarHorario } from '../../utils/dateUtils';
 import { calcularTempoTotal as calcularTempo } from '../../utils/timeCalculations';
@@ -41,18 +41,13 @@ const HistoricoVendas: React.FC = () => {
   const carregarDados = async () => {
     setLoading(true);
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { user: authUser, userData } = await obterContextoUsuario();
       if (!authUser) {
         setRegistros([]);
         setLoading(false);
         return;
       }
 
-      const { data: userData } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', authUser.id)
-        .single();
 
       const from = currentPage * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;

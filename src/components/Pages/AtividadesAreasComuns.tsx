@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { atividadeService } from '../../services/supabaseService';
+import { atividadeService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -46,18 +46,13 @@ const AtividadesAreasComuns: React.FC = () => {
   const carregarTiposAreasComuns = async () => {
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
 
         setTiposAreasComuns([]);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 

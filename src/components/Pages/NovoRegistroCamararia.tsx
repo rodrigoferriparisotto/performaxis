@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { atividadeService, registroCamarariaService, suiteService, cancelamentoService, usuarioService } from '../../services/supabaseService';
+import { atividadeService, registroCamarariaService, suiteService, cancelamentoService, usuarioService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { activityMarkingService } from '../../services/activityMarkingService';
 import { getDataAtual, getDataHoraAtual } from '../../utils/dateUtils';
@@ -181,17 +181,12 @@ const NovoRegistroCamararia: React.FC = () => {
   const carregarServicosCamararia = async () => {
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         setServicosCamararia([]);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         setServicosCamararia([]);

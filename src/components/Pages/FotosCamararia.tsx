@@ -15,6 +15,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface FotoCamararia {
   id: string;
@@ -46,7 +47,7 @@ const FotosCamararia: React.FC = () => {
     setLoading(true);
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
 
         setFotos([]);
@@ -54,11 +55,6 @@ const FotosCamararia: React.FC = () => {
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 
@@ -145,18 +141,13 @@ const FotosCamararia: React.FC = () => {
 
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         notificar('Usuário não possui empresa vinculada');

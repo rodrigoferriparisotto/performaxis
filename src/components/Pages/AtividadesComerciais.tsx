@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { atividadeService } from '../../services/supabaseService';
+import { atividadeService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import {
@@ -45,17 +45,12 @@ const AtividadesComerciais: React.FC = () => {
 
   const carregarTiposFuncoesComerciais = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         setTiposFuncoesComerciais([]);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         setTiposFuncoesComerciais([]);

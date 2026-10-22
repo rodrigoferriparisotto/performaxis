@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { atividadeService } from '../../services/supabaseService';
+import { atividadeService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
 // Função helper para obter empresa_id do usuário atual
 async function getCurrentUserEmpresaId(): Promise<string | null> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = await obterContextoUsuario();
     if (!user) {
 
       return null;
@@ -74,18 +74,13 @@ const AtividadesGestao: React.FC = () => {
   const carregarTiposGestao = async () => {
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
 
         setTiposGestao([]);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 

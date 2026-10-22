@@ -11,6 +11,7 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface TipoRecepcao {
   id: string;
@@ -37,7 +38,7 @@ const TiposRecepcao: React.FC = () => {
     setLoading(true);
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
 
         setTipos([]);
@@ -45,11 +46,6 @@ const TiposRecepcao: React.FC = () => {
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 
@@ -135,18 +131,13 @@ const TiposRecepcao: React.FC = () => {
 
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         notificar('Usuário não possui empresa vinculada');

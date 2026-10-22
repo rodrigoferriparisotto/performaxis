@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { atividadeService, registroAreasComunsService, cancelamentoService } from '../../services/supabaseService';
+import { atividadeService, registroAreasComunsService, cancelamentoService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { getDataAtual } from '../../utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
@@ -89,7 +89,7 @@ const NovoRegistroAreasComuns: React.FC = () => {
       setTodasAtividades(atividadesAreasComuns);
 
       // Carregar tipos de áreas comuns da empresa do usuário
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { user: authUser, userData, userError } = await obterContextoUsuario();
       if (!authUser) {
 
         setTiposAreasComuns([]);
@@ -97,11 +97,6 @@ const NovoRegistroAreasComuns: React.FC = () => {
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', authUser.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 

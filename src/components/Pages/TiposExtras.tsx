@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/AuthContext';
 // Função helper para obter empresa_id do usuário atual
 async function getCurrentUserEmpresaId(): Promise<string | null> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = await obterContextoUsuario();
     if (!user) {
 
       return null;
@@ -39,6 +39,7 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface TipoExtra {
   id: string;
@@ -149,18 +150,13 @@ const TiposExtras: React.FC = () => {
 
     try {
       // Obter empresa_id do usuário atual
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         notificar('Usuário não possui empresa vinculada');

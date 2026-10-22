@@ -11,6 +11,7 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface TipoFuncaoComercial {
   id: string;
@@ -36,18 +37,13 @@ const TiposFuncoesComerciais: React.FC = () => {
   const carregarTipos = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         setTipos([]);
         setLoading(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         setTipos([]);
@@ -126,18 +122,13 @@ const TiposFuncoesComerciais: React.FC = () => {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         notificar('Usuário não possui empresa vinculada');

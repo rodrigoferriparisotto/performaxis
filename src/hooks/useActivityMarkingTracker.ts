@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { activityTrackingService } from '../services/activityTrackingService';
+import { obterContextoUsuario } from '../services/supabaseService';
 
 interface MarkingData {
   tipo_marcacao: 'inicio' | 'conclusao' | 'atividade_marcada' | 'pausa';
@@ -12,14 +13,9 @@ const STORAGE_KEY = 'ultima_marcacao_atividade';
 export const useActivityMarkingTracker = () => {
   const registrarMarcacao = useCallback(async (data: MarkingData) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData } = await obterContextoUsuario();
       if (!user) return;
 
-      const { data: userData } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .maybeSingle();
 
       if (!userData?.empresa_id) return;
 
@@ -89,7 +85,7 @@ export const useActivityMarkingTracker = () => {
         return new Date(parsed.timestamp);
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user } = await obterContextoUsuario();
       if (!user) return null;
 
       const { data } = await supabase

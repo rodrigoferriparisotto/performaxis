@@ -15,6 +15,7 @@ import {
   EyeOff
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface FotoCozinha {
   id: string;
@@ -58,17 +59,12 @@ const FotosCozinha: React.FC = () => {
 
   const carregarTiposCozinha = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         setTiposCozinha([]);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         setTiposCozinha([]);
@@ -97,7 +93,7 @@ const FotosCozinha: React.FC = () => {
   const carregarFotos = async () => {
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
 
         setFotos([]);
@@ -105,11 +101,6 @@ const FotosCozinha: React.FC = () => {
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 
@@ -203,18 +194,13 @@ const FotosCozinha: React.FC = () => {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         notificar('Usuário não possui empresa vinculada');

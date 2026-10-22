@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { atividadeService, registroAtividadesDiariasService, cancelamentoService } from '../../services/supabaseService';
+import { atividadeService, registroAtividadesDiariasService, cancelamentoService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { getDataAtual, getDataHoraAtual } from '../../utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
@@ -96,18 +96,13 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
       
       // Carregar atividades diárias e tipos de atividades da empresa
       const atividadesDiarias = await atividadeService.getAtividadesByType('noturno');
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { user: authUser, userData, userError } = await obterContextoUsuario();
       if (!authUser) {
         setTiposAtividades([]);
         setLoading(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', authUser.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         setTiposAtividades([]);

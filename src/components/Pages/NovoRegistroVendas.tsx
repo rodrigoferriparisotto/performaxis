@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { atividadeService, cancelamentoService } from '../../services/supabaseService';
+import { atividadeService, cancelamentoService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { getDataAtual } from '../../utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
@@ -77,18 +77,13 @@ const NovoRegistroVendas: React.FC = () => {
       const atividadesVendas = await atividadeService.getAtividadesByType('vendas');
       setTodasAtividades(atividadesVendas);
 
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { user: authUser, userData, userError } = await obterContextoUsuario();
       if (!authUser) {
         setTiposFuncoesComerciais([]);
         setLoading(false);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', authUser.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         setTiposFuncoesComerciais([]);
@@ -156,18 +151,13 @@ const NovoRegistroVendas: React.FC = () => {
 
     setSaving(true);
     try {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const { user: authUser, userData } = await obterContextoUsuario();
       if (!authUser) {
         notificar('Usuário não autenticado');
         setSaving(false);
         return;
       }
 
-      const { data: userData } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', authUser.id)
-        .single();
 
       const novoRegistro = {
         data: getDataAtual(),

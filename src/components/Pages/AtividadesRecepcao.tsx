@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { atividadeService } from '../../services/supabaseService';
+import { atividadeService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
@@ -16,14 +16,9 @@ import { notificar, confirmar } from '../../lib/feedback';
 
 const getCurrentUserEmpresaId = async () => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user, userData, userError } = await obterContextoUsuario();
     if (!user) return null;
 
-    const { data: userData, error: userError } = await supabase
-      .from('usuarios')
-      .select('empresa_id')
-      .eq('id', user.id)
-      .single();
 
     if (userError) {
       return null;

@@ -10,6 +10,7 @@ import NovoRegistroCozinha from './NovoRegistroCozinha';
 import HistoricoCozinha from './HistoricoCozinha';
 import { PageHeader } from '../ui/PageHeader';
 import { ModuleTabs } from '../ui/ModuleTabs';
+import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface TipoCozinha {
   id: string;
@@ -39,17 +40,12 @@ const Cozinha: React.FC = () => {
 
   const carregarTiposCozinha = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         setTiposCozinha([]);
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         setTiposCozinha([]);
@@ -78,7 +74,7 @@ const Cozinha: React.FC = () => {
   const carregarFotosCozinha = async () => {
     setFotosCarregando(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
 
         setFotosCozinha([]);
@@ -86,11 +82,6 @@ const Cozinha: React.FC = () => {
         return;
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
 

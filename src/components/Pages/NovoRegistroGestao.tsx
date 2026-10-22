@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { atividadeService, registroGestaoService, cancelamentoService } from '../../services/supabaseService';
+import { atividadeService, registroGestaoService, cancelamentoService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
 import { getDataAtual } from '../../utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
@@ -125,16 +125,11 @@ const NovoRegistroGestao: React.FC = () => {
 
   const carregarTiposGestaoComEmpresa = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { user, userData, userError } = await obterContextoUsuario();
       if (!user) {
         return [];
       }
 
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('empresa_id')
-        .eq('id', user.id)
-        .single();
 
       if (userError || !userData?.empresa_id) {
         return [];
