@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { RealtimeChannel, REALTIME_LISTEN_TYPES, REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
+import { RealtimeChannel, RealtimePostgresChangesPayload, REALTIME_SUBSCRIBE_STATES } from '@supabase/supabase-js';
 
 export type RealtimeCallback = (payload: any) => void;
 export type ConnectionStatusCallback = (status: string, error?: any) => void;
@@ -61,12 +61,23 @@ class RealtimeService {
     return () => this.unsubscribe(channelName);
   }
 
+  /**
+   * Escuta várias tabelas num único canal.
+   *
+   * Com `empresaId`, INSERT/UPDATE chegam já filtrados no servidor
+   * (`empresa_id=eq.<id>`), então eventos de outras empresas não acordam a
+   * tela. DELETE não é filtrável no Supabase Realtime: ele é assinado à parte,
+   * sem filtro, e descartado aqui quando o registro antigo traz outra empresa.
+   */
   subscribeToMultipleTables(
     tableNames: string[],
     callback: RealtimeCallback,
-    onStatusChange?: ConnectionStatusCallback
+    onStatusChange?: ConnectionStatusCallback,
+    empresaId?: string | null
   ): () => void {
-    const channelName = 'dashboard-realtime-all';
+    const channelName = empresaId
+      ? `dashboard-realtime-${empresaId}`
+      : 'dashboard-realtime-all';
 
     if (this.channels.has(channelName)) {
       this.log(`Multi-table channel already exists`);
@@ -78,18 +89,32 @@ class RealtimeService {
     let channel = supabase.channel(channelName);
 
     tableNames.forEach((tableName) => {
-      channel = channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: tableName,
-        },
-        (payload) => {
-          this.log(`Event from ${tableName}:`, payload.eventType, payload.table);
-          callback(payload);
-        }
-      );
+      if (!empresaId) {
+        channel = channel.on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: tableName },
+          (payload) => {
+            this.log(`Event from ${tableName}:`, payload.eventType, payload.table);
+            callback(payload);
+          }
+        );
+        return;
+      }
+
+      const filter = `empresa_id=eq.${empresaId}`;
+      const repassar = (payload: RealtimePostgresChangesPayload<Record<string, unknown>>) => {
+        this.log(`Event from ${tableName}:`, payload.eventType, payload.table);
+        callback(payload);
+      };
+
+      channel = channel
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: tableName, filter }, repassar)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: tableName, filter }, repassar)
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: tableName }, (payload) => {
+          const empresaAntiga = (payload.old as Record<string, unknown> | undefined)?.empresa_id;
+          if (empresaAntiga && empresaAntiga !== empresaId) return;
+          repassar(payload);
+        });
     });
 
     channel.subscribe((status, error) => {

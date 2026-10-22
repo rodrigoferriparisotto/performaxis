@@ -125,4 +125,4 @@ const RankingPanel: React.FC<RankingPanelProps> = ({ ranking, tvMode = false }) 
   );
 };
 
-export default RankingPanel;
+export default React.memo(RankingPanel);
