@@ -1,24 +1,14 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
+import { notificar } from '../../lib/feedback';
 import { DashboardService } from '../../services/dashboardService';
 import { realtimeService } from '../../services/realtimeService';
 import {
   Activity,
-  Users,
-  CheckCircle,
-  Clock,
-  TrendingUp,
-  TrendingDown,
-  Minus,
-  Award,
-  Target,
-  Eye,
   Maximize,
-  Filter,
   Search,
   Zap,
-  Calendar,
-  BarChart3,
   RefreshCw
 } from 'lucide-react';
 import StatsHeader from '../Dashboard/StatsHeader';
@@ -26,259 +16,312 @@ import HistoricalComparison from '../Dashboard/HistoricalComparison';
 import RankingPanel from '../Dashboard/RankingPanel';
 import DepartmentCard from '../Dashboard/DepartmentCard';
 import DetailModal from '../Dashboard/DetailModal';
-import { DepartmentData, UsuarioAtivo } from '../../types/dashboard';
+import { Atividade, DepartmentData, UsuarioAtivo } from '../../types/dashboard';
+
+// ---- Formato devolvido pela RPC dashboard_ao_vivo -------------------------
+
+interface AtivoAoVivo {
+  id: string;
+  tabela: string;
+  departamento: string;
+  status: string;
+  hora_inicio: string | null;
+  atividades: Atividade[] | null;
+  observacoes: string | null;
+  suite_nome: string | null;
+  local: string | null;
+  tipo: string | null;
+  prioridade: string | null;
+  pausas: unknown[];
+  usuario: { id: string; name: string; profile: string };
+}
+
+interface RankingAoVivo {
+  usuario: { id: string; name: string; profile: string };
+  totalConcluidos: number;
+  tempoTotal: number;
+  tempoMedio: number;
+}
+
+interface DadosAoVivo {
+  empresa_id: string | null;
+  hoje: string;
+  ativos: AtivoAoVivo[];
+  concluidos_hoje: Record<string, number>;
+  historico: Record<string, number>;
+  ranking: RankingAoVivo[];
+}
+
+const TABELAS_REALTIME = [
+  'registros_recepcao',
+  'registros_camararia',
+  'registros_revisao',
+  'registros_areas_comuns',
+  'registros_gestao',
+  'registros_cozinha',
+  'registros_vendas',
+  'registros_atividades_diarias',
+  'registros_atividades_extras',
+  'manutencoes'
+];
+
+// Eventos realtime recarregam no máximo 1 vez a cada 8 s (sempre com uma
+// recarga final depois do último evento).
+const INTERVALO_MIN_RECARGA_MS = 8000;
+const DIAS_HISTORICO = 7;
+
+const TIPOS_MANUTENCAO: { [key: string]: string } = {
+  'correcao': 'Correção',
+  'conserto': 'Conserto',
+  'nova_instalacao': 'Nova Instalação',
+  'preventiva': 'Preventiva',
+  'substituicao': 'Substituição'
+};
+
+// O cálculo de tempo (com pausas de manutenção) espera o campo `table`.
+const tempoDecorrido = (a: AtivoAoVivo) =>
+  DashboardService.calcularTempoDecorridoComPausas({ ...a, table: a.tabela });
+
+const montarDepartamentos = (ativos: AtivoAoVivo[]): DepartmentData[] => {
+  const departamentosMap = new Map<string, DepartmentData>();
+
+  ativos.forEach((registro) => {
+    const dept = registro.departamento;
+    if (!departamentosMap.has(dept)) {
+      departamentosMap.set(dept, {
+        id: dept,
+        nome: DashboardService.getDepartamentoNome(dept),
+        cor: DashboardService.getDepartamentoCor(dept),
+        atividadesEmAndamento: 0,
+        usuarios: [],
+        progresso: 0,
+        tempoMedio: 0
+      });
+    }
+
+    const deptData = departamentosMap.get(dept)!;
+    deptData.atividadesEmAndamento++;
+
+    const isManutencao = registro.tabela === 'manutencoes';
+    const atividades = registro.atividades || [];
+    const progresso = isManutencao
+      ? (registro.status === 'pausada' ? 50 : 75)
+      : DashboardService.calcularProgresso(atividades);
+    const sufixoPausa = isManutencao && registro.status === 'pausada' ? ' (Pausada)' : '';
+
+    let descricaoAtividade: string;
+    if (isManutencao) {
+      const tipoLabel = registro.tipo ? TIPOS_MANUTENCAO[registro.tipo] || registro.tipo : 'Manutenção';
+      descricaoAtividade = `${tipoLabel}: ${registro.local}${sufixoPausa}`;
+    } else if (registro.suite_nome) {
+      descricaoAtividade = `Suíte ${registro.suite_nome}`;
+    } else if (registro.local) {
+      descricaoAtividade = registro.local;
+    } else {
+      descricaoAtividade = DashboardService.getDepartamentoNome(dept);
+    }
+
+    const usuarioAtivo: UsuarioAtivo = {
+      id: registro.usuario.id,
+      nome: registro.usuario.name,
+      progresso,
+      totalAtividades: atividades.length,
+      atividadesCompletas: atividades.filter((a) => a.status === 'realizada').length,
+      tempoDecorrido: tempoDecorrido(registro),
+      registroId: registro.id,
+      horaInicio: registro.hora_inicio || '',
+      departamento: dept,
+      local: isManutencao
+        ? `${registro.local}${sufixoPausa}`
+        : (registro.suite_nome ? `Suíte ${registro.suite_nome}` : registro.local || DashboardService.getDepartamentoNome(dept)),
+      observacoes: registro.observacoes || '',
+      atividades,
+      isManutencao,
+      tipo: registro.tipo ?? undefined,
+      prioridade: registro.prioridade ?? undefined,
+      pausas: registro.pausas || [],
+      descricaoAtividade
+    };
+
+    deptData.usuarios.push(usuarioAtivo);
+  });
+
+  departamentosMap.forEach((dept) => {
+    dept.progresso = Math.round(
+      dept.usuarios.reduce((acc, u) => acc + u.progresso, 0) / (dept.usuarios.length || 1)
+    );
+    dept.tempoMedio = Math.round(
+      dept.usuarios.reduce((acc, u) => acc + u.tempoDecorrido, 0) / (dept.usuarios.length || 1)
+    );
+  });
+
+  return Array.from(departamentosMap.values());
+};
+
+const textoDesdeAtualizacao = (ultima: Date) => {
+  const diff = Math.floor((Date.now() - ultima.getTime()) / 1000);
+  if (diff < 5) return 'agora';
+  if (diff < 60) return `há ${diff}s`;
+  const minutes = Math.floor(diff / 60);
+  if (minutes === 1) return 'há 1 min';
+  return `há ${minutes} min`;
+};
+
+// Isolado num componente próprio: o tique de 1 s re-renderiza só este texto,
+// não a página nem os gráficos.
+const IndicadorAtualizacao: React.FC<{
+  ultimaAtualizacao: Date;
+  eventosRef: React.MutableRefObject<number>;
+  tvMode: boolean;
+}> = ({ ultimaAtualizacao, eventosRef, tvMode }) => {
+  const [, setTique] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTique((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const eventos = eventosRef.current;
+  return (
+    <span className={`text-xs sm:text-sm ${tvMode ? 'text-gray-400' : 'text-gray-500'} whitespace-nowrap hidden sm:inline`}>
+      {eventos > 0 ? `${eventos} eventos` : `Atualizado ${textoDesdeAtualizacao(ultimaAtualizacao)}`}
+    </span>
+  );
+};
 
 const DashboardAoVivo: React.FC = () => {
-  const { user, empresa } = useAuth();
+  const { user } = useAuth();
+  const empresaId = user?.empresaId ?? null;
   const [loading, setLoading] = useState(true);
-  const [registrosAtivos, setRegistrosAtivos] = useState<any[]>([]);
-  const [concluidosHoje, setConcluidosHoje] = useState(0);
-  const [historicData, setHistoricData] = useState<any>({});
-  const [ranking, setRanking] = useState<any[]>([]);
-  const [departamentos, setDepartamentos] = useState<DepartmentData[]>([]);
+  const [dados, setDados] = useState<DadosAoVivo | null>(null);
   const [selectedUsuario, setSelectedUsuario] = useState<UsuarioAtivo | null>(null);
   const [tvMode, setTvMode] = useState(false);
-  const [filteredDepartments, setFilteredDepartments] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(new Date());
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date>(() => new Date());
   const [isUpdating, setIsUpdating] = useState(false);
-  const [realtimeConnected, setRealtimeConnected] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [realtimeStatus, setRealtimeStatus] = useState<string>('connecting');
-  const [realtimeEventsCount, setRealtimeEventsCount] = useState(0);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const lastUpdateRef = useRef<Date>(new Date());
+  // tempos decorridos dos cards avançam de minuto em minuto, sem nova consulta
+  const [minutoAtual, setMinutoAtual] = useState(() => Date.now());
 
-  const loadDashboardData = useCallback(async (showUpdating = false) => {
-    if (!empresa?.id) return;
+  const eventosRef = useRef(0);
+  const ultimaCargaRef = useRef(0);
+  const recargaPendenteRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sequenciaRef = useRef(0);
+  const montadoRef = useRef(true);
+
+  useEffect(() => {
+    montadoRef.current = true;
+    return () => {
+      montadoRef.current = false;
+    };
+  }, []);
+
+  const loadDashboardData = useCallback(async (showUpdating = false, avisarErro = false) => {
+    if (!empresaId) return;
+
+    const sequencia = ++sequenciaRef.current;
+    ultimaCargaRef.current = Date.now();
 
     if (showUpdating) {
       setIsUpdating(true);
     }
 
     try {
-      const [
-        ativos,
-        concluidos,
-        historic,
-        rankingData
-      ] = await Promise.all([
-        DashboardService.getRegistrosAtivos(empresa.id),
-        DashboardService.getConcluidosHoje(empresa.id),
-        DashboardService.getHistoricData(empresa.id, 7),
-        DashboardService.getRankingUsuarios(empresa.id)
-      ]);
+      const { data, error } = await supabase.rpc('dashboard_ao_vivo', { p_dias: DIAS_HISTORICO });
+      if (error) throw error;
 
-      setRegistrosAtivos(ativos);
-      setConcluidosHoje(concluidos);
-      setHistoricData(historic);
-      setRanking(rankingData);
+      // descarta respostas atrasadas de uma carga anterior
+      if (!montadoRef.current || sequencia !== sequenciaRef.current) return;
 
-      processarDepartamentos(ativos);
-
-      const now = new Date();
-      setLastUpdateTime(now);
-      lastUpdateRef.current = now;
-      setRealtimeConnected(true);
+      const resposta = (data || {}) as Partial<DadosAoVivo>;
+      setDados({
+        empresa_id: resposta.empresa_id ?? null,
+        hoje: resposta.hoje ?? '',
+        ativos: resposta.ativos ?? [],
+        concluidos_hoje: resposta.concluidos_hoje ?? {},
+        historico: resposta.historico ?? {},
+        ranking: resposta.ranking ?? []
+      });
+      setLastUpdateTime(new Date());
+      setMinutoAtual(Date.now());
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      setRealtimeConnected(false);
+      if (avisarErro && montadoRef.current) {
+        notificar('Não foi possível atualizar o Dashboard ao Vivo. Tente novamente.', 'erro');
+      }
     } finally {
-      setLoading(false);
-      if (showUpdating) {
-        setTimeout(() => setIsUpdating(false), 1000);
+      if (montadoRef.current) {
+        setLoading(false);
+        if (showUpdating) {
+          setTimeout(() => {
+            if (montadoRef.current) setIsUpdating(false);
+          }, 1000);
+        }
       }
     }
-  }, [empresa]);
+  }, [empresaId]);
+
+  const loadRef = useRef(loadDashboardData);
+  loadRef.current = loadDashboardData;
 
   const handleManualRefresh = async () => {
     if (isRefreshing) return;
 
     setIsRefreshing(true);
-    await loadDashboardData(true);
+    await loadDashboardData(true, true);
 
     setTimeout(() => {
-      setIsRefreshing(false);
+      if (montadoRef.current) setIsRefreshing(false);
     }, 2000);
   };
 
-  const processarDepartamentos = (registros: any[]) => {
-    const departamentosMap = new Map<string, DepartmentData>();
-
-    registros.forEach((registro) => {
-      const dept = registro.departamento;
-      if (!departamentosMap.has(dept)) {
-        departamentosMap.set(dept, {
-          id: dept,
-          nome: DashboardService.getDepartamentoNome(dept),
-          cor: DashboardService.getDepartamentoCor(dept),
-          atividadesEmAndamento: 0,
-          usuarios: [],
-          progresso: 0,
-          tempoMedio: 0
-        });
-      }
-
-      const deptData = departamentosMap.get(dept)!;
-      deptData.atividadesEmAndamento++;
-
-      const isManutencao = registro.table === 'manutencoes';
-      const progresso = isManutencao
-        ? (registro.status === 'pausada' ? 50 : 75)
-        : DashboardService.calcularProgresso(registro.atividades);
-
-      // Usar método centralizado que aplica lógica de pausas
-      const tempoDecorrido = DashboardService.calcularTempoDecorridoComPausas(registro);
-
-      // Gerar descrição da atividade
-      let descricaoAtividade = '';
-      if (isManutencao) {
-        const tiposMap: { [key: string]: string } = {
-          'correcao': 'Correção',
-          'conserto': 'Conserto',
-          'nova_instalacao': 'Nova Instalação',
-          'preventiva': 'Preventiva',
-          'substituicao': 'Substituição'
-        };
-        const tipoLabel = registro.tipo ? tiposMap[registro.tipo] || registro.tipo : 'Manutenção';
-        const statusSuffix = registro.status === 'pausada' ? ' (Pausada)' : '';
-        descricaoAtividade = `${tipoLabel}: ${registro.local}${statusSuffix}`;
-      } else if (registro.tipo_atividade?.nome) {
-        descricaoAtividade = registro.tipo_atividade.nome;
-      } else if (registro.tipos_servicos_camararia?.nome) {
-        descricaoAtividade = registro.tipos_servicos_camararia.nome;
-      } else if (registro.tipos_recepcao?.nome) {
-        descricaoAtividade = registro.tipos_recepcao.nome;
-      } else if (registro.tipos_areas_comuns?.nome) {
-        descricaoAtividade = registro.tipos_areas_comuns.nome;
-      } else if (registro.tipos_cozinha?.nome) {
-        descricaoAtividade = registro.tipos_cozinha.nome;
-      } else if (registro.tipos_gestao?.nome) {
-        descricaoAtividade = registro.tipos_gestao.nome;
-      } else if (registro.tipos_funcoes_comerciais?.nome) {
-        descricaoAtividade = registro.tipos_funcoes_comerciais.nome;
-      } else if (registro.tipos_extras?.nome) {
-        descricaoAtividade = registro.tipos_extras.nome;
-      } else if (registro.suites?.name) {
-        descricaoAtividade = `Suíte ${registro.suites.name}`;
-      } else if (registro.local) {
-        descricaoAtividade = registro.local;
-      } else {
-        descricaoAtividade = DashboardService.getDepartamentoNome(dept);
-      }
-
-      const usuarioAtivo: UsuarioAtivo = {
-        id: registro.usuarios.id,
-        nome: registro.usuarios.name,
-        progresso,
-        totalAtividades: registro.atividades?.length || 0,
-        atividadesCompletas: registro.atividades?.filter((a: any) => a.status === 'realizada').length || 0,
-        tempoDecorrido,
-        registroId: registro.id,
-        horaInicio: registro.hora_inicio,
-        departamento: dept,
-        local: isManutencao
-          ? `${registro.local}${registro.status === 'pausada' ? ' (Pausada)' : ''}`
-          : (registro.suites?.name ? `Suíte ${registro.suites.name}` : registro.local || DashboardService.getDepartamentoNome(dept)),
-        observacoes: registro.observacoes || '',
-        atividades: registro.atividades || [],
-        isManutencao: isManutencao || registro.isManutencao || false,
-        tipo: registro.tipo,
-        prioridade: registro.prioridade,
-        pausas: registro.pausas || [],
-        descricaoAtividade
-      };
-
-      deptData.usuarios.push(usuarioAtivo);
-    });
-
-    departamentosMap.forEach((dept) => {
-      dept.progresso = Math.round(
-        dept.usuarios.reduce((acc, u) => acc + u.progresso, 0) / (dept.usuarios.length || 1)
-      );
-      dept.tempoMedio = Math.round(
-        dept.usuarios.reduce((acc, u) => acc + u.tempoDecorrido, 0) / (dept.usuarios.length || 1)
-      );
-    });
-
-    setDepartamentos(Array.from(departamentosMap.values()));
-  };
-
   useEffect(() => {
-    loadDashboardData();
+    loadDashboardData(false, true);
   }, [loadDashboardData]);
 
   useEffect(() => {
-    if (!empresa?.id) return;
+    const id = setInterval(() => setMinutoAtual(Date.now()), 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
-    realtimeService.enableDebug(true);
+  useEffect(() => {
+    if (!empresaId) return;
 
-    const handleRealtimeUpdate = (payload: any) => {
-      setRealtimeEventsCount(prev => prev + 1);
+    // Throttle: no máximo 1 recarga a cada 8 s. Se já há uma recarga
+    // agendada, ela roda depois deste evento e já o inclui.
+    const agendarRecarga = () => {
+      if (recargaPendenteRef.current) return;
+      const espera = Math.max(0, ultimaCargaRef.current + INTERVALO_MIN_RECARGA_MS - Date.now());
+      recargaPendenteRef.current = setTimeout(() => {
+        recargaPendenteRef.current = null;
+        loadRef.current(true);
+      }, espera);
+    };
 
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      debounceTimerRef.current = setTimeout(() => {
-        loadDashboardData(true);
-      }, 300);
+    const handleRealtimeUpdate = () => {
+      eventosRef.current += 1;
+      agendarRecarga();
     };
 
     const handleStatusChange = (status: string) => {
       setRealtimeStatus(status);
-      if (status === 'connected') {
-        setRealtimeConnected(true);
-      } else if (status === 'error' || status === 'timeout') {
-        setRealtimeConnected(false);
-      }
     };
 
     const unsubscribe = realtimeService.subscribeToMultipleTables(
-      [
-        'registros_recepcao',
-        'registros_camararia',
-        'registros_revisao',
-        'registros_areas_comuns',
-        'registros_gestao',
-        'registros_cozinha',
-        'registros_vendas',
-        'registros_atividades_diarias',
-        'registros_atividades_extras',
-        'manutencoes'
-      ],
+      TABELAS_REALTIME,
       handleRealtimeUpdate,
-      handleStatusChange
+      handleStatusChange,
+      empresaId
     );
 
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      if (recargaPendenteRef.current) {
+        clearTimeout(recargaPendenteRef.current);
+        recargaPendenteRef.current = null;
       }
       unsubscribe();
     };
-  }, [empresa, loadDashboardData]);
-
-  const getTimeSinceUpdate = () => {
-    const now = new Date();
-    const diff = Math.floor((now.getTime() - lastUpdateTime.getTime()) / 1000);
-
-    if (diff < 5) return 'agora';
-    if (diff < 60) return `há ${diff}s`;
-    const minutes = Math.floor(diff / 60);
-    if (minutes === 1) return 'há 1 min';
-    return `há ${minutes} min`;
-  };
-
-  const [timeSinceUpdate, setTimeSinceUpdate] = useState('agora');
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeSinceUpdate(getTimeSinceUpdate());
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [lastUpdateTime]);
+  }, [empresaId]);
 
   const toggleTvMode = () => {
     setTvMode(!tvMode);
@@ -289,20 +332,39 @@ const DashboardAoVivo: React.FC = () => {
     }
   };
 
+  const registrosAtivos = useMemo(() => dados?.ativos ?? [], [dados?.ativos]);
+
+  const departamentos = useMemo(
+    () => montarDepartamentos(registrosAtivos),
+    // minutoAtual: recalcula os tempos decorridos a cada minuto
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [registrosAtivos, minutoAtual]
+  );
+
+  const tempoMedioGeral = useMemo(
+    () => Math.round(
+      registrosAtivos.reduce((acc, r) => acc + tempoDecorrido(r), 0) / (registrosAtivos.length || 1)
+    ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [registrosAtivos, minutoAtual]
+  );
+
+  const concluidosHoje = useMemo(
+    () => Object.values(dados?.concluidos_hoje ?? {}).reduce((acc, n) => acc + (Number(n) || 0), 0),
+    [dados?.concluidos_hoje]
+  );
+
+  const historicData = useMemo(() => dados?.historico ?? {}, [dados?.historico]);
+  const ranking = useMemo(() => dados?.ranking ?? [], [dados?.ranking]);
+
   const filteredDepartamentos = departamentos.filter(dept => {
-    const matchesFilter = filteredDepartments.length === 0 || filteredDepartments.includes(dept.id);
-    const matchesSearch = searchTerm === '' ||
-      dept.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dept.usuarios.some(u => u.nome.toLowerCase().includes(searchTerm.toLowerCase()));
-    return matchesFilter && matchesSearch;
+    const termo = searchTerm.toLowerCase();
+    return searchTerm === '' ||
+      dept.nome.toLowerCase().includes(termo) ||
+      dept.usuarios.some(u => u.nome.toLowerCase().includes(termo));
   });
 
   const usuariosAtivos = registrosAtivos.length;
-  const tempoMedioGeral = Math.round(
-    registrosAtivos.reduce((acc, r) => {
-      return acc + DashboardService.calcularTempoDecorridoComPausas(r);
-    }, 0) / (registrosAtivos.length || 1)
-  );
 
   if (loading) {
     return (
@@ -365,9 +427,11 @@ const DashboardAoVivo: React.FC = () => {
             )}
           </div>
 
-          <span className={`text-xs sm:text-sm ${tvMode ? 'text-gray-400' : 'text-gray-500'} whitespace-nowrap hidden sm:inline`}>
-            {realtimeEventsCount > 0 ? `${realtimeEventsCount} eventos` : `Atualizado ${timeSinceUpdate}`}
-          </span>
+          <IndicadorAtualizacao
+            ultimaAtualizacao={lastUpdateTime}
+            eventosRef={eventosRef}
+            tvMode={tvMode}
+          />
 
           <button
             onClick={handleManualRefresh}
@@ -437,7 +501,7 @@ const DashboardAoVivo: React.FC = () => {
                 <DepartmentCard
                   key={dept.id}
                   department={dept}
-                  onClickUsuario={(usuario) => setSelectedUsuario(usuario)}
+                  onClickUsuario={setSelectedUsuario}
                   tvMode={tvMode}
                 />
               ))
