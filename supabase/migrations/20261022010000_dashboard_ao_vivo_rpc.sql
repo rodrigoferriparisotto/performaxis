@@ -1,6 +1,6 @@
 /*
   Dashboard ao Vivo numa única chamada — 22/10/2026.
-  NÃO APLICADA AINDA (revisar antes de aplicar em produção).
+  APLICADA EM PRODUÇÃO via MCP em 21/10/2026, após revisão.
 
   Substitui as 4 funções do DashboardService usadas pela tela
   "Dashboard ao Vivo" (getRegistrosAtivos, getConcluidosHoje,
