@@ -10,8 +10,10 @@ const corsHeaders = {
 const SUPABASE_URL_ENV = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY_ENV = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-// Autorização do chamador: segredo interno (agendador pg_cron), service role,
-// ou usuário real com perfil admin/gestor (botão "forçar verificação" do Diagnóstico).
+// Autorização do chamador: segredo interno (agendador pg_cron do banco) ou
+// usuário real com perfil admin/gestor (botão "forçar verificação" do Diagnóstico).
+// A chave de serviço NÃO é aceita: um agendador externo antigo (cron-job.org)
+// usava essa chave e duplicava as varreduras.
 async function chamadorAutorizado(req: Request): Promise<boolean> {
   try {
     const admin = createClient(SUPABASE_URL_ENV, SERVICE_ROLE_KEY_ENV);
@@ -29,8 +31,6 @@ async function chamadorAutorizado(req: Request): Promise<boolean> {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return false;
     const token = authHeader.replace("Bearer ", "");
-
-    if (token === SERVICE_ROLE_KEY_ENV) return true;
 
     const { data: { user } } = await admin.auth.getUser(token);
     if (!user) return false;
@@ -102,12 +102,6 @@ Deno.serve(async (req: Request) => {
 
     console.log('[CheckInactivity] Iniciando verificação de inatividade...');
 
-    // 1. Limpar ciclos antigos (usuários inativos há mais de 24h)
-    const { data: limpezaResult } = await supabase.rpc('limpar_ciclos_inatividade_antigos');
-    if (limpezaResult && limpezaResult[0]) {
-      console.log(`[CheckInactivity] Ciclos antigos limpos: ${limpezaResult[0].ciclos_removidos}`);
-    }
-
     // 2. Buscar usuários com última marcação registrada
     const { data: usuariosComMarcacao, error: marcacaoError } = await supabase
       .from('ultima_marcacao_usuario')
@@ -118,6 +112,31 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log(`[CheckInactivity] Encontrados ${usuariosComMarcacao?.length || 0} usuários com marcação`);
+
+    // Dados de todos os usuários com marcação em lote (antes eram consultas
+    // por usuário: 9 tabelas de registros + usuário + ciclo + configurações)
+    const ids = (usuariosComMarcacao || []).map((m: any) => m.usuario_id);
+    const [abertosRes, usuariosRes, ciclosRes, configsRes] = ids.length > 0
+      ? await Promise.all([
+          supabase.rpc('registros_abertos_por_usuario'),
+          supabase.from('usuarios').select('id, name, empresa_id, active').in('id', ids),
+          supabase.from('controle_ciclo_inatividade').select('*').in('usuario_id', ids),
+          supabase.from('configuracoes_lembretes_usuario')
+            .select('usuario_id, ativo, ativar_lembretes_inatividade, horario_inicio_nao_perturbe, horario_fim_nao_perturbe')
+            .in('usuario_id', ids),
+        ])
+      : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }] as any[];
+
+    if (abertosRes.error) {
+      throw new Error(`Erro ao buscar registros abertos: ${abertosRes.error.message}`);
+    }
+
+    const abertosPorUsuario = new Map<string, string[]>(
+      (abertosRes.data || []).map((r: any) => [r.usuario_id, r.modulos || []])
+    );
+    const usuariosPorId = new Map<string, any>((usuariosRes.data || []).map((u: any) => [u.id, u]));
+    const cicloPorUsuario = new Map<string, any>((ciclosRes.data || []).map((c: any) => [c.usuario_id, c]));
+    const configPorUsuario = new Map<string, any>((configsRes.data || []).map((c: any) => [c.usuario_id, c]));
 
     for (const marcacao of usuariosComMarcacao || []) {
       try {
@@ -136,20 +155,17 @@ Deno.serve(async (req: Request) => {
           continue;
         }
 
-        // Buscar dados do usuário
-        const { data: usuario, error: usuarioError } = await supabase
-          .from('usuarios')
-          .select('id, name, empresa_id, active')
-          .eq('id', marcacao.usuario_id)
-          .maybeSingle();
+        // Dados do usuário (já carregados em lote)
+        const usuario = usuariosPorId.get(marcacao.usuario_id);
 
-        if (usuarioError || !usuario || !usuario.active) {
+        if (!usuario || !usuario.active) {
           console.log(`[CheckInactivity] Usuário não encontrado ou inativo`);
           continue;
         }
 
         // Verificar se usuário tem registros abertos
-        const registrosAbertos = await verificarRegistrosAbertos(supabase, marcacao.usuario_id);
+        const modulosAbertos = abertosPorUsuario.get(marcacao.usuario_id) || [];
+        const registrosAbertos = { temRegistrosAbertos: modulosAbertos.length > 0, modulos: modulosAbertos };
 
         if (!registrosAbertos.temRegistrosAbertos) {
           console.log(`[CheckInactivity] Usuário não tem registros abertos - removendo marcação órfã`);
@@ -171,11 +187,7 @@ Deno.serve(async (req: Request) => {
         console.log(`[CheckInactivity] Usuário tem registros abertos em: ${registrosAbertos.modulos.join(', ')}`);
 
         // Buscar ou criar controle de ciclo
-        let { data: cicloControle, error: cicloError } = await supabase
-          .from('controle_ciclo_inatividade')
-          .select('*')
-          .eq('usuario_id', marcacao.usuario_id)
-          .maybeSingle();
+        let cicloControle = cicloPorUsuario.get(marcacao.usuario_id) || null;
 
         // Detectar novo ciclo: se usuário marcou atividade depois do início do ciclo anterior
         const novoCicloDetectado = cicloControle &&
@@ -251,11 +263,7 @@ Deno.serve(async (req: Request) => {
         console.log(`[CheckInactivity] Usuário atingiu marcador de ${proximoMarcador} minutos`);
 
         // Buscar configurações de notificação do usuário
-        const { data: settings } = await supabase
-          .from('configuracoes_lembretes_usuario')
-          .select('ativo, ativar_lembretes_inatividade, horario_inicio_nao_perturbe, horario_fim_nao_perturbe')
-          .eq('usuario_id', marcacao.usuario_id)
-          .maybeSingle();
+        const settings = configPorUsuario.get(marcacao.usuario_id);
 
         if (!settings || !settings.ativo || !settings.ativar_lembretes_inatividade) {
           console.log(`[CheckInactivity] Notificações desativadas para usuário`);
@@ -448,67 +456,15 @@ Deno.serve(async (req: Request) => {
   }
 });
 
-async function verificarRegistrosAbertos(supabase: any, usuarioId: string): Promise<{ temRegistrosAbertos: boolean; modulos: string[]; registroMaisRecente: string | null }> {
-  const modulos: string[] = [];
-  let registroMaisRecente: string | null = null;
-
-  const tabelasParaVerificar = [
-    { tabela: 'registros_camararia', modulo: 'Governança' },
-    { tabela: 'registros_areas_comuns', modulo: 'Áreas Comuns' },
-    { tabela: 'registros_cozinha', modulo: 'Cozinha' },
-    { tabela: 'registros_gestao', modulo: 'Gestão' },
-    { tabela: 'registros_recepcao', modulo: 'Recepção' },
-    { tabela: 'registros_vendas', modulo: 'Vendas' },
-    { tabela: 'registros_revisao', modulo: 'Revisão' },
-    { tabela: 'registros_atividades_diarias', modulo: 'Atividades Diárias' },
-    { tabela: 'registros_atividades_extras', modulo: 'Atividades Extras' },
-  ];
-
-  for (const { tabela, modulo } of tabelasParaVerificar) {
-    try {
-      const { data, error } = await supabase
-        .from(tabela)
-        .select('id, hora_inicio, usuario_executor_id, usuario_id')
-        .or(`usuario_executor_id.eq.${usuarioId},usuario_id.eq.${usuarioId}`)
-        .eq('status', 'em_andamento')
-        .order('hora_inicio', { ascending: false })
-        .limit(1);
-
-      if (!error && data && data.length > 0) {
-        const registro = data[0];
-        modulos.push(modulo);
-
-        if (!registro.usuario_executor_id && registro.usuario_id) {
-          await supabase
-            .from(tabela)
-            .update({ usuario_executor_id: registro.usuario_id })
-            .eq('id', registro.id);
-        }
-
-        const horaInicio = registro.hora_inicio;
-        if (!registroMaisRecente || new Date(horaInicio) > new Date(registroMaisRecente)) {
-          registroMaisRecente = horaInicio;
-        }
-      }
-    } catch (error) {
-      console.error(`[CheckInactivity] Erro ao verificar ${tabela}:`, error);
-    }
-  }
-
-  return {
-    temRegistrosAbertos: modulos.length > 0,
-    modulos,
-    registroMaisRecente
-  };
-}
-
 function isDoNotDisturbActive(settings: any): boolean {
   if (!settings.horario_inicio_nao_perturbe || !settings.horario_fim_nao_perturbe) {
     return false;
   }
 
-  const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const partes = new Intl.DateTimeFormat('en-GB', {
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo',
+  }).format(new Date()).split(':').map(Number);
+  const currentTime = (partes[0] % 24) * 60 + partes[1];
 
   const [startHour, startMinute] = settings.horario_inicio_nao_perturbe.split(':').map(Number);
   const startTime = startHour * 60 + startMinute;
@@ -525,15 +481,15 @@ function isDoNotDisturbActive(settings: any): boolean {
 
 function mapModuloToUrl(modulo: string): string {
   const map: Record<string, string> = {
-    'Governança': '/camararia',
-    'Áreas Comuns': '/areas-comuns',
-    'Cozinha': '/cozinha',
-    'Gestão': '/gestao',
-    'Recepção': '/recepcao',
-    'Vendas': '/vendas',
-    'Revisão': '/revisao',
-    'Atividades Diárias': '/atividades-diarias',
-    'Atividades Extras': '/atividades-extras',
+    'Governança': 'camararia',
+    'Áreas Comuns': 'areas-comuns',
+    'Cozinha': 'cozinha',
+    'Gestão': 'gestao',
+    'Recepção': 'recepcao',
+    'Vendas': 'vendas',
+    'Revisão': 'revisao',
+    'Atividades Diárias': 'atividades-diarias',
+    'Atividades Extras': 'atividades-extras',
   };
   return map[modulo] || '/';
 }
