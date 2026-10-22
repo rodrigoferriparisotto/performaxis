@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   Database,
@@ -33,6 +31,7 @@ import {
   empresaService
 } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
+import { notificar } from '../../lib/feedback';
 import { TEMAS_MODULO } from '../../constants/moduleTheme';
 import { formatarData, getBrazilDate, getDataAtualFormatada } from '../../utils/dateUtils';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
@@ -285,7 +284,18 @@ const DadosGerais: React.FC = () => {
     }
   };
 
-  const exportarPDF = () => {
+  const exportarPDF = async () => {
+    // jsPDF carregado só na hora de exportar (fora do pacote inicial do app)
+    let jsPDF: typeof import('jspdf').jsPDF;
+    let autoTable: typeof import('jspdf-autotable').default;
+    try {
+      const [modPdf, modTabela] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
+      jsPDF = modPdf.jsPDF;
+      autoTable = modTabela.default;
+    } catch {
+      notificar('Não foi possível carregar o gerador de PDF. Verifique a conexão e tente novamente.', 'erro');
+      return;
+    }
     if (!dadosGerais) return;
 
     const doc = new jsPDF();
