@@ -23,75 +23,95 @@ import { getDataHoraAtual } from '../utils/dateUtils';
 import { mapModuloToUrl, mapModuloToHistoricoUrl } from '../utils/moduleUrlMapper';
 import { LoadingState } from './ui/Estados';
 
+// Se um deploy novo saiu com o app aberto, os pedaços antigos somem do
+// servidor e o import falha. Nesse caso recarrega uma única vez para pegar
+// a versão nova (a marca na sessão evita loop se o erro for de outra causa).
+function lazyComRecarga<T extends React.ComponentType<any>>(carregar: () => Promise<{ default: T }>) {
+  return lazy(() =>
+    carregar()
+      .then((m) => {
+        sessionStorage.removeItem('performaxis_recarga_chunk');
+        return m;
+      })
+      .catch((erro) => {
+        if (!sessionStorage.getItem('performaxis_recarga_chunk')) {
+          sessionStorage.setItem('performaxis_recarga_chunk', '1');
+          window.location.reload();
+          return new Promise<{ default: T }>(() => {});
+        }
+        throw erro;
+      })
+  );
+}
 // Telas carregadas sob demanda: cada uma vira um arquivo separado,
 // baixado só quando é aberta (antes o app inteiro vinha num pacote de 2,5 MB).
-const NotificationPermissionModal = lazy(() => import('./common/NotificationPermissionModal'));
-const SobrePage = lazy(() => import('./Public/SobrePage'));
-const RecursosPage = lazy(() => import('./Public/RecursosPage'));
-const FAQPage = lazy(() => import('./Public/FAQPage'));
-const ContatoPage = lazy(() => import('./Public/ContatoPage'));
-const DemoPage = lazy(() => import('./Public/DemoPage'));
-const VideosPage = lazy(() => import('./Public/VideosPage'));
-const BlogListPage = lazy(() => import('./Public/BlogListPage'));
-const BlogPostPage = lazy(() => import('./Public/BlogPostPage'));
-const BlogAdmin = lazy(() => import('./Pages/BlogAdmin'));
-const BlogAdminEdit = lazy(() => import('./Pages/BlogAdminEdit'));
-const Dashboard = lazy(() => import('./Pages/Dashboard'));
-const Empresa = lazy(() => import('./Pages/Empresa'));
-const Usuarios = lazy(() => import('./Pages/Usuarios'));
-const AtividadesRecepcao = lazy(() => import('./Pages/AtividadesRecepcao'));
-const AtividadesCamararia = lazy(() => import('./Pages/AtividadesCamararia'));
-const AtividadesRevisao = lazy(() => import('./Pages/AtividadesRevisao'));
-const AtividadesAreasComuns = lazy(() => import('./Pages/AtividadesAreasComuns'));
-const AtividadesGestao = lazy(() => import('./Pages/AtividadesGestao'));
-const AtividadesNoturnas = lazy(() => import('./Pages/AtividadesNoturnas'));
-const AtividadesDiurnas = lazy(() => import('./Pages/AtividadesDiurnas'));
-const TiposCozinha = lazy(() => import('./Pages/TiposCozinha'));
-const AtividadesCozinha = lazy(() => import('./Pages/AtividadesCozinha'));
-const Cozinha = lazy(() => import('./Pages/Cozinha'));
-const Suites = lazy(() => import('./Pages/Suites'));
-const AtividadesExtras = lazy(() => import('./Pages/AtividadesExtras'));
-const AtividadesDiarias = lazy(() => import('./Pages/AtividadesDiarias'));
-const Gestao = lazy(() => import('./Pages/Gestao'));
-const Recepcao = lazy(() => import('./Pages/Recepcao'));
-const Camararia = lazy(() => import('./Pages/Camararia'));
-const Revisao = lazy(() => import('./Pages/Revisao'));
-const AreasComuns = lazy(() => import('./Pages/AreasComuns'));
-const Manutencao = lazy(() => import('./Pages/Manutencao'));
-const Perfis = lazy(() => import('./Pages/Perfis'));
-const Acessos = lazy(() => import('./Pages/Acessos'));
-const VerAcessos = lazy(() => import('./Pages/VerAcessos'));
-const TiposRecepcao = lazy(() => import('./Pages/TiposRecepcao'));
-const ServicosCamararia = lazy(() => import('./Pages/ServicosCamararia'));
-const ItensCamararia = lazy(() => import('./Pages/ItensCamararia'));
-const FotosCamararia = lazy(() => import('./Pages/FotosCamararia'));
-const FotosCozinha = lazy(() => import('./Pages/FotosCozinha'));
-const TiposGestao = lazy(() => import('./Pages/TiposGestao'));
-const TiposAtividades = lazy(() => import('./Pages/TiposAtividades'));
-const DashboardRelatorios = lazy(() => import('./Pages/DashboardRelatorios'));
-const AnaliseOperacional = lazy(() => import('./Pages/AnaliseOperacional'));
-const AnaliseFuncionario = lazy(() => import('./Pages/AnaliseFuncionario'));
-const DadosGerais = lazy(() => import('./Pages/DadosGerais'));
-const EficienciaArea = lazy(() => import('./Pages/EficienciaArea'));
-const TiposExtras = lazy(() => import('./Pages/TiposExtras'));
-const TiposAreasComuns = lazy(() => import('./Pages/TiposAreasComuns'));
-const Vendas = lazy(() => import('./Pages/Vendas'));
-const TiposFuncoesComerciais = lazy(() => import('./Pages/TiposFuncoesComerciais'));
-const AtividadesComerciais = lazy(() => import('./Pages/AtividadesComerciais'));
-const DashboardAoVivo = lazy(() => import('./Pages/DashboardAoVivo'));
-const RecalcularPerformance = lazy(() => import('./Pages/RecalcularPerformance'));
-const MonitoramentoPerformance = lazy(() => import('./Pages/MonitoramentoPerformance'));
-const ConfiguracaoMetas = lazy(() => import('./Pages/ConfiguracaoMetas'));
-const RankingPorMeritocracia = lazy(() => import('./Pages/RankingPorMeritocracia'));
-const PublicarVersao = lazy(() => import('./Pages/PublicarVersao').then((m) => ({ default: m.PublicarVersao })));
-const EnviarMensagem = lazy(() => import('./Pages/EnviarMensagem').then((m) => ({ default: m.EnviarMensagem })));
-const ConfiguracoesLembretes = lazy(() => import('./Pages/ConfiguracoesLembretes'));
-const ConfiguracoesSom = lazy(() => import('./Pages/ConfiguracoesSom'));
-const LimpezaHistorico = lazy(() => import('./Pages/LimpezaHistorico'));
-const TesteNotificacoesPush = lazy(() => import('./Pages/TesteNotificacoesPush'));
-const GerenciarTokensPush = lazy(() => import('./Pages/GerenciarTokensPush'));
-const MonitoramentoPush = lazy(() => import('./Pages/MonitoramentoPush'));
-const DiagnosticoNotificacoes = lazy(() => import('./Pages/DiagnosticoNotificacoes').then((m) => ({ default: m.DiagnosticoNotificacoes })));
+const NotificationPermissionModal = lazyComRecarga(() => import('./common/NotificationPermissionModal'));
+const SobrePage = lazyComRecarga(() => import('./Public/SobrePage'));
+const RecursosPage = lazyComRecarga(() => import('./Public/RecursosPage'));
+const FAQPage = lazyComRecarga(() => import('./Public/FAQPage'));
+const ContatoPage = lazyComRecarga(() => import('./Public/ContatoPage'));
+const DemoPage = lazyComRecarga(() => import('./Public/DemoPage'));
+const VideosPage = lazyComRecarga(() => import('./Public/VideosPage'));
+const BlogListPage = lazyComRecarga(() => import('./Public/BlogListPage'));
+const BlogPostPage = lazyComRecarga(() => import('./Public/BlogPostPage'));
+const BlogAdmin = lazyComRecarga(() => import('./Pages/BlogAdmin'));
+const BlogAdminEdit = lazyComRecarga(() => import('./Pages/BlogAdminEdit'));
+const Dashboard = lazyComRecarga(() => import('./Pages/Dashboard'));
+const Empresa = lazyComRecarga(() => import('./Pages/Empresa'));
+const Usuarios = lazyComRecarga(() => import('./Pages/Usuarios'));
+const AtividadesRecepcao = lazyComRecarga(() => import('./Pages/AtividadesRecepcao'));
+const AtividadesCamararia = lazyComRecarga(() => import('./Pages/AtividadesCamararia'));
+const AtividadesRevisao = lazyComRecarga(() => import('./Pages/AtividadesRevisao'));
+const AtividadesAreasComuns = lazyComRecarga(() => import('./Pages/AtividadesAreasComuns'));
+const AtividadesGestao = lazyComRecarga(() => import('./Pages/AtividadesGestao'));
+const AtividadesNoturnas = lazyComRecarga(() => import('./Pages/AtividadesNoturnas'));
+const AtividadesDiurnas = lazyComRecarga(() => import('./Pages/AtividadesDiurnas'));
+const TiposCozinha = lazyComRecarga(() => import('./Pages/TiposCozinha'));
+const AtividadesCozinha = lazyComRecarga(() => import('./Pages/AtividadesCozinha'));
+const Cozinha = lazyComRecarga(() => import('./Pages/Cozinha'));
+const Suites = lazyComRecarga(() => import('./Pages/Suites'));
+const AtividadesExtras = lazyComRecarga(() => import('./Pages/AtividadesExtras'));
+const AtividadesDiarias = lazyComRecarga(() => import('./Pages/AtividadesDiarias'));
+const Gestao = lazyComRecarga(() => import('./Pages/Gestao'));
+const Recepcao = lazyComRecarga(() => import('./Pages/Recepcao'));
+const Camararia = lazyComRecarga(() => import('./Pages/Camararia'));
+const Revisao = lazyComRecarga(() => import('./Pages/Revisao'));
+const AreasComuns = lazyComRecarga(() => import('./Pages/AreasComuns'));
+const Manutencao = lazyComRecarga(() => import('./Pages/Manutencao'));
+const Perfis = lazyComRecarga(() => import('./Pages/Perfis'));
+const Acessos = lazyComRecarga(() => import('./Pages/Acessos'));
+const VerAcessos = lazyComRecarga(() => import('./Pages/VerAcessos'));
+const TiposRecepcao = lazyComRecarga(() => import('./Pages/TiposRecepcao'));
+const ServicosCamararia = lazyComRecarga(() => import('./Pages/ServicosCamararia'));
+const ItensCamararia = lazyComRecarga(() => import('./Pages/ItensCamararia'));
+const FotosCamararia = lazyComRecarga(() => import('./Pages/FotosCamararia'));
+const FotosCozinha = lazyComRecarga(() => import('./Pages/FotosCozinha'));
+const TiposGestao = lazyComRecarga(() => import('./Pages/TiposGestao'));
+const TiposAtividades = lazyComRecarga(() => import('./Pages/TiposAtividades'));
+const DashboardRelatorios = lazyComRecarga(() => import('./Pages/DashboardRelatorios'));
+const AnaliseOperacional = lazyComRecarga(() => import('./Pages/AnaliseOperacional'));
+const AnaliseFuncionario = lazyComRecarga(() => import('./Pages/AnaliseFuncionario'));
+const DadosGerais = lazyComRecarga(() => import('./Pages/DadosGerais'));
+const EficienciaArea = lazyComRecarga(() => import('./Pages/EficienciaArea'));
+const TiposExtras = lazyComRecarga(() => import('./Pages/TiposExtras'));
+const TiposAreasComuns = lazyComRecarga(() => import('./Pages/TiposAreasComuns'));
+const Vendas = lazyComRecarga(() => import('./Pages/Vendas'));
+const TiposFuncoesComerciais = lazyComRecarga(() => import('./Pages/TiposFuncoesComerciais'));
+const AtividadesComerciais = lazyComRecarga(() => import('./Pages/AtividadesComerciais'));
+const DashboardAoVivo = lazyComRecarga(() => import('./Pages/DashboardAoVivo'));
+const RecalcularPerformance = lazyComRecarga(() => import('./Pages/RecalcularPerformance'));
+const MonitoramentoPerformance = lazyComRecarga(() => import('./Pages/MonitoramentoPerformance'));
+const ConfiguracaoMetas = lazyComRecarga(() => import('./Pages/ConfiguracaoMetas'));
+const RankingPorMeritocracia = lazyComRecarga(() => import('./Pages/RankingPorMeritocracia'));
+const PublicarVersao = lazyComRecarga(() => import('./Pages/PublicarVersao').then((m) => ({ default: m.PublicarVersao })));
+const EnviarMensagem = lazyComRecarga(() => import('./Pages/EnviarMensagem').then((m) => ({ default: m.EnviarMensagem })));
+const ConfiguracoesLembretes = lazyComRecarga(() => import('./Pages/ConfiguracoesLembretes'));
+const ConfiguracoesSom = lazyComRecarga(() => import('./Pages/ConfiguracoesSom'));
+const LimpezaHistorico = lazyComRecarga(() => import('./Pages/LimpezaHistorico'));
+const TesteNotificacoesPush = lazyComRecarga(() => import('./Pages/TesteNotificacoesPush'));
+const GerenciarTokensPush = lazyComRecarga(() => import('./Pages/GerenciarTokensPush'));
+const MonitoramentoPush = lazyComRecarga(() => import('./Pages/MonitoramentoPush'));
+const DiagnosticoNotificacoes = lazyComRecarga(() => import('./Pages/DiagnosticoNotificacoes').then((m) => ({ default: m.DiagnosticoNotificacoes })));
 
 const MainAppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');

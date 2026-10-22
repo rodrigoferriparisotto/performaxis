@@ -2,8 +2,37 @@
   command = "npm run build"
   publish = "dist"
 
-# SPA: qualquer rota cai no index.html (o app resolve a navegação)
+# Arquivos de código/estilo que não existem (ex.: pedaço de um deploy antigo)
+# devolvem 404 de verdade, em vez de cair no index.html com status 200.
+# Arquivos que existem são servidos normalmente (regra só vale se faltar).
+[[redirects]]
+  from = "/assets/*"
+  to = "/404.html"
+  status = 404
+
+# SPA: qualquer outra rota cai no index.html (o app resolve a navegação)
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# O aviso de nova versão depende deste arquivo estar sempre fresco
+[[headers]]
+  for = "/version.json"
+  [headers.values]
+    Cache-Control = "no-store"
+
+# Pedaços com hash no nome nunca mudam: cache longo no navegador
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Cabeçalhos básicos de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=()"
