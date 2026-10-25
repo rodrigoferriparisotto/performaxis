@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { atividadeService } from '../../services/supabaseService';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
+  Clock,
   CheckCircle, 
   Plus,
   Edit,
@@ -12,6 +13,8 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
+import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
 
 const AtividadesRevisao: React.FC = () => {
   const { user } = useAuth();
@@ -20,6 +23,7 @@ const AtividadesRevisao: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingActivity, setEditingActivity] = useState<any>(null);
+  const [selectedDias, setSelectedDias] = useState<string[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [updatingPosition, setUpdatingPosition] = useState<string | null>(null);
@@ -54,11 +58,13 @@ const AtividadesRevisao: React.FC = () => {
 
   const handleEditActivity = (activity: any) => {
     setEditingActivity(activity);
+    setSelectedDias(activity.dias_semana || []);
     setShowModal(true);
   };
 
   const handleNewActivity = () => {
     setEditingActivity(null);
+    setSelectedDias([]);
     setShowModal(true);
   };
 
@@ -71,6 +77,8 @@ const AtividadesRevisao: React.FC = () => {
     const activityData = {
       name: formData.get('name') as string,
       description: formData.get('description') as string || '',
+      ...lerCamposRotina(formData),
+      dias_semana: selectedDias,
       type: 'revisao' as const,
       active: formData.get('active') === 'true',
       order_position: editingActivity?.order_position || (atividades.length + 1)
@@ -273,7 +281,20 @@ const AtividadesRevisao: React.FC = () => {
                   <div className="flex items-start space-x-3 flex-1 min-w-0">
                     <GripVertical className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-800 break-words">{atividade.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-medium text-gray-800 break-words">{atividade.name}</h3>
+                        {atividade.horario_previsto && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 whitespace-nowrap">
+                            <Clock className="w-3 h-3" />
+                            {formatarHorarioPrevisto(atividade.horario_previsto)}
+                          </span>
+                        )}
+                        {!!atividade.duracao_prevista_min && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 whitespace-nowrap">
+                            {formatarDuracao(atividade.duracao_prevista_min)}
+                          </span>
+                        )}
+                      </div>
                       {atividade.description && (
                         <p className="text-sm text-gray-600 mt-1 break-words">{atividade.description}</p>
                       )}
@@ -301,12 +322,28 @@ const AtividadesRevisao: React.FC = () => {
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-yellow-600"></div>
                           )}
                         </div>
+                        {atividade.dias_semana && atividade.dias_semana.length > 0 && (
+                          <div className="flex items-center space-x-1 text-xs md:text-sm text-gray-600">
+                            <span className="whitespace-nowrap">Dias: {atividade.dias_semana.length}</span>
+                          </div>
+                        )}
                         <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
                           atividade.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                         }`}>
                           {atividade.active ? 'Ativa' : 'Inativa'}
                         </span>
                       </div>
+                      {atividade.dias_semana && atividade.dias_semana.length > 0 && (
+                        <div className="mt-2">
+                          <div className="flex flex-wrap gap-1">
+                            {atividade.dias_semana.map((dia: string) => (
+                              <span key={dia} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                {dia.charAt(0).toUpperCase() + dia.slice(1, 3)}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -365,7 +402,7 @@ const AtividadesRevisao: React.FC = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSaveActivity} className="p-6 space-y-6">
+            <form key={editingActivity?.id ?? 'nova'} onSubmit={handleSaveActivity} className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nome da Atividade *
@@ -391,6 +428,13 @@ const AtividadesRevisao: React.FC = () => {
                   placeholder="Descrição opcional da atividade"
                 />
               </div>
+
+              <CamposRotina
+                horario={editingActivity?.horario_previsto}
+                duracao={editingActivity?.duracao_prevista_min}
+                dias={selectedDias}
+                onDiasChange={setSelectedDias}
+              />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
