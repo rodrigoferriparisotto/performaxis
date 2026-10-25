@@ -20,6 +20,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { SeloPrazo } from '../common/SeloPrazo';
 
 const NovoRegistroManutencao: React.FC = () => {
   const { user } = useAuth();
@@ -61,8 +62,20 @@ const NovoRegistroManutencao: React.FC = () => {
     });
   };
 
+  // vindo da revisão ("Abrir manutenção"): abre o formulário já com o local
+  const [preenchimento, setPreenchimento] = useState<{ local?: string; descricao?: string } | null>(null);
   useEffect(() => {
     carregarManutencoes();
+    try {
+      const salvo = sessionStorage.getItem('performaxis_prefill_manutencao');
+      if (salvo) {
+        sessionStorage.removeItem('performaxis_prefill_manutencao');
+        setPreenchimento(JSON.parse(salvo));
+        setShowForm(true);
+      }
+    } catch {
+      // sem sessionStorage: segue sem preencher
+    }
   }, []);
 
   const carregarManutencoes = async () => {
@@ -270,7 +283,7 @@ const NovoRegistroManutencao: React.FC = () => {
                 <input
                   type="text"
                   name="local"
-                  defaultValue={editingManutencao?.local || ''}
+                  defaultValue={editingManutencao?.local || preenchimento?.local || ''}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                   placeholder="Ex: Suite 101, Elevador, Recepção..."
                   required
@@ -330,7 +343,7 @@ const NovoRegistroManutencao: React.FC = () => {
               </label>
               <textarea
                 name="descricao"
-                defaultValue={editingManutencao?.descricao || ''}
+                defaultValue={editingManutencao?.descricao || preenchimento?.descricao || ''}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
                 rows={3}
                 placeholder="Descreva detalhadamente o problema ou serviço necessário..."
@@ -468,7 +481,7 @@ const NovoRegistroManutencao: React.FC = () => {
                 <div key={manutencao.id} className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h4 className="font-medium text-gray-800">{manutencao.local}</h4>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTipoColor(manutencao.tipo)}`}>
                           {getTipoLabel(manutencao.tipo)}
@@ -476,6 +489,7 @@ const NovoRegistroManutencao: React.FC = () => {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPrioridadeColor(manutencao.prioridade)}`}>
                           {getPrioridadeLabel(manutencao.prioridade)}
                         </span>
+                        <SeloPrazo criadoEm={manutencao.created_at} prioridade={manutencao.prioridade} />
                       </div>
                       
                       <p className="text-sm text-gray-700 mb-2">{manutencao.descricao}</p>

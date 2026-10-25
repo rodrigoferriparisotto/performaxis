@@ -799,11 +799,30 @@ const NovoRegistroRevisao: React.FC = () => {
       {registroAtivo && (
         <>
           <div className="bg-white rounded-lg shadow-md border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-800">Atividades de Revisão</h3>
-              <p className="text-sm text-gray-600">
-                {getSuiteNome(registroAtivo.suite_id)} - Clique nas atividades para marcar como realizadas
-              </p>
+            <div className="p-6 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800">Atividades de Revisão</h3>
+                <p className="text-sm text-gray-600">
+                  {getSuiteNome(registroAtivo.suite_id)} - Clique nas atividades para marcar como realizadas
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  try {
+                    sessionStorage.setItem(
+                      'performaxis_prefill_manutencao',
+                      JSON.stringify({ local: getSuiteNome(registroAtivo.suite_id), descricao: 'Encontrado na revisão: ' })
+                    );
+                  } catch {
+                    // sem sessionStorage: abre o formulário vazio
+                  }
+                  window.location.hash = 'novo-registro-manutencao';
+                }}
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md border border-orange-300 text-orange-700 bg-orange-50 hover:bg-orange-100 text-sm"
+              >
+                🔧 Abrir manutenção
+              </button>
             </div>
 
             <div className="p-6">

@@ -21,6 +21,7 @@ import {
   Trash2
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { SeloPrazo } from '../common/SeloPrazo';
 
 const ManutencoesPendentes: React.FC = () => {
   const { user } = useAuth();
@@ -498,7 +499,7 @@ const ManutencoesPendentes: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h4 className="font-medium text-gray-800">{manutencao.local}</h4>
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTipoColor(manutencao.tipo)}`}>
                           {getTipoLabel(manutencao.tipo)}
@@ -506,6 +507,7 @@ const ManutencoesPendentes: React.FC = () => {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPrioridadeColor(manutencao.prioridade)}`}>
                           {getPrioridadeLabel(manutencao.prioridade)}
                         </span>
+                        <SeloPrazo criadoEm={manutencao.created_at} prioridade={manutencao.prioridade} />
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(manutencao.status)}`}>
                           {getStatusLabel(manutencao.status)}
                         </span>

@@ -49,10 +49,12 @@ Deno.serve(async (req: Request) => {
     .maybeSingle();
   if (!cfg || cfg.valor !== segredo) return json({ erro: 'não autorizado' }, 401);
 
+  const manutencao = await avisarManutencoesVencidas(admin);
+
   const { data: atrasadas, error } = await admin.rpc('tarefas_atrasadas_para_avisar', { p_tolerancia_min: 10 });
-  if (error) return json({ erro: error.message }, 500);
+  if (error) return json({ erro: error.message, manutencao }, 500);
   const lista = (atrasadas || []) as Atrasada[];
-  if (lista.length === 0) return json({ avisos: 0 });
+  if (lista.length === 0) return json({ avisos: 0, manutencao });
 
   // agrupa por pessoa
   const porUsuario = new Map<string, Atrasada[]>();
@@ -112,5 +114,78 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  return json({ tarefas: lista.length, pessoas: porUsuario.size, pushes: enviados });
+  return json({ tarefas: lista.length, pessoas: porUsuario.size, pushes: enviados, manutencao });
 });
+
+interface Vencida {
+  manutencao_id: string;
+  empresa_id: string;
+  local: string | null;
+  descricao: string | null;
+  prioridade: string;
+  horas_abertas: number;
+  horas_atraso: number;
+}
+
+const tempoAberto = (h: number) => (h >= 48 ? `${Math.floor(h / 24)} dias` : `${h}h`);
+
+async function enviarPush(tokens: string[], titulo: string, corpo: string, url: string, tipo: string) {
+  if (tokens.length === 0) return false;
+  try {
+    const resp = await fetch(`${SUPABASE_URL}/functions/v1/send-push-notification`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${SERVICE_ROLE_KEY}` },
+      body: JSON.stringify({ tokens, title: titulo, body: corpo, tipo: 'reminder', priority: 'high', data: { url, type: tipo } }),
+    });
+    return resp.ok;
+  } catch (_e) {
+    return false;
+  }
+}
+
+// chamados de manutenção que passaram do prazo: um push por empresa para gestão/admin
+async function avisarManutencoesVencidas(admin: ReturnType<typeof createClient>) {
+  const { data, error } = await admin.rpc('manutencoes_vencidas_para_avisar');
+  if (error) return { erro: error.message };
+  const vencidas = (data || []) as Vencida[];
+  if (vencidas.length === 0) return { chamados: 0 };
+
+  const porEmpresa = new Map<string, Vencida[]>();
+  for (const v of vencidas) porEmpresa.set(v.empresa_id, [...(porEmpresa.get(v.empresa_id) || []), v]);
+
+  let pushes = 0;
+  for (const [empresaId, chamados] of porEmpresa) {
+    chamados.sort((a, b) => b.horas_atraso - a.horas_atraso);
+    const { data: gestores } = await admin
+      .from('usuarios')
+      .select('id')
+      .eq('empresa_id', empresaId)
+      .eq('active', true)
+      .in('profile', ['admin', 'gestor']);
+    const ids = (gestores || []).map((g: { id: string }) => g.id);
+    let tokens: string[] = [];
+    if (ids.length > 0) {
+      const { data: t } = await admin.from('push_tokens').select('token').in('usuario_id', ids).eq('is_active', true);
+      tokens = (t || []).map((x: { token: string }) => x.token);
+    }
+
+    const nome = (c: Vencida) => c.local || c.descricao || 'Manutenção';
+    const titulo =
+      chamados.length === 1
+        ? `🔧 Manutenção fora do prazo: ${nome(chamados[0])}`
+        : `🔧 ${chamados.length} manutenções fora do prazo`;
+    const corpo =
+      chamados.length === 1
+        ? `Prioridade ${chamados[0].prioridade}, aberta há ${tempoAberto(chamados[0].horas_abertas)}.`
+        : chamados.slice(0, 3).map((c) => `${nome(c)} (${c.prioridade}, ${tempoAberto(c.horas_abertas)})`).join(' · ') +
+          (chamados.length > 3 ? ` e mais ${chamados.length - 3}` : '');
+
+    if (await enviarPush(tokens, titulo, corpo, '/#manutencoes-pendentes', 'manutencao_vencida')) pushes++;
+
+    await admin.from('avisos_manutencao_vencida').upsert(
+      chamados.map((c) => ({ manutencao_id: c.manutencao_id, empresa_id: c.empresa_id })),
+      { onConflict: 'manutencao_id', ignoreDuplicates: true }
+    );
+  }
+  return { chamados: vencidas.length, pushes };
+}
