@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, Eye, EyeOff, Mail, AlertCircle } from 'lucide-react';
 import { usuarioService, empresaService } from '../../services/supabaseService';
+import { supabase } from '../../lib/supabase';
 import { AuthService } from '../../services/authService';
 import { PermissionsService } from '../../services/permissionsService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -12,6 +13,34 @@ import { LoadingState } from '../ui/Estados';
 const Usuarios: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [usuarios, setUsuarios] = useState<any[]>([]);
+  // aparelhos com notificação por usuário (só gestão consegue ler)
+  const [notificacoes, setNotificacoes] = useState<Record<string, { aparelhos: number; ultimo_sucesso: string | null }> | null>(null);
+  useEffect(() => {
+    supabase.rpc('situacao_notificacoes_equipe').then(({ data, error }) => {
+      if (error || !data) return;
+      setNotificacoes(
+        Object.fromEntries(
+          (data as { usuario_id: string; aparelhos: number; ultimo_sucesso: string | null }[]).map((l) => [
+            l.usuario_id,
+            { aparelhos: l.aparelhos, ultimo_sucesso: l.ultimo_sucesso },
+          ])
+        )
+      );
+    });
+  }, []);
+  const SeloNotificacao = ({ id }: { id: string }) => {
+    if (!notificacoes || !(id in notificacoes)) return null;
+    const n = notificacoes[id];
+    return n.aparelhos > 0 ? (
+      <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-700 w-fit">
+        🔔 Recebe notificações{n.aparelhos > 1 ? ` (${n.aparelhos} aparelhos)` : ''}
+      </span>
+    ) : (
+      <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800 w-fit">
+        🔕 Sem notificações
+      </span>
+    );
+  };
   const [empresa, setEmpresa] = useState<any>(null);
   const [empresas, setEmpresas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -814,6 +843,17 @@ const Usuarios: React.FC = () => {
         </div>
       )}
 
+      {notificacoes && Object.keys(notificacoes).length > 0 && (() => {
+        const ids = Object.keys(notificacoes);
+        const com = ids.filter((id) => notificacoes[id].aparelhos > 0).length;
+        return (
+          <div className={`rounded-lg border p-3 text-sm ${com === ids.length ? 'bg-green-50 border-green-200 text-green-800' : 'bg-amber-50 border-amber-200 text-amber-900'}`}>
+            🔔 <strong>{com} de {ids.length}</strong> pessoas ativas recebem notificações (lembretes, atrasos, mensagens).
+            {com < ids.length && ' Peça a quem está sem para abrir o app no celular e tocar em "Ativar Lembretes".'}
+          </div>
+        );
+      })()}
+
       {/* Desktop Table */}
       <div className="hidden lg:block bg-white rounded-lg shadow-md overflow-hidden">
         {filteredUsuarios.length > 0 ? (
@@ -853,6 +893,7 @@ const Usuarios: React.FC = () => {
                           <span className="text-gray-600 text-xs mt-0.5">
                             {nomeEmpresa} <span className="italic text-gray-500">({tipoUsuario})</span>
                           </span>
+                          <SeloNotificacao id={usuario.id} />
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -933,6 +974,7 @@ const Usuarios: React.FC = () => {
                     <p className="text-sm text-gray-500 truncate">
                       {usuario.login}
                     </p>
+                    <SeloNotificacao id={usuario.id} />
                   </div>
                   <div className="flex items-center space-x-2 ml-3">
                     <button

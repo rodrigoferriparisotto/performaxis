@@ -228,20 +228,36 @@ const MainAppContent: React.FC = () => {
     };
   }, []);
 
+  // Pede para ativar os lembretes enquanto o aparelho não tiver permissão.
+  // "Agora não" adia 3 dias (bloqueado no navegador: 7 dias, com o passo a passo).
   useEffect(() => {
-    if (user && user.id && user.empresaId && !loading && reminderChecker.canRequestPermission) {
-      const hasAskedBefore = localStorage.getItem('reminder-permission-asked');
-      if (!hasAskedBefore) {
-        setTimeout(() => {
-          setShowNotificationModal(true);
-        }, 2000);
-      }
+    if (!user?.id || !user.empresaId || loading) return;
+    const permissao = typeof Notification === 'undefined' ? 'indisponivel' : Notification.permission;
+    if (permissao === 'granted') return;
+    let adiadoAte = 0;
+    try {
+      adiadoAte = Number(localStorage.getItem('performaxis_lembretes_adiado_ate') || 0);
+    } catch {
+      // sem localStorage: pergunta normalmente
     }
-  }, [user, loading, reminderChecker.canRequestPermission]);
+    if (Date.now() < adiadoAte) return;
+    const t = setTimeout(() => setShowNotificationModal(true), 2000);
+    return () => clearTimeout(t);
+  }, [user?.id, user?.empresaId, loading]);
+
+  const adiarPedidoLembretes = () => {
+    const bloqueado = typeof Notification !== 'undefined' && Notification.permission === 'denied';
+    const dias = bloqueado ? 7 : 3;
+    try {
+      localStorage.setItem('performaxis_lembretes_adiado_ate', String(Date.now() + dias * 24 * 3600 * 1000));
+    } catch {
+      // sem localStorage: volta a perguntar no próximo acesso
+    }
+  };
 
   const handleAcceptNotifications = async () => {
     await reminderChecker.requestPermission();
-    localStorage.setItem('reminder-permission-asked', 'true');
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') adiarPedidoLembretes();
     setShowNotificationModal(false);
 
     if (user && browserCapabilitiesService.needsBatteryOptimizationGuide()) {
@@ -261,7 +277,7 @@ const MainAppContent: React.FC = () => {
   };
 
   const handleDeclineNotifications = () => {
-    localStorage.setItem('reminder-permission-asked', 'true');
+    adiarPedidoLembretes();
     setShowNotificationModal(false);
   };
 
