@@ -50,11 +50,12 @@ Deno.serve(async (req: Request) => {
   if (!cfg || cfg.valor !== segredo) return json({ erro: 'não autorizado' }, 401);
 
   const manutencao = await avisarManutencoesVencidas(admin);
+  const inicioTurno = await avisarInicioTurno(admin);
 
   const { data: atrasadas, error } = await admin.rpc('tarefas_atrasadas_para_avisar', { p_tolerancia_min: 10 });
-  if (error) return json({ erro: error.message, manutencao }, 500);
+  if (error) return json({ erro: error.message, manutencao, inicioTurno }, 500);
   const lista = (atrasadas || []) as Atrasada[];
-  if (lista.length === 0) return json({ avisos: 0, manutencao });
+  if (lista.length === 0) return json({ avisos: 0, manutencao, inicioTurno });
 
   // agrupa por pessoa
   const porUsuario = new Map<string, Atrasada[]>();
@@ -114,7 +115,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  return json({ tarefas: lista.length, pessoas: porUsuario.size, pushes: enviados, manutencao });
+  return json({ tarefas: lista.length, pessoas: porUsuario.size, pushes: enviados, manutencao, inicioTurno });
 });
 
 interface Vencida {
@@ -188,4 +189,37 @@ async function avisarManutencoesVencidas(admin: ReturnType<typeof createClient>)
     );
   }
   return { chamados: vencidas.length, pushes };
+}
+
+// 30 min depois do início do turno (dias e horário do cadastro), quem ainda não
+// iniciou nenhum registro no dia recebe um lembrete — uma vez por dia
+async function avisarInicioTurno(admin: ReturnType<typeof createClient>) {
+  const { data, error } = await admin.rpc('usuarios_para_aviso_inicio_turno', { p_atraso_min: 30, p_janela_min: 240 });
+  if (error) return { erro: error.message };
+  const pessoas = (data || []) as { usuario_id: string }[];
+  if (pessoas.length === 0) return { pessoas: 0 };
+
+  const ids = pessoas.map((p) => p.usuario_id);
+  const { data: t } = await admin.from('push_tokens').select('usuario_id, token').in('usuario_id', ids).eq('is_active', true);
+  const tokensPorUsuario = new Map<string, string[]>();
+  for (const x of t || []) tokensPorUsuario.set(x.usuario_id, [...(tokensPorUsuario.get(x.usuario_id) || []), x.token]);
+
+  let pushes = 0;
+  for (const id of ids) {
+    if (
+      await enviarPush(
+        tokensPorUsuario.get(id) || [],
+        '⏰ Hora de começar',
+        'Por favor, inicie o Performaxis e tenha um excelente dia de trabalho.',
+        '/#dashboard',
+        'inicio_turno'
+      )
+    )
+      pushes++;
+  }
+  const hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+  await admin
+    .from('avisos_inicio_turno')
+    .upsert(ids.map((id) => ({ usuario_id: id, data: hoje })), { onConflict: 'usuario_id,data', ignoreDuplicates: true });
+  return { pessoas: ids.length, pushes };
 }

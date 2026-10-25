@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, Eye, EyeOff, Mail, AlertCircle } from 'lucide-react';
 import { usuarioService, empresaService } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
+import { DIAS_SEMANA } from '../../utils/rotina';
 import { AuthService } from '../../services/authService';
 import { PermissionsService } from '../../services/permissionsService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -56,7 +57,9 @@ const Usuarios: React.FC = () => {
     active: true,
     password: '',
     confirmPassword: '',
-    empresa_id: '' as string
+    empresa_id: '' as string,
+    dias_trabalho: [] as string[],
+    horario_inicio_trabalho: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -176,7 +179,9 @@ const Usuarios: React.FC = () => {
         telefone: formData.telefone,
         login: formData.login,
         profile: formData.profile,
-        active: formData.active
+        active: formData.active,
+        dias_trabalho: formData.dias_trabalho.length > 0 ? formData.dias_trabalho : null,
+        horario_inicio_trabalho: formData.horario_inicio_trabalho || null
       };
 
       if (editingUser) {
@@ -247,6 +252,13 @@ const Usuarios: React.FC = () => {
         });
 
         if (success) {
+          // a criação (Auth + tabela) não recebe a jornada: grava em seguida
+          if (userId && (formData.dias_trabalho.length > 0 || formData.horario_inicio_trabalho)) {
+            await usuarioService.updateUsuario(userId, {
+              dias_trabalho: formData.dias_trabalho.length > 0 ? formData.dias_trabalho : null,
+              horario_inicio_trabalho: formData.horario_inicio_trabalho || null,
+            });
+          }
           if (!empresaId && formData.profile === 'gestor') {
             notificar('Usuário gestor criado com sucesso!\n\nEste gestor pode ser vinculado a uma empresa posteriormente.');
           } else {
@@ -286,7 +298,9 @@ const Usuarios: React.FC = () => {
       active: usuario.active,
       password: '',
       confirmPassword: '',
-      empresa_id: usuario.empresa_id || ''
+      empresa_id: usuario.empresa_id || '',
+      dias_trabalho: usuario.dias_trabalho || [],
+      horario_inicio_trabalho: usuario.horario_inicio_trabalho ? String(usuario.horario_inicio_trabalho).slice(0, 5) : ''
     });
     setShowForm(true);
 
@@ -359,7 +373,9 @@ const Usuarios: React.FC = () => {
       active: true,
       password: '',
       confirmPassword: '',
-      empresa_id: ''
+      empresa_id: '',
+      dias_trabalho: [],
+      horario_inicio_trabalho: ''
     });
     setEditingUser(null);
     setShowForm(false);
@@ -661,6 +677,46 @@ const Usuarios: React.FC = () => {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Formato: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
+                </p>
+              </div>
+              <div className="md:col-span-2 rounded-lg border border-gray-200 p-3 space-y-3">
+                <p className="text-sm font-medium text-gray-700">Jornada de trabalho</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {DIAS_SEMANA.map((dia) => {
+                    const ativo = formData.dias_trabalho.includes(dia);
+                    return (
+                      <button
+                        key={dia}
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            dias_trabalho: ativo
+                              ? formData.dias_trabalho.filter((d) => d !== dia)
+                              : [...formData.dias_trabalho, dia],
+                          })
+                        }
+                        className={`px-3 py-1.5 rounded-full border text-sm ${
+                          ativo ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        {dia.slice(0, 3).replace(/^./, (c) => c.toUpperCase())}
+                      </button>
+                    );
+                  })}
+                </div>
+                <label className="block text-sm text-gray-700 max-w-[220px]">
+                  Horário de início
+                  <input
+                    type="time"
+                    value={formData.horario_inicio_trabalho}
+                    onChange={(e) => setFormData({ ...formData, horario_inicio_trabalho: e.target.value })}
+                    className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </label>
+                <p className="text-xs text-gray-500">
+                  Nos dias marcados, 30 min depois do início, se a pessoa ainda não iniciou nenhum registro, ela recebe:
+                  “Por favor, inicie o Performaxis e tenha um excelente dia de trabalho.”
                 </p>
               </div>
               <div>
