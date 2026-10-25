@@ -990,27 +990,34 @@ export const registroCamarariaService = {
     }
   },
 
-  // Assume um registro PROGRAMADO de forma atômica: os filtros status='programado'
-  // e usuario_executor_id IS NULL garantem que duas camareiras não levem a mesma
-  // suíte — a segunda recebe null e a tela avisa/recarrega.
-  async claimRegistroProgramado(id: string, registroData: any) {
+  // Assume um registro PROGRAMADO de forma atômica (duas camareiras não levam a mesma suíte).
+  async claimRegistroProgramado(
+    id: string,
+    registroData: any
+  ): Promise<{ registro: any | null; conflito: boolean }> {
     try {
+      // a trava é o status: quem assume muda 'programado' → 'em_andamento' numa
+      // única operação, então a segunda pessoa não encontra mais a linha.
+      // (não dá para exigir usuario_executor_id nulo: o banco preenche esse
+      // campo com quem programou, no momento em que a suíte é programada)
       const { data, error } = await supabase
         .from('registros_camararia')
         .update(registroData)
         .eq('id', id)
         .eq('status', 'programado')
-        .is('usuario_executor_id', null)
-        .select()
-        .maybeSingle();
+        .select();
 
       if (error) {
-        return null;
+        console.error('[Governança] Erro ao assumir suíte programada:', error.message);
+        return { registro: null, conflito: false };
       }
 
-      return data;
+      return data && data.length > 0
+        ? { registro: data[0], conflito: false }
+        : { registro: null, conflito: true };
     } catch (error) {
-      return null;
+      console.error('[Governança] Exceção ao assumir suíte programada:', error);
+      return { registro: null, conflito: false };
     }
   },
 

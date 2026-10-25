@@ -273,10 +273,18 @@ const NovoRegistroCamararia: React.FC = () => {
 
       // claim atômico: se outra camareira assumiu esta suíte no mesmo instante,
       // volta null e avisamos em vez de sobrescrever o registro dela
-      const resultado = await registroCamarariaService.claimRegistroProgramado(registro.id, registroAtualizado);
+      const { registro: resultado, conflito } = await registroCamarariaService.claimRegistroProgramado(
+        registro.id,
+        registroAtualizado
+      );
 
       if (!resultado) {
-        notificar('Esta suíte acabou de ser assumida por outra pessoa. A lista será atualizada.');
+        notificar(
+          conflito
+            ? 'Esta suíte acabou de ser assumida por outra pessoa. A lista será atualizada.'
+            : 'Não foi possível iniciar esta suíte agora. Verifique a internet e tente de novo.',
+          conflito ? 'aviso' : 'erro'
+        );
         await carregarRegistrosProgramados();
         return;
       }
