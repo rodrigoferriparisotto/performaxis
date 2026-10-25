@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { RefreshCw, AlertCircle, CheckCircle, TrendingUp, Clock, Calendar, Zap } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../lib/supabase';
 import { getBrazilDateString, subtractDaysBrazil } from '../../utils/dateUtils';
 import { PageHeader } from '../ui/PageHeader';
 
@@ -66,57 +67,15 @@ const RecalcularPerformance: React.FC = () => {
         });
 
         try {
-          const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-          const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-          console.log(`Processando dia ${diasProcessados + 1}/${totalDias}: ${dataFormatada}`);
-
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 300000);
-
-          const response = await fetch(`${supabaseUrl}/functions/v1/calcular-performance-diaria`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${supabaseAnonKey}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              data: dataStr,
-              empresa_id: user.empresaId
-            }),
-            signal: controller.signal
-          });
-
-          clearTimeout(timeoutId);
-
-          if (!response.ok) {
-            if (response.status === 404) {
-              throw new Error('Edge Function não encontrada. Verifique se ela foi deployed no Supabase.');
-            } else if (response.status === 401) {
-              throw new Error('Erro de autenticação. Verifique suas credenciais.');
-            } else {
-              throw new Error(`Erro HTTP ${response.status}: ${response.statusText}`);
-            }
-          }
-
-          const result = await response.json();
-
-          console.log(`Resultado do dia ${dataFormatada}:`, result);
-
-          if (result.sucesso) {
-            totalSucesso += result.total_usuarios_sucesso || 0;
-            totalErros += result.total_usuarios_erros || 0;
-            detalhes.push(`${dataFormatada}: ${result.total_usuarios_sucesso} sucessos, ${result.total_usuarios_erros} erros`);
-          } else {
-            detalhes.push(`${dataFormatada}: Erro - ${result.erro}`);
-            totalErros++;
-          }
+          // cálculo no banco, creditando quem executou (não quem programou)
+          const { error } = await supabase.rpc('recalcular_performance', { p_inicio: dataStr, p_fim: dataStr });
+          if (error) throw new Error(error.message);
+          totalSucesso++;
+          detalhes.push(`${dataFormatada}: calculado`);
         } catch (error: any) {
-          const errorMsg = error.name === 'AbortError'
-            ? 'Timeout (5 minutos)'
-            : error.message || String(error);
+          const errorMsg = error.message || String(error);
           console.error(`Erro ao processar ${dataFormatada}:`, error);
-          detalhes.push(`${dataFormatada}: Erro crítico - ${errorMsg}`);
+          detalhes.push(`${dataFormatada}: erro - ${errorMsg}`);
           totalErros++;
         }
 
@@ -301,7 +260,7 @@ const RecalcularPerformance: React.FC = () => {
                     <CheckCircle className="w-6 h-6 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-600">Sucessos</p>
+                    <p className="text-sm text-gray-600">Dias calculados</p>
                     <p className="text-2xl font-bold text-green-600">{resultado.sucesso}</p>
                   </div>
                 </div>
