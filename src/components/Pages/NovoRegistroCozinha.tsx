@@ -24,6 +24,7 @@ import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
 import { ordenarRotina } from '../../utils/rotina';
 import { HorarioItem } from '../common/HorarioItem';
+import { revisarEncerramento } from '../../lib/encerramento';
 
 interface NovoRegistroCozinhaProps {
   onRegistroChange?: (hasRegistro: boolean) => void;
@@ -237,6 +238,14 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
   const encerrarRegistro = async () => {
     if (!registroAtivo) return;
 
+    // conferência: registro rápido (pergunta o tempo real) e itens não feitos (observação final)
+    const conferencia = await revisarEncerramento({
+      horaInicio: registroAtivo.hora_inicio,
+      itensNaoFeitos: (registroAtivo.atividades || []).filter((a: any) => a.status !== 'realizada').length,
+      observacao: observacoes,
+    });
+    if (!conferencia) return;
+
     setSaving(true);
     const atividadesFinais = registroAtivo.atividades.map((a: any) => ({
       ...a,
@@ -245,7 +254,8 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
 
     const dadosFinalizacao = {
       atividades: atividadesFinais,
-      observacoes,
+      observacoes: conferencia.observacao,
+      minutos_informados: conferencia.minutosInformados,
       hora_fim: getDataHoraAtual(),
       status: 'concluido' as const
     };

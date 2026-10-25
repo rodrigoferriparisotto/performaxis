@@ -7,6 +7,7 @@ import { BroadcastMessageModal } from './components/common/BroadcastMessageModal
 import { InstalarPwaBanner } from './components/common/InstalarPwaBanner';
 import { CamadaDeFeedback } from './components/common/CamadaDeFeedback';
 import MainAppContent from './components/MainAppContent';
+import { DialogoEncerramento } from './components/common/DialogoEncerramento';
 
 function App() {
   console.log('App component renderizando...');
@@ -23,6 +24,7 @@ function App() {
             <BroadcastMessageModal />
             <InstalarPwaBanner />
             <CamadaDeFeedback />
+            <DialogoEncerramento />
           </div>
         </BroadcastMessageProvider>
       </VersionProvider>

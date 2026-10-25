@@ -32,7 +32,8 @@ import {
   Bell,
   Trash2,
   MessageSquare,
-  Volume2
+  Volume2,
+  Timer,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -86,6 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
     { id: 'analise-funcionario', label: 'Análise por Funcionário', icon: Users },
     { id: 'dados-gerais', label: 'Dados Gerais', icon: FileText },
     { id: 'eficiencia-area', label: 'Eficiência por Área', icon: TrendingUp },
+    { id: 'tempo-real-estimado', label: 'Tempo Real × Estimado', icon: Timer },
     { id: 'ranking-meritocracia', label: 'Ranking por Meritocracia', icon: Trophy }
   ];
 
