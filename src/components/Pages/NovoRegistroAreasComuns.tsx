@@ -23,6 +23,8 @@ import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
 import { ActiveRecordBar } from '../ui/ActiveRecordBar';
+import { ordenarRotina, sugerirHorarios, minutosDoDia } from '../../utils/rotina';
+import { HorarioItem } from '../common/HorarioItem';
 
 const NovoRegistroAreasComuns: React.FC = () => {
   const { user } = useAuth();
@@ -50,7 +52,7 @@ const NovoRegistroAreasComuns: React.FC = () => {
         idsAtividades.includes(atividade.id)
       );
 
-      setAtividades(atividadesDoRegistro);
+      setAtividades(ordenarRotina(atividadesDoRegistro));
     } else if (tipoSelecionado && todasAtividades.length > 0) {
       // PRIORIDADE 2: Para novos registros, filtrar por tipo e dia
 
@@ -73,11 +75,21 @@ const NovoRegistroAreasComuns: React.FC = () => {
         return temTipoAreaComum && temDiaSemana;
       });
 
-      setAtividades(atividadesFiltradas);
+      setAtividades(ordenarRotina(atividadesFiltradas));
     } else {
       setAtividades([]);
     }
   }, [tipoSelecionado, todasAtividades, registroAtivo]);
+
+  // rotina: horário sugerido para as tarefas sem horário fixo, a partir do início do turno
+  const sugestoesRotina = React.useMemo(() => {
+    if (!registroAtivo?.hora_inicio) return {} as Record<string, string>;
+    const inicio = new Date(registroAtivo.hora_inicio).toLocaleTimeString('pt-BR', {
+      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo',
+    });
+    const minutoInicio = minutosDoDia(inicio);
+    return minutoInicio === null ? ({} as Record<string, string>) : sugerirHorarios(atividades, minutoInicio);
+  }, [atividades, registroAtivo?.hora_inicio]);
 
   const carregarDados = async () => {
     if (!user) return;
@@ -514,6 +526,7 @@ const NovoRegistroAreasComuns: React.FC = () => {
                           {getStatusIcon(atividadeStatus)}
                           <div className="flex-1">
                             <h4 className="font-medium">{atividade.name}</h4>
+                          <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} sugerido={sugestoesRotina[atividade.id]} />
                             {atividade.description && (
                               <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
                             )}

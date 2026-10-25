@@ -22,6 +22,8 @@ import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgCol
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
+import { ordenarRotina } from '../../utils/rotina';
+import { HorarioItem } from '../common/HorarioItem';
 
 interface NovoRegistroCozinhaProps {
   onRegistroChange?: (hasRegistro: boolean) => void;
@@ -55,7 +57,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
       const atividadesDoRegistro = todasAtividades.filter(atividade =>
         idsAtividades.includes(atividade.id)
       );
-      setAtividades(atividadesDoRegistro);
+      setAtividades(ordenarRotina(atividadesDoRegistro));
     } else if (tipoSelecionado && todasAtividades.length > 0) {
       const hoje = new Date().getDay();
       const diasSemana = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
@@ -71,7 +73,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
         return temTipoCozinha && temDiaSemana;
       });
 
-      setAtividades(atividadesFiltradas);
+      setAtividades(ordenarRotina(atividadesFiltradas));
     } else {
       setAtividades([]);
     }
@@ -552,6 +554,7 @@ const NovoRegistroCozinha: React.FC<NovoRegistroCozinhaProps> = ({ onRegistroCha
                           {getStatusIcon(atividadeStatus)}
                           <div className="flex-1">
                             <h4 className="font-medium">{atividade.name}</h4>
+                          <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} />
                             {atividade.description && (
                               <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
                             )}

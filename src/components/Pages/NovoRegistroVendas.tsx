@@ -22,6 +22,8 @@ import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgCol
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
+import { ordenarRotina } from '../../utils/rotina';
+import { HorarioItem } from '../common/HorarioItem';
 
 const NovoRegistroVendas: React.FC = () => {
   const { user } = useAuth();
@@ -45,7 +47,7 @@ const NovoRegistroVendas: React.FC = () => {
       const atividadesDoRegistro = todasAtividades.filter(atividade =>
         idsAtividades.includes(atividade.id)
       );
-      setAtividades(atividadesDoRegistro);
+      setAtividades(ordenarRotina(atividadesDoRegistro));
     } else if (tipoSelecionado && todasAtividades.length > 0) {
       const hoje = new Date().getDay();
       const diasSemana = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
@@ -63,7 +65,7 @@ const NovoRegistroVendas: React.FC = () => {
         return temTipoFuncaoComercial && temDiaSemana;
       });
 
-      setAtividades(atividadesFiltradas);
+      setAtividades(ordenarRotina(atividadesFiltradas));
     } else {
       setAtividades([]);
     }
@@ -550,6 +552,7 @@ const NovoRegistroVendas: React.FC = () => {
                           {getStatusIcon(atividadeStatus)}
                           <div className="flex-1">
                             <h4 className="font-medium">{atividade.name}</h4>
+                          <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} />
                             {atividade.description && (
                               <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
                             )}

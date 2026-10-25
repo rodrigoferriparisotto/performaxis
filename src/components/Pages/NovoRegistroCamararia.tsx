@@ -26,6 +26,8 @@ import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
 import { ActiveRecordBar } from '../ui/ActiveRecordBar';
 import { nomeSuite } from '../../utils/nomeSuite';
+import { ordenarRotina, atividadeValeHoje } from '../../utils/rotina';
+import { HorarioItem } from '../common/HorarioItem';
 
 const NovoRegistroCamararia: React.FC = () => {
   const { user } = useAuth();
@@ -128,8 +130,9 @@ const NovoRegistroCamararia: React.FC = () => {
       return atividadesDoRegistro;
     }
     
-    // PRIORIDADE 2: Para novos registros, filtrar por serviço
-    if (!servicosCamararia.length) return atividades; // Se não há serviços cadastrados, mostrar todas
+    // PRIORIDADE 2: Para novos registros, filtrar pelo dia da semana e pelo serviço
+    const atividadesDoDia = atividades.filter((a) => atividadeValeHoje(a));
+    if (!servicosCamararia.length) return atividadesDoDia; // Se não há serviços cadastrados, mostrar todas do dia
     
     if (!registroAtivo) {
       // Se não há registro ativo, usar o tipo selecionado no formulário
@@ -141,7 +144,7 @@ const NovoRegistroCamararia: React.FC = () => {
         
         if (servicoSelecionado) {
           // Filtrar atividades que têm este serviço vinculado
-          return atividades.filter(a => 
+          return atividadesDoDia.filter(a =>
             a.servicos_camararia && 
             Array.isArray(a.servicos_camararia) && 
             a.servicos_camararia.includes(servicoSelecionado.id)
@@ -150,7 +153,7 @@ const NovoRegistroCamararia: React.FC = () => {
       }
       return [];
     } else {
-      return atividades; // Fallback para mostrar todas se não conseguir filtrar
+      return atividadesDoDia; // Fallback para mostrar todas do dia se não conseguir filtrar
     }
   }, [atividades, tipoServico, registroAtivo, servicosCamararia]);
 
@@ -248,11 +251,12 @@ const NovoRegistroCamararia: React.FC = () => {
         mapearServicoParaEnum(s.nome) === registro.tipo_servico
       );
 
-      let atividadesParaRegistro = todasAtividadesCamararia;
+      const atividadesDoDia = todasAtividadesCamararia.filter((a: any) => atividadeValeHoje(a));
+      let atividadesParaRegistro = atividadesDoDia;
 
       if (servicoSelecionado) {
         // Filtrar atividades que têm este serviço vinculado
-        atividadesParaRegistro = todasAtividadesCamararia.filter(a =>
+        atividadesParaRegistro = atividadesDoDia.filter(a =>
           a.servicos_camararia &&
           Array.isArray(a.servicos_camararia) &&
           a.servicos_camararia.includes(servicoSelecionado.id)
@@ -360,7 +364,7 @@ const NovoRegistroCamararia: React.FC = () => {
         registroCamarariaService.getAllRegistrosEmAndamento(user.id)
       ]);
 
-      setAtividades(todasAtividadesCamararia);
+      setAtividades(ordenarRotina(todasAtividadesCamararia));
       setSuites(suitesData);
       setUsuarios(usuariosData);
 
@@ -1024,6 +1028,7 @@ const NovoRegistroCamararia: React.FC = () => {
                         {getStatusIcon(atividadeStatus)}
                         <div className="flex-1">
                           <h4 className="font-medium">{atividade.name}</h4>
+                          <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} />
                           {atividade.description && (
                             <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
                           )}

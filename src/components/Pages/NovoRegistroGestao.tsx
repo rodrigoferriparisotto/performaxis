@@ -23,6 +23,8 @@ import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
 import { ActiveRecordBar } from '../ui/ActiveRecordBar';
+import { ordenarRotina } from '../../utils/rotina';
+import { HorarioItem } from '../common/HorarioItem';
 
 const NovoRegistroGestao: React.FC = () => {
   const { user } = useAuth();
@@ -48,7 +50,7 @@ const NovoRegistroGestao: React.FC = () => {
       const atividadesDoRegistro = todasAtividades.filter(atividade =>
         idsAtividades.includes(atividade.id)
       );
-      setAtividades(atividadesDoRegistro);
+      setAtividades(ordenarRotina(atividadesDoRegistro));
     } else if (tipoSelecionado && todasAtividades.length > 0) {
       // PRIORIDADE 2: Para novos registros, filtrar por tipo e dia
       // Obter dia da semana atual
@@ -68,7 +70,7 @@ const NovoRegistroGestao: React.FC = () => {
         return temTipoGestao && temDiaSemana;
       });
 
-      setAtividades(atividadesFiltradas);
+      setAtividades(ordenarRotina(atividadesFiltradas));
     } else {
       setAtividades([]);
     }
@@ -509,6 +511,7 @@ const NovoRegistroGestao: React.FC = () => {
                           {getStatusIcon(atividadeStatus)}
                           <div className="flex-1">
                             <h4 className="font-medium">{atividade.name}</h4>
+                          <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} />
                             {atividade.description && (
                               <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
                             )}

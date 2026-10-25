@@ -23,6 +23,8 @@ import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
 import { ActiveRecordBar } from '../ui/ActiveRecordBar';
+import { ordenarRotina, sugerirHorarios, minutosDoDia } from '../../utils/rotina';
+import { HorarioItem } from '../common/HorarioItem';
 
 const NovoRegistroAtividadesDiarias: React.FC = () => {
   const { user } = useAuth();
@@ -49,7 +51,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
         const atividadesDoRegistro = todasAtividades.filter(atividade =>
           idsAtividades.includes(atividade.id)
         );
-        setAtividades(atividadesDoRegistro);
+        setAtividades(ordenarRotina(atividadesDoRegistro));
       } else {
         // Para novos registros, filtrar por tipo e dia
         
@@ -72,7 +74,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
           return temTipoAtividade && temDiaSemana;
         });
 
-        setAtividades(atividadesFiltradas);
+        setAtividades(ordenarRotina(atividadesFiltradas));
       }
     } else if (registroAtivo && registroAtivo.atividades && registroAtivo.atividades.length > 0) {
       // Se há registro ativo com atividades, mas não conseguiu filtrar por tipo,
@@ -80,11 +82,21 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
       const atividadesDoRegistro = todasAtividades.filter(atividade =>
         registroAtivo.atividades.some((a: any) => a.atividade_id === atividade.id)
       );
-      setAtividades(atividadesDoRegistro);
+      setAtividades(ordenarRotina(atividadesDoRegistro));
     } else {
       setAtividades([]);
     }
   }, [tipoSelecionado, todasAtividades, registroAtivo]);
+
+  // rotina: horário sugerido para as tarefas sem horário fixo, a partir do início do turno
+  const sugestoesRotina = React.useMemo(() => {
+    if (!registroAtivo?.hora_inicio) return {} as Record<string, string>;
+    const inicio = new Date(registroAtivo.hora_inicio).toLocaleTimeString('pt-BR', {
+      hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Sao_Paulo',
+    });
+    const minutoInicio = minutosDoDia(inicio);
+    return minutoInicio === null ? ({} as Record<string, string>) : sugerirHorarios(atividades, minutoInicio);
+  }, [atividades, registroAtivo?.hora_inicio]);
 
   const carregarDados = async () => {
     if (!user) return;
@@ -530,6 +542,7 @@ const NovoRegistroAtividadesDiarias: React.FC = () => {
                           {getStatusIcon(atividadeStatus)}
                           <div className="flex-1">
                             <h4 className="font-medium">{atividade.name}</h4>
+                          <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} sugerido={sugestoesRotina[atividade.id]} />
                             {atividade.description && (
                               <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
                             )}

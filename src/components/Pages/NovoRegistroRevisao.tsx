@@ -27,6 +27,8 @@ import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
 import { ActiveRecordBar } from '../ui/ActiveRecordBar';
 import { nomeSuite } from '../../utils/nomeSuite';
+import { ordenarRotina, atividadeValeHoje } from '../../utils/rotina';
+import { HorarioItem } from '../common/HorarioItem';
 
 const NovoRegistroRevisao: React.FC = () => {
   const { user } = useAuth();
@@ -65,8 +67,8 @@ const NovoRegistroRevisao: React.FC = () => {
         registroRevisaoService.getRegistrosPendentesRevisao(getDataAtual())
       ]);
 
-      // Usar apenas atividades de revisão
-      setAtividades(atividadesRevisao);
+      // Usar apenas atividades de revisão (as que valem para o dia de hoje)
+      setAtividades(ordenarRotina(atividadesRevisao.filter((a: any) => atividadeValeHoje(a))));
       setTodasAtividades(todasAtividadesData);
       setSuites(suitesData);
       setUsuarios(usuariosData);
@@ -82,16 +84,16 @@ const NovoRegistroRevisao: React.FC = () => {
           const atividadesDoRegistro = atividadesRevisao.filter(atividade =>
             idsAtividades.includes(atividade.id)
           );
-          setAtividades(atividadesDoRegistro);
+          setAtividades(ordenarRotina(atividadesDoRegistro));
         } else {
-          // Se não há atividades no registro, usar todas as atividades de revisão
-          setAtividades(atividadesRevisao);
+          // Se não há atividades no registro, usar as atividades de revisão do dia
+          setAtividades(ordenarRotina(atividadesRevisao.filter((a: any) => atividadeValeHoje(a))));
         }
         
         setObservacoes(registroEmAndamento.observacoes || '');
       } else {
-        // Para novos registros, usar todas as atividades de revisão
-        setAtividades(atividadesRevisao);
+        // Para novos registros, usar as atividades de revisão do dia
+        setAtividades(ordenarRotina(atividadesRevisao.filter((a: any) => atividadeValeHoje(a))));
       }
     } catch (error) {
       notificar('Erro ao carregar dados. Tente novamente.');
@@ -791,6 +793,7 @@ const NovoRegistroRevisao: React.FC = () => {
                         {getStatusIcon(atividadeStatus)}
                         <div className="flex-1">
                           <h4 className="font-medium">{atividade.name}</h4>
+                          <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} />
                           {atividade.description && (
                             <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
                           )}
