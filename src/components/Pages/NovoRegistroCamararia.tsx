@@ -981,6 +981,11 @@ const NovoRegistroCamararia: React.FC = () => {
                           <p className="text-sm text-gray-600">
                             {getTipoServicoLabel(registro.tipo_servico)}
                           </p>
+                          {String(registro.observacoes || '').startsWith('RETRABALHO:') && (
+                            <p className="mt-1 inline-block px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">
+                              Retrabalho: {String(registro.observacoes).replace('RETRABALHO:', '').trim()}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>

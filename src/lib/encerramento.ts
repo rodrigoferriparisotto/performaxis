@@ -10,11 +10,15 @@ export interface PedidoEncerramento {
   horaInicio: string | null | undefined;
   itensNaoFeitos: number;
   observacao?: string | null;
+  /** revisão: pede Aprovada/Reprovada (+ motivo se reprovada) */
+  pedirResultado?: boolean;
 }
 
 export interface RespostaEncerramento {
   minutosInformados: number | null;
   observacao: string;
+  resultado?: 'aprovada' | 'reprovada';
+  motivoReprovacao?: string;
 }
 
 export interface PerguntaEncerramento {
@@ -23,6 +27,7 @@ export interface PerguntaEncerramento {
   minutosDecorridos: number;
   itensNaoFeitos: number;
   pedirObservacao: boolean;
+  pedirResultado: boolean;
   resolver: (r: RespostaEncerramento | null) => void;
   observacaoAtual: string;
 }
@@ -48,7 +53,8 @@ export function revisarEncerramento(pedido: PedidoEncerramento): Promise<Respost
   const rapido = Number.isFinite(inicio) && minutosDecorridos < LIMITE_REGISTRO_RAPIDO_MIN;
   const pedirObservacao = pedido.itensNaoFeitos > 0 && semMarcadores(observacaoAtual).length === 0;
 
-  if (!rapido && !pedirObservacao) {
+  const pedirResultado = !!pedido.pedirResultado;
+  if (!rapido && !pedirObservacao && !pedirResultado) {
     return Promise.resolve({ minutosInformados: null, observacao: observacaoAtual });
   }
 
@@ -59,6 +65,7 @@ export function revisarEncerramento(pedido: PedidoEncerramento): Promise<Respost
       minutosDecorridos,
       itensNaoFeitos: pedido.itensNaoFeitos,
       pedirObservacao,
+      pedirResultado,
       observacaoAtual,
       resolver: (r) => {
         atual = null;

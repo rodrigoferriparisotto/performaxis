@@ -30,6 +30,7 @@ import { nomeSuite } from '../../utils/nomeSuite';
 import { ordenarRotina, atividadeValeHoje } from '../../utils/rotina';
 import { HorarioItem } from '../common/HorarioItem';
 import { revisarEncerramento } from '../../lib/encerramento';
+import { ordenarFilaRevisao, prioridadeRevisao } from '../../utils/revisao';
 
 const NovoRegistroRevisao: React.FC = () => {
   const { user } = useAuth();
@@ -303,6 +304,7 @@ const NovoRegistroRevisao: React.FC = () => {
       horaInicio: registroAtivo.hora_inicio,
       itensNaoFeitos: (registroAtivo.atividades || []).filter((a: any) => a.status !== 'realizada').length,
       observacao: observacoes,
+      pedirResultado: true,
     });
     if (!conferencia) return;
 
@@ -318,6 +320,8 @@ const NovoRegistroRevisao: React.FC = () => {
       atividades: atividadesFinais,
       observacoes: conferencia.observacao,
       minutos_informados: conferencia.minutosInformados,
+      resultado: conferencia.resultado ?? null,
+      motivo_reprovacao: conferencia.motivoReprovacao ?? null,
       hora_fim: new Date().toISOString(),
       status: 'concluido' as const
     };
@@ -341,7 +345,11 @@ const NovoRegistroRevisao: React.FC = () => {
           behavior: 'smooth'
         });
 
-        notificar('Registro de revisão encerrado com sucesso!');
+        notificar(
+          conferencia.resultado === 'reprovada'
+            ? 'Revisão encerrada. A suíte voltou para a governança como retrabalho.'
+            : 'Revisão encerrada: suíte aprovada!'
+        );
       } else {
         notificar('Erro ao encerrar registro');
       }
@@ -579,13 +587,19 @@ const NovoRegistroRevisao: React.FC = () => {
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-800">Registros da Governança para Revisão</h3>
-            <p className="text-sm text-gray-600">{registrosCamararia.length} registros concluídos hoje</p>
+            <p className="text-sm text-gray-600">
+              {registrosCamararia.length} registros concluídos hoje
+              {(() => {
+                const obrig = registrosCamararia.filter((r) => prioridadeRevisao(r) !== 'opcional').length;
+                return obrig > 0 ? ` · ${obrig} a revisar (check-in e sorteadas)` : '';
+              })()}
+            </p>
           </div>
 
           <div className="p-6">
             {registrosCamararia.length > 0 ? (
               <div className="space-y-4">
-                {registrosCamararia.map((registro) => (
+                {ordenarFilaRevisao(registrosCamararia).map((registro) => (
                   <div key={registro.id} className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
@@ -595,6 +609,12 @@ const NovoRegistroRevisao: React.FC = () => {
                           <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                             {getTipoServicoLabel(registro.tipo_servico)}
                           </span>
+                          {prioridadeRevisao(registro) === 'obrigatoria' && (
+                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Obrigatória</span>
+                          )}
+                          {prioridadeRevisao(registro) === 'sorteada' && (
+                            <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs font-medium rounded-full">Sorteada</span>
+                          )}
                         </div>
                         
                         <div className="flex items-center space-x-4 text-sm text-gray-600">

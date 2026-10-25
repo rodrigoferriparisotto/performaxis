@@ -1,5 +1,5 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { ClipboardCheck, Timer } from 'lucide-react';
+import { ClipboardCheck, ThumbsDown, ThumbsUp, Timer } from 'lucide-react';
 import { assinarEncerramento, juntarObservacao, lerEncerramento } from '../../lib/encerramento';
 
 /** Diálogo único de conferência do encerramento (montado no App). */
@@ -8,11 +8,15 @@ export function DialogoEncerramento() {
   const [minutos, setMinutos] = useState('');
   const [observacao, setObservacao] = useState('');
   const [erro, setErro] = useState('');
+  const [resultado, setResultado] = useState<'aprovada' | 'reprovada' | null>(null);
+  const [motivo, setMotivo] = useState('');
 
   useEffect(() => {
     setMinutos('');
     setObservacao('');
     setErro('');
+    setResultado(null);
+    setMotivo('');
   }, [pergunta?.id]);
 
   if (!pergunta) return null;
@@ -31,9 +35,20 @@ export function DialogoEncerramento() {
       setErro('Escreva uma observação sobre o que não foi feito.');
       return;
     }
+    if (pergunta.pedirResultado && !resultado) {
+      setErro('Escolha se a suíte foi aprovada ou reprovada.');
+      return;
+    }
+    if (resultado === 'reprovada' && motivo.trim().length < 3) {
+      setErro('Diga o motivo da reprovação (vai para quem refizer a suíte).');
+      return;
+    }
     pergunta.resolver({
       minutosInformados,
       observacao: juntarObservacao(pergunta.observacaoAtual, observacao),
+      ...(pergunta.pedirResultado && resultado
+        ? { resultado, motivoReprovacao: resultado === 'reprovada' ? motivo.trim() : undefined }
+        : {}),
     });
   };
 
@@ -86,6 +101,44 @@ export function DialogoEncerramento() {
               placeholder="Ex.: faltou material, hóspede no quarto, não se aplicava hoje..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+          </div>
+        )}
+
+        {pergunta.pedirResultado && (
+          <div className="space-y-2">
+            <p className="text-sm font-semibold text-gray-800">Resultado da revisão</p>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setResultado('aprovada')}
+                className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg border-2 font-medium ${
+                  resultado === 'aprovada' ? 'border-green-600 bg-green-50 text-green-700' : 'border-gray-200 text-gray-700'
+                }`}
+              >
+                <ThumbsUp className="w-5 h-5" /> Aprovada
+              </button>
+              <button
+                type="button"
+                onClick={() => setResultado('reprovada')}
+                className={`flex items-center justify-center gap-2 px-3 py-3 rounded-lg border-2 font-medium ${
+                  resultado === 'reprovada' ? 'border-red-600 bg-red-50 text-red-700' : 'border-gray-200 text-gray-700'
+                }`}
+              >
+                <ThumbsDown className="w-5 h-5" /> Reprovada
+              </button>
+            </div>
+            {resultado === 'reprovada' && (
+              <>
+                <textarea
+                  rows={2}
+                  value={motivo}
+                  onChange={(e) => setMotivo(e.target.value)}
+                  placeholder="O que precisa ser refeito? Ex.: box com cabelo, cama mal arrumada"
+                  className="w-full px-3 py-2 border border-red-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500"
+                />
+                <p className="text-xs text-gray-500">A suíte volta para a governança como retrabalho, com este motivo.</p>
+              </>
+            )}
           </div>
         )}
 
