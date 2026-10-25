@@ -34,6 +34,7 @@ import {
   MessageSquare,
   Volume2,
   Timer,
+  Rocket,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -142,6 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
 
   // Definir itens de administração separadamente
   const adminItems = [
+    { id: 'implantacao', label: 'Configuração inicial', icon: Rocket, access: hasAccess('empresa') },
     { id: 'usuarios', label: 'Usuários', icon: Users, access: hasAccess('usuarios') },
     { id: 'empresa', label: 'Empresa', icon: Building, access: hasAccess('empresa') },
     { id: 'perfis', label: 'Perfis', icon: Users, access: hasAccess('perfis') },

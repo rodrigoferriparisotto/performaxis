@@ -94,6 +94,7 @@ const AnaliseFuncionario = lazyComRecarga(() => import('./Pages/AnaliseFuncionar
 const DadosGerais = lazyComRecarga(() => import('./Pages/DadosGerais'));
 const EficienciaArea = lazyComRecarga(() => import('./Pages/EficienciaArea'));
 const TempoRealEstimado = lazyComRecarga(() => import('./Pages/TempoRealEstimado'));
+const Implantacao = lazyComRecarga(() => import('./Pages/Implantacao'));
 const TiposExtras = lazyComRecarga(() => import('./Pages/TiposExtras'));
 const TiposAreasComuns = lazyComRecarga(() => import('./Pages/TiposAreasComuns'));
 const Vendas = lazyComRecarga(() => import('./Pages/Vendas'));
@@ -482,6 +483,8 @@ const MainAppContent: React.FC = () => {
         return <BlogAdmin />;
       case 'empresa':
         return <Empresa />;
+      case 'implantacao':
+        return <Implantacao />;
       case 'tipos-recepcao':
         return <TiposRecepcao />;
       case 'tipos-gestao':
