@@ -19,6 +19,7 @@ import {
  Trash2
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { nomeSuite } from '../../utils/nomeSuite';
 
 const PAGE_SIZE = 15;
 
@@ -101,7 +102,7 @@ const HistoricoCamararia: React.FC = () => {
 
   const getSuiteNome = (suiteId: string) => {
     const suite = suites.find(s => s.id === suiteId);
-    return suite ? `Suíte ${suite.name}` : 'Suíte não encontrada';
+    return suite ? nomeSuite(suite.name) : 'Suíte não encontrada';
   };
 
   const getTipoServicoLabel = (tipo: string) => {

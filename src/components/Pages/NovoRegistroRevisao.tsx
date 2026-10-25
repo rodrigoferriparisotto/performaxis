@@ -26,6 +26,7 @@ import { useAchievementTracker } from '../../hooks/useAchievementTracker';
 import AchievementModal from '../common/AchievementModal';
 import { notificar, confirmar } from '../../lib/feedback';
 import { ActiveRecordBar } from '../ui/ActiveRecordBar';
+import { nomeSuite } from '../../utils/nomeSuite';
 
 const NovoRegistroRevisao: React.FC = () => {
   const { user } = useAuth();
@@ -406,7 +407,7 @@ const NovoRegistroRevisao: React.FC = () => {
 
   const getSuiteNome = (suiteId: string) => {
     const suite = suites.find(s => s.id === suiteId);
-    return suite ? `Suíte ${suite.name}` : 'Suíte não encontrada';
+    return suite ? nomeSuite(suite.name) : 'Suíte não encontrada';
   };
 
   const getUsuarioNome = (usuarioId: string) => {
@@ -727,7 +728,7 @@ const NovoRegistroRevisao: React.FC = () => {
                   <option value="">Selecione uma suíte</option>
                   {suites.map(suite => (
                     <option key={suite.id} value={suite.id}>
-                      Suíte {suite.name} - {suite.type}
+                      {nomeSuite(suite.name)} - {suite.type}
                     </option>
                   ))}
                 </select>

@@ -17,6 +17,7 @@ import RankingPanel from '../Dashboard/RankingPanel';
 import DepartmentCard from '../Dashboard/DepartmentCard';
 import DetailModal from '../Dashboard/DetailModal';
 import { Atividade, DepartmentData, UsuarioAtivo } from '../../types/dashboard';
+import { nomeSuite } from '../../utils/nomeSuite';
 
 // ---- Formato devolvido pela RPC dashboard_ao_vivo -------------------------
 
@@ -114,7 +115,7 @@ const montarDepartamentos = (ativos: AtivoAoVivo[]): DepartmentData[] => {
       const tipoLabel = registro.tipo ? TIPOS_MANUTENCAO[registro.tipo] || registro.tipo : 'Manutenção';
       descricaoAtividade = `${tipoLabel}: ${registro.local}${sufixoPausa}`;
     } else if (registro.suite_nome) {
-      descricaoAtividade = `Suíte ${registro.suite_nome}`;
+      descricaoAtividade = nomeSuite(registro.suite_nome);
     } else if (registro.local) {
       descricaoAtividade = registro.local;
     } else {
@@ -133,7 +134,7 @@ const montarDepartamentos = (ativos: AtivoAoVivo[]): DepartmentData[] => {
       departamento: dept,
       local: isManutencao
         ? `${registro.local}${sufixoPausa}`
-        : (registro.suite_nome ? `Suíte ${registro.suite_nome}` : registro.local || DashboardService.getDepartamentoNome(dept)),
+        : (registro.suite_nome ? nomeSuite(registro.suite_nome) : registro.local || DashboardService.getDepartamentoNome(dept)),
       observacoes: registro.observacoes || '',
       atividades,
       isManutencao,

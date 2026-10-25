@@ -12,6 +12,7 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { nomeSuite } from '../../utils/nomeSuite';
 
 const Suites: React.FC = () => {
   const { user } = useAuth();
@@ -232,7 +233,7 @@ const Suites: React.FC = () => {
               {filteredSuites.map((suite) => (
                 <div key={suite.id} className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors duration-200">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium text-gray-800 text-lg">Suíte {suite.name}</h3>
+                    <h3 className="font-medium text-gray-800 text-lg">{nomeSuite(suite.name)}</h3>
                     <div className="flex space-x-1">
                       <button 
                         onClick={() => handleEditSuite(suite)}

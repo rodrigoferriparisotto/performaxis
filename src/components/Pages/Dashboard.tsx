@@ -34,6 +34,7 @@ import {
 import { useAuth } from '../../contexts/AuthContext';
 import { getDataAtual, getDataAtualFormatada } from '../../utils/dateUtils';
 import { Saudacao, RelogioAoVivo } from '../ui/Relogio';
+import { nomeSuite } from '../../utils/nomeSuite';
 
 const Dashboard: React.FC = () => {
   const { user, hasModuleAccess } = useAuth();
@@ -223,7 +224,7 @@ const Dashboard: React.FC = () => {
 
   const getSuiteNome = (suiteId: string) => {
     const suite = suites.find(s => s.id === suiteId);
-    return suite ? `Suíte ${suite.name}` : '';
+    return suite ? nomeSuite(suite.name) : '';
   };
 
   const getButtonClasses = (color: string) => {

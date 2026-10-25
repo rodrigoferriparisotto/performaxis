@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import ProgramacaoEmLote from './ProgramacaoEmLote';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { suiteService, obterContextoUsuario } from '../../services/supabaseService';
@@ -13,9 +14,11 @@ import {
   Edit,
   Trash2,
   Clock,
-  User
+  User,
+  Layers
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { nomeSuite } from '../../utils/nomeSuite';
 
 interface RegistroProgramado {
   id: string;
@@ -43,6 +46,7 @@ const ProgramacaoCamararia: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingRegistro, setEditingRegistro] = useState<RegistroProgramado | null>(null);
+  const [showLote, setShowLote] = useState(false);
 
   useEffect(() => {
     carregarDados();
@@ -110,6 +114,7 @@ const ProgramacaoCamararia: React.FC = () => {
       if (!error && data) {
         // Ordenar por nome da suíte alfabeticamente
         const registrosOrdenados = data.sort((a, b) => {
+          if (a.data !== b.data) return a.data < b.data ? -1 : 1;
           const nomeA = a.suites?.name || '';
           const nomeB = b.suites?.name || '';
 
@@ -290,7 +295,7 @@ const ProgramacaoCamararia: React.FC = () => {
 
   const getSuiteNome = (suiteId: string) => {
     const suite = suites.find(s => s.id === suiteId);
-    return suite ? `Suíte ${suite.name}` : 'Suíte não encontrada';
+    return suite ? nomeSuite(suite.name) : 'Suíte não encontrada';
   };
 
   const getSuitesDisponiveis = (dataPrograma: string) => {
@@ -312,6 +317,18 @@ const ProgramacaoCamararia: React.FC = () => {
     return servico ? servico.nome : tipo;
   };
 
+  const suitesProgramadasNaData = useCallback(
+    (dataPrograma: string) => registrosProgramados.filter((r) => r.data === dataPrograma).map((r) => r.suite_id),
+    [registrosProgramados]
+  );
+
+  // um botão por tipo de serviço gravado (dois nomes que caem no mesmo tipo viram um só)
+  const servicosParaLote = servicosCamararia.reduce<{ valor: string; nome: string }[]>((lista, servico) => {
+    const valor = mapearServicoParaEnum(servico.nome);
+    if (!lista.some((s) => s.valor === valor)) lista.push({ valor, nome: servico.nome });
+    return lista;
+  }, []);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -322,15 +339,33 @@ const ProgramacaoCamararia: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <button 
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+        <button
           onClick={handleNewRegistro}
-          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center space-x-2 transition-colors duration-200"
+          className="px-4 py-2 rounded-lg border border-green-300 text-green-700 bg-white hover:bg-green-50 flex items-center justify-center gap-2 transition-colors duration-200"
         >
           <Plus className="w-4 h-4" />
-          <span>Nova Programação</span>
+          <span>Uma suíte</span>
+        </button>
+        <button
+          onClick={() => setShowLote(true)}
+          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 transition-colors duration-200"
+        >
+          <Layers className="w-4 h-4" />
+          <span>Programar várias suítes</span>
         </button>
       </div>
+
+      {showLote && user && (
+        <ProgramacaoEmLote
+          suites={suites}
+          servicos={servicosParaLote}
+          jaProgramadas={suitesProgramadasNaData}
+          usuarioId={user.id}
+          onFechar={() => setShowLote(false)}
+          onSalvo={carregarRegistrosProgramados}
+        />
+      )}
 
       {/* Lista de Registros Programados */}
       <div className="bg-white rounded-lg shadow-md border border-gray-200">
@@ -466,7 +501,7 @@ const ProgramacaoCamararia: React.FC = () => {
                       suitesDisponiveis.forEach(suite => {
                         const option = document.createElement('option');
                         option.value = suite.id;
-                        option.textContent = `Suíte ${suite.name} - ${suite.type}`;
+                        option.textContent = `${nomeSuite(suite.name)} - ${suite.type}`;
                         suiteSelect.appendChild(option);
                       });
                       
@@ -496,7 +531,7 @@ const ProgramacaoCamararia: React.FC = () => {
                     <option value="">Selecione uma suíte</option>
                     {getSuitesDisponiveis(editingRegistro?.data || getDataAtual()).map(suite => (
                       <option key={suite.id} value={suite.id}>
-                        Suíte {suite.name} - {suite.type}
+                        {nomeSuite(suite.name)} - {suite.type}
                       </option>
                     ))}
                   </select>
