@@ -52,7 +52,8 @@ function SeloVariacao({ real, estimado }: { real: number; estimado: number | nul
 
 export default function TempoRealEstimado() {
   const { user } = useAuth();
-  const ehAdmin = user?.profile === 'admin';
+  // tempo estimado: gestão do hotel (gestor) e admin; a equipe não vê
+  const ehAdmin = user?.profile === 'admin' || user?.profile === 'gestor';
   const [rascunho, setRascunho] = useState({ inicio: subtractDaysBrazil(30), fim: getDataAtual() });
   const [periodo, setPeriodo] = useState(rascunho);
   const [linhas, setLinhas] = useState<Linha[]>([]);
@@ -148,7 +149,7 @@ export default function TempoRealEstimado() {
       </div>
 
       {!ehAdmin ? (
-        <EmptyState icon={Timer} titulo="Relatório disponível só para o administrador" />
+        <EmptyState icon={Timer} titulo="Relatório disponível só para a gestão" />
       ) : carregando ? (
         <LoadingState />
       ) : grupos.length === 0 ? (

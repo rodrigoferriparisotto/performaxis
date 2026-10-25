@@ -15,7 +15,7 @@ export function lerTempoEstimado(valor: FormDataEntryValue | null | undefined): 
 }
 
 // ---------------------------------------------------------------------------
-// Os tempos ficam na tabela tempos_estimados, que só o admin lê e grava (RLS).
+// Os tempos ficam na tabela tempos_estimados, que só a gestão (gestor/admin) lê e grava (RLS).
 // Para a equipe as consultas voltam vazias e os campos nem aparecem.
 // ---------------------------------------------------------------------------
 import { supabase } from './supabase';

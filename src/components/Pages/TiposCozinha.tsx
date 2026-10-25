@@ -26,7 +26,8 @@ interface TipoCozinha {
 
 const TiposCozinha: React.FC = () => {
   const { user } = useAuth();
-  const ehAdmin = user?.profile === 'admin';
+  // tempo estimado: gestão do hotel (gestor) e admin; a equipe não vê
+  const ehAdmin = user?.profile === 'admin' || user?.profile === 'gestor';
   const [tipos, setTipos] = useState<TipoCozinha[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -358,7 +359,7 @@ const TiposCozinha: React.FC = () => {
                   placeholder="ex.: 30"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Só o administrador vê. Usado para comparar com o tempo real.
+                  Só a gestão vê (gestor e admin). Usado para comparar com o tempo real.
                 </p>
               </div>
               )}

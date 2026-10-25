@@ -191,15 +191,16 @@ async function avisarManutencoesVencidas(admin: ReturnType<typeof createClient>)
   return { chamados: vencidas.length, pushes };
 }
 
-// 30 min depois do início do turno (dias e horário do cadastro), quem ainda não
-// iniciou nenhum registro no dia recebe um lembrete — uma vez por dia
+// 30 min depois do início de cada turno da escala (dias fixos, ciclo 12x36,
+// exceções de folga/cobertura), quem ainda não iniciou nenhum registro recebe
+// um lembrete — uma vez por turno
 async function avisarInicioTurno(admin: ReturnType<typeof createClient>) {
   const { data, error } = await admin.rpc('usuarios_para_aviso_inicio_turno', { p_atraso_min: 30, p_janela_min: 240 });
   if (error) return { erro: error.message };
-  const pessoas = (data || []) as { usuario_id: string }[];
-  if (pessoas.length === 0) return { pessoas: 0 };
+  const turnos = (data || []) as { usuario_id: string; dia: string; turno_inicio: string }[];
+  if (turnos.length === 0) return { pessoas: 0 };
 
-  const ids = pessoas.map((p) => p.usuario_id);
+  const ids = [...new Set(turnos.map((t) => t.usuario_id))];
   const { data: t } = await admin.from('push_tokens').select('usuario_id, token').in('usuario_id', ids).eq('is_active', true);
   const tokensPorUsuario = new Map<string, string[]>();
   for (const x of t || []) tokensPorUsuario.set(x.usuario_id, [...(tokensPorUsuario.get(x.usuario_id) || []), x.token]);
@@ -217,9 +218,9 @@ async function avisarInicioTurno(admin: ReturnType<typeof createClient>) {
     )
       pushes++;
   }
-  const hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
-  await admin
-    .from('avisos_inicio_turno')
-    .upsert(ids.map((id) => ({ usuario_id: id, data: hoje })), { onConflict: 'usuario_id,data', ignoreDuplicates: true });
-  return { pessoas: ids.length, pushes };
+  await admin.from('avisos_inicio_turno').upsert(
+    turnos.map((x) => ({ usuario_id: x.usuario_id, data: x.dia, turno_inicio: x.turno_inicio })),
+    { onConflict: 'usuario_id,data,turno_inicio', ignoreDuplicates: true }
+  );
+  return { pessoas: ids.length, turnos: turnos.length, pushes };
 }

@@ -60,6 +60,8 @@ export const requestPushNotificationPermission = async (usuarioId: string): Prom
     if (token) {
       console.log('[FCM] Token obtido com sucesso');
       await savePushToken(usuarioId, token);
+      // aparelho registrado: encerra o "Pedir ativação" da gestão
+      await supabase.from('usuarios').update({ pedir_ativacao_lembretes: false }).eq('id', usuarioId).eq('pedir_ativacao_lembretes', true);
       console.log('[FCM] Token salvo com sucesso no banco de dados');
       return token;
     }

@@ -143,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
 
   // Definir itens de administração separadamente
   const adminItems = [
-    { id: 'implantacao', label: 'Configuração inicial', icon: Rocket, access: hasAccess('empresa') },
+    { id: 'implantacao', label: 'Configuração inicial', icon: Rocket, access: hasAccess('usuarios') && hasAccess('cadastros') },
     { id: 'usuarios', label: 'Usuários', icon: Users, access: hasAccess('usuarios') },
     { id: 'empresa', label: 'Empresa', icon: Building, access: hasAccess('empresa') },
     { id: 'perfis', label: 'Perfis', icon: Users, access: hasAccess('perfis') },
@@ -535,7 +535,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
 
                 {relatoriosOpen && (
                   <div className="bg-gray-50">
-                    {relatoriosItems.filter((item) => item.id !== 'tempo-real-estimado' || user?.profile === 'admin').map((item) => {
+                    {relatoriosItems.filter((item) => item.id !== 'tempo-real-estimado' || user?.profile === 'admin' || user?.profile === 'gestor').map((item) => {
                       const Icon = item.icon;
                       const isActive = currentPage === item.id;
 

@@ -235,15 +235,31 @@ const MainAppContent: React.FC = () => {
     if (!user?.id || !user.empresaId || loading) return;
     const permissao = typeof Notification === 'undefined' ? 'indisponivel' : Notification.permission;
     if (permissao === 'granted') return;
-    let adiadoAte = 0;
-    try {
-      adiadoAte = Number(localStorage.getItem('performaxis_lembretes_adiado_ate') || 0);
-    } catch {
-      // sem localStorage: pergunta normalmente
-    }
-    if (Date.now() < adiadoAte) return;
-    const t = setTimeout(() => setShowNotificationModal(true), 2000);
-    return () => clearTimeout(t);
+    let cancelado = false;
+    let t: ReturnType<typeof setTimeout> | undefined;
+    (async () => {
+      // pedido da gestão ("Pedir ativação"): mostra a cada abertura, sem adiar
+      let pedidoDaGestao = false;
+      try {
+        const { supabase } = await import('../lib/supabase');
+        const { data } = await supabase.from('usuarios').select('pedir_ativacao_lembretes').eq('id', user.id).maybeSingle();
+        pedidoDaGestao = !!data?.pedir_ativacao_lembretes;
+      } catch {
+        // sem conexão: segue a regra do adiamento
+      }
+      let adiadoAte = 0;
+      try {
+        adiadoAte = Number(localStorage.getItem('performaxis_lembretes_adiado_ate') || 0);
+      } catch {
+        // sem localStorage: pergunta normalmente
+      }
+      if (cancelado || (!pedidoDaGestao && Date.now() < adiadoAte)) return;
+      t = setTimeout(() => setShowNotificationModal(true), 2000);
+    })();
+    return () => {
+      cancelado = true;
+      if (t) clearTimeout(t);
+    };
   }, [user?.id, user?.empresaId, loading]);
 
   const adiarPedidoLembretes = () => {

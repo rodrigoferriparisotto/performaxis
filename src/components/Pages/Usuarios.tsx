@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit2, Trash2, Eye, EyeOff, Mail, AlertCircle } from 'lucide-react';
 import { usuarioService, empresaService } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
-import { DIAS_SEMANA } from '../../utils/rotina';
+import { Escala, escalaParaSalvar } from '../../utils/escala';
+import { EditorEscala } from '../common/EditorEscala';
+import { ExcecoesEscala } from '../common/ExcecoesEscala';
 import { AuthService } from '../../services/authService';
 import { PermissionsService } from '../../services/permissionsService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,6 +16,7 @@ import { LoadingState } from '../ui/Estados';
 const Usuarios: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [usuarios, setUsuarios] = useState<any[]>([]);
+  const [abaStatus, setAbaStatus] = useState<'ativos' | 'inativos'>('ativos');
   // aparelhos com notificação por usuário (só gestão consegue ler)
   const [notificacoes, setNotificacoes] = useState<Record<string, { aparelhos: number; ultimo_sucesso: string | null }> | null>(null);
   useEffect(() => {
@@ -29,6 +32,16 @@ const Usuarios: React.FC = () => {
       );
     });
   }, []);
+  const [pedidosAtivacao, setPedidosAtivacao] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    setPedidosAtivacao(new Set(usuarios.filter((u) => u.pedir_ativacao_lembretes).map((u) => u.id)));
+  }, [usuarios]);
+  const pedirAtivacao = async (id: string) => {
+    const r = await usuarioService.updateUsuario(id, { pedir_ativacao_lembretes: true });
+    if (!r) return notificar('Não foi possível registrar o pedido.', 'erro');
+    setPedidosAtivacao((s) => new Set(s).add(id));
+    notificar('Pedido registrado: o aviso para ativar os lembretes aparece quando a pessoa abrir o app.', 'sucesso');
+  };
   const SeloNotificacao = ({ id }: { id: string }) => {
     if (!notificacoes || !(id in notificacoes)) return null;
     const n = notificacoes[id];
@@ -37,8 +50,21 @@ const Usuarios: React.FC = () => {
         🔔 Recebe notificações{n.aparelhos > 1 ? ` (${n.aparelhos} aparelhos)` : ''}
       </span>
     ) : (
-      <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800 w-fit">
-        🔕 Sem notificações
+      <span className="flex flex-wrap items-center gap-1.5 mt-1">
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-amber-100 text-amber-800 w-fit">
+          🔕 Sem notificações
+        </span>
+        {pedidosAtivacao.has(id) ? (
+          <span className="text-xs text-gray-500">pedido enviado — aparece ao abrir o app</span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => pedirAtivacao(id)}
+            className="text-xs px-2 py-0.5 rounded-full border border-blue-300 text-blue-700 hover:bg-blue-50"
+          >
+            Pedir ativação
+          </button>
+        )}
       </span>
     );
   };
@@ -58,8 +84,7 @@ const Usuarios: React.FC = () => {
     password: '',
     confirmPassword: '',
     empresa_id: '' as string,
-    dias_trabalho: [] as string[],
-    horario_inicio_trabalho: ''
+    escala: null as Escala | null
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -180,8 +205,7 @@ const Usuarios: React.FC = () => {
         login: formData.login,
         profile: formData.profile,
         active: formData.active,
-        dias_trabalho: formData.dias_trabalho.length > 0 ? formData.dias_trabalho : null,
-        horario_inicio_trabalho: formData.horario_inicio_trabalho || null
+        escala: escalaParaSalvar(formData.escala)
       };
 
       if (editingUser) {
@@ -253,11 +277,8 @@ const Usuarios: React.FC = () => {
 
         if (success) {
           // a criação (Auth + tabela) não recebe a jornada: grava em seguida
-          if (userId && (formData.dias_trabalho.length > 0 || formData.horario_inicio_trabalho)) {
-            await usuarioService.updateUsuario(userId, {
-              dias_trabalho: formData.dias_trabalho.length > 0 ? formData.dias_trabalho : null,
-              horario_inicio_trabalho: formData.horario_inicio_trabalho || null,
-            });
+          if (userId && escalaParaSalvar(formData.escala)) {
+            await usuarioService.updateUsuario(userId, { escala: escalaParaSalvar(formData.escala) });
           }
           if (!empresaId && formData.profile === 'gestor') {
             notificar('Usuário gestor criado com sucesso!\n\nEste gestor pode ser vinculado a uma empresa posteriormente.');
@@ -299,8 +320,7 @@ const Usuarios: React.FC = () => {
       password: '',
       confirmPassword: '',
       empresa_id: usuario.empresa_id || '',
-      dias_trabalho: usuario.dias_trabalho || [],
-      horario_inicio_trabalho: usuario.horario_inicio_trabalho ? String(usuario.horario_inicio_trabalho).slice(0, 5) : ''
+      escala: usuario.escala ?? null
     });
     setShowForm(true);
 
@@ -374,8 +394,7 @@ const Usuarios: React.FC = () => {
       password: '',
       confirmPassword: '',
       empresa_id: '',
-      dias_trabalho: [],
-      horario_inicio_trabalho: ''
+      escala: null
     });
     setEditingUser(null);
     setShowForm(false);
@@ -422,9 +441,12 @@ const Usuarios: React.FC = () => {
   const isAdminOrGestor = currentUser?.profile === 'admin' || currentUser?.profile === 'gestor';
 
   // Filter usuarios based on profile filter (available for all users)
-  let filteredUsuarios = profileFilter !== 'all'
+  const totalAtivos = usuarios.filter((u) => u.active).length;
+  const totalInativos = usuarios.length - totalAtivos;
+  let filteredUsuarios = (profileFilter !== 'all'
     ? usuarios.filter(u => u.profile === profileFilter)
-    : usuarios;
+    : usuarios
+  ).filter((u) => (abaStatus === 'ativos' ? u.active : !u.active));
 
   // Sort usuarios by company name (for admin viewing all or managers)
   if (isAdmin && (profileFilter === 'all' || profileFilter === 'gestor')) {
@@ -679,45 +701,14 @@ const Usuarios: React.FC = () => {
                   Formato: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
                 </p>
               </div>
-              <div className="md:col-span-2 rounded-lg border border-gray-200 p-3 space-y-3">
-                <p className="text-sm font-medium text-gray-700">Jornada de trabalho</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {DIAS_SEMANA.map((dia) => {
-                    const ativo = formData.dias_trabalho.includes(dia);
-                    return (
-                      <button
-                        key={dia}
-                        type="button"
-                        onClick={() =>
-                          setFormData({
-                            ...formData,
-                            dias_trabalho: ativo
-                              ? formData.dias_trabalho.filter((d) => d !== dia)
-                              : [...formData.dias_trabalho, dia],
-                          })
-                        }
-                        className={`px-3 py-1.5 rounded-full border text-sm ${
-                          ativo ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        {dia.slice(0, 3).replace(/^./, (c) => c.toUpperCase())}
-                      </button>
-                    );
-                  })}
-                </div>
-                <label className="block text-sm text-gray-700 max-w-[220px]">
-                  Horário de início
-                  <input
-                    type="time"
-                    value={formData.horario_inicio_trabalho}
-                    onChange={(e) => setFormData({ ...formData, horario_inicio_trabalho: e.target.value })}
-                    className="mt-1 w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </label>
-                <p className="text-xs text-gray-500">
-                  Nos dias marcados, 30 min depois do início, se a pessoa ainda não iniciou nenhum registro, ela recebe:
-                  “Por favor, inicie o Performaxis e tenha um excelente dia de trabalho.”
-                </p>
+              <div className="md:col-span-2 rounded-lg border border-gray-200 p-3 space-y-4">
+                <p className="text-sm font-medium text-gray-700">Escala de trabalho</p>
+                <EditorEscala valor={formData.escala} onChange={(escala) => setFormData({ ...formData, escala })} />
+                {editingUser?.id && editingUser?.empresa_id ? (
+                  <ExcecoesEscala usuarioId={editingUser.id} empresaId={editingUser.empresa_id} />
+                ) : (
+                  <p className="text-xs text-gray-500">Folgas, trocas e coberturas podem ser marcadas depois de salvar o usuário.</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -899,7 +890,22 @@ const Usuarios: React.FC = () => {
         </div>
       )}
 
-      {notificacoes && Object.keys(notificacoes).length > 0 && (() => {
+      <div className="flex gap-2 border-b border-gray-200">
+        {([['ativos', `Ativos (${totalAtivos})`], ['inativos', `Inativos (${totalInativos})`]] as const).map(([id, rotulo]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setAbaStatus(id)}
+            className={`px-4 py-2 -mb-px border-b-2 text-sm font-medium ${
+              abaStatus === id ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            {rotulo}
+          </button>
+        ))}
+      </div>
+
+      {abaStatus === 'ativos' && notificacoes && Object.keys(notificacoes).length > 0 && (() => {
         const ids = Object.keys(notificacoes);
         const com = ids.filter((id) => notificacoes[id].aparelhos > 0).length;
         return (
