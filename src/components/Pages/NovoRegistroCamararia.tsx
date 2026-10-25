@@ -273,6 +273,7 @@ const NovoRegistroCamararia: React.FC = () => {
           nome: a.name,
           status: 'pendente' as const
         })),
+        tipo_servico: registro.tipo_servico,
         observacoes: registro.observacoes ? `ORIGEM:PROGRAMADO ${registro.observacoes}` : 'ORIGEM:PROGRAMADO'
       };
 
@@ -513,6 +514,14 @@ const NovoRegistroCamararia: React.FC = () => {
   const iniciarRegistro = () => {
     if (!suiteSelecionada || !tipoServico) {
       notificar('Por favor, selecione a suíte e o tipo de serviço');
+      return;
+    }
+
+    // suíte já programada para hoje: usa a programação em vez de criar outro
+    // registro (senão a programação fica como "não executada" e duplica)
+    const programada = registrosProgramados.find((r) => r.suite_id === suiteSelecionada);
+    if (programada) {
+      iniciarRegistroProgramado({ ...programada, tipo_servico: tipoServico });
       return;
     }
 

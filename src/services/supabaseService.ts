@@ -96,7 +96,7 @@ async function buscarColunasPorPeriodo(
         .lte('data', dataFim);
 
       if (opcoes.semProgramados) {
-        query = query.neq('status', 'programado');
+        query = query.not('status', 'in', '(programado,nao_executado)');
       }
       if (opcoes.usuarioId) {
         query = query.eq('usuario_id', opcoes.usuarioId);
@@ -803,7 +803,7 @@ export const registroCamarariaService = {
         .from('registros_camararia')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
-        .neq('status', 'programado')
+        .not('status', 'in', '(programado,nao_executado)')
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -830,7 +830,7 @@ export const registroCamarariaService = {
         .from('registros_camararia')
         .select('*', { count: 'exact', head: true })
         .eq('empresa_id', userData.empresa_id)
-        .neq('status', 'programado');
+        .not('status', 'in', '(programado,nao_executado)');
 
       if (error) {
         return 0;
@@ -972,7 +972,7 @@ export const registroCamarariaService = {
         .eq('empresa_id', userData.empresa_id)
         .gte('data', dataInicio)
         .lte('data', dataFim)
-        .neq('status', 'programado');
+        .not('status', 'in', '(programado,nao_executado)');
 
       if (usuarioId) {
         query = query.eq('usuario_id', usuarioId);

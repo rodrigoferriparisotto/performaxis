@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ProgramacaoEmLote from './ProgramacaoEmLote';
+import ResumoProgramacao from './ResumoProgramacao';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { suiteService, obterContextoUsuario } from '../../services/supabaseService';
@@ -591,6 +592,8 @@ const ProgramacaoCamararia: React.FC = () => {
           </div>
         </div>
       )}
+
+      <ResumoProgramacao atualizarEm={registrosProgramados} />
 
       {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
