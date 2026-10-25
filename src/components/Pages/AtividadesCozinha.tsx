@@ -3,6 +3,7 @@ import { atividadeService, obterContextoUsuario } from '../../services/supabaseS
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import {
+  Clock,
   ChefHat,
   Plus,
   Edit,
@@ -13,6 +14,8 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
+import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
 
 const getCurrentUserEmpresaId = async () => {
   try {
@@ -133,6 +136,7 @@ const AtividadesCozinha: React.FC = () => {
       const activityData = {
         name: formData.get('name') as string,
         description: formData.get('description') as string || '',
+        ...lerCamposRotina(formData),
         type: 'cozinha' as const,
         active: formData.get('active') === 'true',
         order_position: editingActivity?.order_position || (atividades.length + 1),
@@ -362,7 +366,20 @@ const AtividadesCozinha: React.FC = () => {
                   <div className="flex items-start space-x-3 flex-1 min-w-0">
                     <GripVertical className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1" />
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-800 break-words">{atividade.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-medium text-gray-800 break-words">{atividade.name}</h3>
+                        {atividade.horario_previsto && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 whitespace-nowrap">
+                            <Clock className="w-3 h-3" />
+                            {formatarHorarioPrevisto(atividade.horario_previsto)}
+                          </span>
+                        )}
+                        {!!atividade.duracao_prevista_min && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700 whitespace-nowrap">
+                            {formatarDuracao(atividade.duracao_prevista_min)}
+                          </span>
+                        )}
+                      </div>
                       {atividade.description && (
                         <p className="text-sm text-gray-600 mt-1 break-words">{atividade.description}</p>
                       )}
@@ -485,7 +502,7 @@ const AtividadesCozinha: React.FC = () => {
               </div>
             </div>
 
-            <form onSubmit={handleSaveActivity} className="p-6 space-y-6">
+            <form key={editingActivity?.id ?? 'nova'} onSubmit={handleSaveActivity} className="p-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Nome da Atividade *
@@ -511,6 +528,11 @@ const AtividadesCozinha: React.FC = () => {
                   placeholder="Descrição opcional da atividade"
                 />
               </div>
+
+              <CamposRotina
+                horario={editingActivity?.horario_previsto}
+                duracao={editingActivity?.duracao_prevista_min}
+              />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
