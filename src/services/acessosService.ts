@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { encryptPassword, decryptPassword } from './encryptionService';
+import { decryptPassword } from './encryptionService';
 
 export type AreaVinculada =
   | 'recepcao'
@@ -31,7 +31,9 @@ export interface Acesso {
   id: string;
   titulo: string;
   login: string | null;
-  senha: string | null;
+  senha?: string | null;
+  /** a senha fica cifrada no servidor; só acessos_revelar_senha a devolve */
+  tem_senha?: boolean;
   url_acesso: string | null;
   comentarios: string | null;
   area_vinculada: AreaVinculada[];
@@ -112,11 +114,15 @@ function mapProfileToArea(profile: UserProfile): AreaVinculada[] {
   return profileAreaMap[profile] || [];
 }
 
+// o app não pode ler as colunas de senha (privilégio do banco): lista explícita
+const COLUNAS_ACESSO =
+  'id, titulo, login, url_acesso, comentarios, empresa_id, ativo, created_at, updated_at, area_vinculada, tem_senha';
+
 export const acessosService = {
   async getAcessos(empresaId: string): Promise<Acesso[]> {
     const { data, error } = await supabase
       .from('acessos')
-      .select('*')
+      .select(COLUNAS_ACESSO)
       .eq('empresa_id', empresaId)
       .order('titulo', { ascending: true });
 
@@ -136,7 +142,7 @@ export const acessosService = {
 
     const { data, error } = await supabase
       .from('acessos')
-      .select('*')
+      .select(COLUNAS_ACESSO)
       .eq('empresa_id', empresaId)
       .order('titulo', { ascending: true });
 
@@ -145,7 +151,7 @@ export const acessosService = {
     }
 
     const filteredData = (data || []).filter((acesso) =>
-      acesso.area_vinculada.some((area) => allowedAreas.includes(area))
+      (acesso.area_vinculada as AreaVinculada[]).some((area: AreaVinculada) => allowedAreas.includes(area))
     );
 
     return filteredData;
@@ -154,7 +160,7 @@ export const acessosService = {
   async getAcessoById(id: string): Promise<Acesso | null> {
     const { data, error } = await supabase
       .from('acessos')
-      .select('*')
+      .select(COLUNAS_ACESSO)
       .eq('id', id)
       .maybeSingle();
 
@@ -168,7 +174,7 @@ export const acessosService = {
   async getAcessosByArea(empresaId: string, area: AreaVinculada): Promise<Acesso[]> {
     const { data, error } = await supabase
       .from('acessos')
-      .select('*')
+      .select(COLUNAS_ACESSO)
       .eq('empresa_id', empresaId)
       .contains('area_vinculada', [area])
       .order('titulo', { ascending: true });
@@ -183,7 +189,7 @@ export const acessosService = {
   async getAcessosAtivos(empresaId: string): Promise<Acesso[]> {
     const { data, error } = await supabase
       .from('acessos')
-      .select('*')
+      .select(COLUNAS_ACESSO)
       .eq('empresa_id', empresaId)
       .eq('ativo', true)
       .order('titulo', { ascending: true });
@@ -198,14 +204,13 @@ export const acessosService = {
   async createAcesso(acesso: AcessoInsert): Promise<Acesso> {
     const acessoToInsert = { ...acesso };
 
-    if (acessoToInsert.senha) {
-      acessoToInsert.senha = await encryptPassword(acessoToInsert.senha);
-    }
+    // a senha vai por HTTPS e é cifrada no banco (gatilho cifrar_senha_acesso)
+    if (!acessoToInsert.senha) delete acessoToInsert.senha;
 
     const { data, error } = await supabase
       .from('acessos')
       .insert(acessoToInsert)
-      .select()
+      .select(COLUNAS_ACESSO)
       .single();
 
     if (error) {
@@ -218,15 +223,14 @@ export const acessosService = {
   async updateAcesso(id: string, acesso: AcessoUpdate): Promise<Acesso> {
     const acessoToUpdate = { ...acesso };
 
-    if (acessoToUpdate.senha) {
-      acessoToUpdate.senha = await encryptPassword(acessoToUpdate.senha);
-    }
+    // senha vazia = manter a atual
+    if (!acessoToUpdate.senha) delete acessoToUpdate.senha;
 
     const { data, error } = await supabase
       .from('acessos')
       .update(acessoToUpdate)
       .eq('id', id)
-      .select()
+      .select(COLUNAS_ACESSO)
       .single();
 
     if (error) {
@@ -250,7 +254,7 @@ export const acessosService = {
   async searchAcessos(empresaId: string, searchTerm: string): Promise<Acesso[]> {
     const { data, error } = await supabase
       .from('acessos')
-      .select('*')
+      .select(COLUNAS_ACESSO)
       .eq('empresa_id', empresaId)
       .or(`titulo.ilike.%${searchTerm}%,login.ilike.%${searchTerm}%,comentarios.ilike.%${searchTerm}%`)
       .order('titulo', { ascending: true });
@@ -386,8 +390,15 @@ export const acessosService = {
     return count || 0;
   },
 
-  async decryptSenha(encryptedSenha: string): Promise<string> {
-    return await decryptPassword(encryptedSenha);
+  /**
+   * Abre a senha no servidor: confere a regra de área e registra quem viu ou
+   * copiou. Senhas gravadas no formato antigo do navegador ainda são abertas aqui.
+   */
+  async revelarSenha(acessoId: string, acao: 'visualizou_senha' | 'copiou_senha' = 'visualizou_senha'): Promise<string> {
+    const { data, error } = await supabase.rpc('acessos_revelar_senha', { p_id: acessoId, p_acao: acao });
+    if (error) throw error;
+    const valor = (data as string | null) ?? '';
+    return valor ? await decryptPassword(valor) : '';
   },
 
   async createAuditLog(

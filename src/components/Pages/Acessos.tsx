@@ -45,6 +45,28 @@ export default function Acessos() {
   const [editingAcesso, setEditingAcesso] = useState<Acesso | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
+  // senha aberta no servidor (registra quem viu)
+  const [senhasReveladas, setSenhasReveladas] = useState<Map<string, string>>(new Map());
+  const alternarSenha = async (id: string) => {
+    if (visiblePasswords.has(id)) {
+      setVisiblePasswords((v) => {
+        const n = new Set(v);
+        n.delete(id);
+        return n;
+      });
+      return;
+    }
+    if (!senhasReveladas.has(id)) {
+      try {
+        const senha = await acessosService.revelarSenha(id, 'visualizou_senha');
+        setSenhasReveladas((m) => new Map(m).set(id, senha));
+      } catch {
+        showNotification('error', 'Não foi possível abrir a senha');
+        return;
+      }
+    }
+    setVisiblePasswords((v) => new Set(v).add(id));
+  };
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
@@ -129,7 +151,7 @@ export default function Acessos() {
       setFormData({
         titulo: acesso.titulo,
         login: acesso.login || '',
-        senha: acesso.senha || '',
+        senha: '',
         url_acesso: acesso.url_acesso || '',
         comentarios: acesso.comentarios || '',
         area_vinculada: [...acesso.area_vinculada],
@@ -387,7 +409,7 @@ export default function Acessos() {
                       Login
                     </div>
                   )}
-                  {acesso.senha && (
+                  {acesso.tem_senha && (
                     <div className="flex items-center gap-1">
                       <Eye size={14} />
                       Senha
@@ -432,25 +454,33 @@ export default function Acessos() {
                     </div>
                   )}
 
-                  {acesso.senha && (
+                  {acesso.tem_senha && (
                     <div>
                       <label className="text-xs font-medium text-gray-600 mb-1 block">Senha</label>
                       <div className="flex items-center gap-2">
                         <input
-                          type={visiblePasswords.has(acesso.id) ? 'text' : 'password'}
-                          value={acesso.senha}
+                          type={visiblePasswords.has(acesso.id) && senhasReveladas.has(acesso.id) ? 'text' : 'password'}
+                          value={senhasReveladas.get(acesso.id) ?? '••••••••••••'}
                           readOnly
                           className="flex-1 px-3 py-2 bg-white border border-gray-300 rounded text-sm"
                         />
                         <button
-                          onClick={() => togglePasswordVisibility(acesso.id)}
+                          onClick={() => alternarSenha(acesso.id)}
                           className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                           title={visiblePasswords.has(acesso.id) ? 'Ocultar' : 'Mostrar'}
                         >
                           {visiblePasswords.has(acesso.id) ? <EyeOff size={16} /> : <Eye size={16} />}
                         </button>
                         <button
-                          onClick={() => copyToClipboard(acesso.senha!, `senha-${acesso.id}`)}
+                          onClick={async () => {
+                            try {
+                              const senha = await acessosService.revelarSenha(acesso.id, 'copiou_senha');
+                              setSenhasReveladas((m) => new Map(m).set(acesso.id, senha));
+                              copyToClipboard(senha, `senha-${acesso.id}`);
+                            } catch {
+                              showNotification('error', 'Não foi possível abrir a senha');
+                            }
+                          }}
                           className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
                           title="Copiar"
                         >
@@ -626,8 +656,10 @@ export default function Acessos() {
                   value={formData.senha}
                   onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Senha de acesso"
+                  placeholder={editingAcesso?.tem_senha ? 'Deixe em branco para manter a senha atual' : 'Senha de acesso'}
+                  autoComplete="new-password"
                 />
+                <p className="text-xs text-gray-500 mt-1">A senha é guardada cifrada no servidor e só aparece para quem tem acesso à área.</p>
               </div>
 
               <div>

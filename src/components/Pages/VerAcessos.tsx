@@ -102,16 +102,13 @@ export default function VerAcessos() {
       return;
     }
 
-    if (!decryptedPasswords.has(id) && acesso.senha) {
+    if (!decryptedPasswords.has(id) && acesso.tem_senha) {
       setDecryptingPasswords((prev) => new Set(prev).add(id));
 
       try {
-        const decrypted = await acessosService.decryptSenha(acesso.senha);
+        // o servidor confere a área e registra quem viu
+        const decrypted = await acessosService.revelarSenha(id, 'visualizou_senha');
         setDecryptedPasswords((prev) => new Map(prev).set(id, decrypted));
-
-        if (user?.id && user?.empresaId) {
-          await acessosService.createAuditLog(id, user.id, user.empresaId, 'visualizou_senha');
-        }
       } catch (error) {
         console.error('Error decrypting password:', error);
       } finally {
@@ -130,18 +127,10 @@ export default function VerAcessos() {
     try {
       let textToCopy = text;
 
-      if (isPassword && acesso.senha) {
-        if (!decryptedPasswords.has(acesso.id)) {
-          const decrypted = await acessosService.decryptSenha(acesso.senha);
-          setDecryptedPasswords((prev) => new Map(prev).set(acesso.id, decrypted));
-          textToCopy = decrypted;
-        } else {
-          textToCopy = decryptedPasswords.get(acesso.id) || text;
-        }
-
-        if (user?.id && user?.empresaId) {
-          await acessosService.createAuditLog(acesso.id, user.id, user.empresaId, 'copiou_senha');
-        }
+      if (isPassword && acesso.tem_senha) {
+        // sempre pelo servidor, para registrar a cópia
+        textToCopy = await acessosService.revelarSenha(acesso.id, 'copiou_senha');
+        setDecryptedPasswords((prev) => new Map(prev).set(acesso.id, textToCopy));
       } else if (fieldId.startsWith('login-') && user?.id && user?.empresaId) {
         await acessosService.createAuditLog(acesso.id, user.id, user.empresaId, 'copiou_login');
       }
@@ -241,7 +230,7 @@ export default function VerAcessos() {
                       Login
                     </div>
                   )}
-                  {acesso.senha && (
+                  {acesso.tem_senha && (
                     <div className="flex items-center gap-1">
                       <Eye size={14} />
                       Senha
@@ -285,21 +274,14 @@ export default function VerAcessos() {
                     </div>
                   )}
 
-                  {acesso.senha && (
+                  {acesso.tem_senha && (
                     <div>
                       <label className="text-xs font-medium text-gray-600 mb-1 flex items-center gap-2">
                         Senha
-                        {checkIfEncrypted(acesso.senha) ? (
-                          <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded flex items-center gap-1">
-                            <Check size={12} />
-                            Criptografada
-                          </span>
-                        ) : (
-                          <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded flex items-center gap-1">
-                            <AlertTriangle size={12} />
-                            Não Criptografada
-                          </span>
-                        )}
+                        <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded flex items-center gap-1">
+                          <Check size={12} />
+                          Protegida
+                        </span>
                       </label>
                       <div className="flex items-center gap-2">
                         <input
@@ -329,7 +311,7 @@ export default function VerAcessos() {
                           )}
                         </button>
                         <button
-                          onClick={() => copyToClipboard(acesso.senha!, `senha-${acesso.id}`, acesso, true)}
+                          onClick={() => copyToClipboard('', `senha-${acesso.id}`, acesso, true)}
                           className="p-2 text-gray-600 hover:text-cyan-600 hover:bg-cyan-50 rounded transition-colors"
                           title="Copiar"
                         >
