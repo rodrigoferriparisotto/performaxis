@@ -11,6 +11,7 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { lerTempoEstimado } from '../../lib/tempoEstimado';
 import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface ServicosCamararia {
@@ -18,6 +19,8 @@ interface ServicosCamararia {
   nome: string;
   descricao: string;
   ativo: boolean;
+  tempo_estimado_min?: number | null;
+  tempo_estimado_revisao_min?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -116,7 +119,9 @@ const ServicosCamararia: React.FC = () => {
     const servicoData = {
       nome: formData.get('nome') as string,
       descricao: formData.get('descricao') as string || '',
-      ativo: formData.get('ativo') === 'true'
+      ativo: formData.get('ativo') === 'true',
+      tempo_estimado_min: lerTempoEstimado(formData.get('tempo_estimado_min')),
+      tempo_estimado_revisao_min: lerTempoEstimado(formData.get('tempo_estimado_revisao_min'))
     };
 
     // Verificar se o nome já existe (exceto para edição do próprio serviço)
@@ -285,6 +290,20 @@ const ServicosCamararia: React.FC = () => {
                         {servico.ativo ? 'Ativo' : 'Inativo'}
                       </span>
                     </div>
+                    {(servico.tempo_estimado_min || servico.tempo_estimado_revisao_min) ? (
+                      <div className="flex flex-wrap gap-1">
+                        {servico.tempo_estimado_min ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700" title="Tempo estimado da limpeza (só a gestão vê)">
+                            Limpeza ~{servico.tempo_estimado_min} min
+                          </span>
+                        ) : null}
+                        {servico.tempo_estimado_revisao_min ? (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700" title="Tempo estimado da revisão (só a gestão vê)">
+                            Revisão ~{servico.tempo_estimado_revisao_min} min
+                          </span>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -353,6 +372,46 @@ const ServicosCamararia: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   placeholder="Descrição opcional do tipo de serviço..."
                 />
+              </div>
+
+              <div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tempo estimado da limpeza (min)
+                    </label>
+                    <input
+                      type="number"
+                      name="tempo_estimado_min"
+                      min={1}
+                      max={720}
+                      step={1}
+                      inputMode="numeric"
+                      defaultValue={editingServico?.tempo_estimado_min ?? ''}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="ex.: 30"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tempo estimado da revisão (min)
+                    </label>
+                    <input
+                      type="number"
+                      name="tempo_estimado_revisao_min"
+                      min={1}
+                      max={720}
+                      step={1}
+                      inputMode="numeric"
+                      defaultValue={editingServico?.tempo_estimado_revisao_min ?? ''}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                      placeholder="ex.: 10"
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Só a gestão vê. Usado para comparar com o tempo real.
+                </p>
               </div>
 
               <div>

@@ -11,6 +11,7 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
+import { lerTempoEstimado } from '../../lib/tempoEstimado';
 import { obterContextoUsuario } from '../../services/supabaseService';
 import { PageHeader } from '../ui/PageHeader';
 
@@ -18,6 +19,7 @@ interface TipoRecepcao {
   id: string;
   nome: string;
   ativo: boolean;
+  tempo_estimado_min?: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -115,7 +117,8 @@ const TiposRecepcao: React.FC = () => {
     
     const tipoData = {
       nome: formData.get('nome') as string,
-      ativo: formData.get('ativo') === 'true'
+      ativo: formData.get('ativo') === 'true',
+      tempo_estimado_min: lerTempoEstimado(formData.get('tempo_estimado_min'))
     };
 
     // Verificar se o nome já existe (exceto para edição do próprio tipo)
@@ -274,6 +277,13 @@ const TiposRecepcao: React.FC = () => {
                         {tipo.ativo ? 'Ativo' : 'Inativo'}
                       </span>
                     </div>
+                    {tipo.tempo_estimado_min ? (
+                      <div className="flex flex-wrap gap-1">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700" title="Tempo estimado (só a gestão vê)">
+                          ~{tipo.tempo_estimado_min} min
+                        </span>
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               ))}
@@ -328,6 +338,26 @@ const TiposRecepcao: React.FC = () => {
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Digite apenas o nome/nomenclatura do tipo de recepção
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Tempo estimado (min)
+                </label>
+                <input
+                  type="number"
+                  name="tempo_estimado_min"
+                  min={1}
+                  max={720}
+                  step={1}
+                  inputMode="numeric"
+                  defaultValue={editingTipo?.tempo_estimado_min ?? ''}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="ex.: 30"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Só a gestão vê. Usado para comparar com o tempo real.
                 </p>
               </div>
 
