@@ -11,7 +11,7 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
-import { lerTempoEstimado } from '../../lib/tempoEstimado';
+import { juntarTemposEstimados, lerTempoEstimado, salvarTempoEstimado } from '../../lib/tempoEstimado';
 import { obterContextoUsuario } from '../../services/supabaseService';
 import { PageHeader } from '../ui/PageHeader';
 
@@ -26,6 +26,7 @@ interface TipoRecepcao {
 
 const TiposRecepcao: React.FC = () => {
   const { user } = useAuth();
+  const ehAdmin = user?.profile === 'admin';
   const [tipos, setTipos] = useState<TipoRecepcao[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -67,7 +68,7 @@ const TiposRecepcao: React.FC = () => {
 
         setTipos([]);
       } else {
-        setTipos(data || []);
+        setTipos(await juntarTemposEstimados('tipo_recepcao', data || []));
       }
     } catch (error) {
 
@@ -114,11 +115,12 @@ const TiposRecepcao: React.FC = () => {
     setSaving(true);
     
     const formData = new FormData(e.target as HTMLFormElement);
+    const tempoEstimadoForm = lerTempoEstimado(formData.get('tempo_estimado_min'));
+    const tempoRevisaoForm = null;
     
     const tipoData = {
       nome: formData.get('nome') as string,
-      ativo: formData.get('ativo') === 'true',
-      tempo_estimado_min: lerTempoEstimado(formData.get('tempo_estimado_min'))
+      ativo: formData.get('ativo') === 'true'
     };
 
     // Verificar se o nome já existe (exceto para edição do próprio tipo)
@@ -179,6 +181,9 @@ const TiposRecepcao: React.FC = () => {
 
         notificar('Erro ao salvar tipo de recepção');
       } else {
+        if (ehAdmin && result.data?.id) {
+          await salvarTempoEstimado('tipo_recepcao', result.data.id, tempoEstimadoForm, tempoRevisaoForm);
+        }
         await carregarTipos();
         setShowModal(false);
         setEditingTipo(null);
@@ -341,6 +346,7 @@ const TiposRecepcao: React.FC = () => {
                 </p>
               </div>
 
+              {ehAdmin && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tempo estimado (min)
@@ -357,9 +363,10 @@ const TiposRecepcao: React.FC = () => {
                   placeholder="ex.: 30"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Só a gestão vê. Usado para comparar com o tempo real.
+                  Só o administrador vê. Usado para comparar com o tempo real.
                 </p>
               </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

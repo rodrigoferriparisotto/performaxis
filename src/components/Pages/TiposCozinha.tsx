@@ -11,7 +11,7 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
-import { lerTempoEstimado } from '../../lib/tempoEstimado';
+import { juntarTemposEstimados, lerTempoEstimado, salvarTempoEstimado } from '../../lib/tempoEstimado';
 import { obterContextoUsuario } from '../../services/supabaseService';
 import { PageHeader } from '../ui/PageHeader';
 
@@ -26,6 +26,7 @@ interface TipoCozinha {
 
 const TiposCozinha: React.FC = () => {
   const { user } = useAuth();
+  const ehAdmin = user?.profile === 'admin';
   const [tipos, setTipos] = useState<TipoCozinha[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,7 +67,7 @@ const TiposCozinha: React.FC = () => {
 
         setTipos([]);
       } else {
-        setTipos(data || []);
+        setTipos(await juntarTemposEstimados('tipo_cozinha', data || []));
       }
     } catch (error) {
 
@@ -113,11 +114,12 @@ const TiposCozinha: React.FC = () => {
     setSaving(true);
 
     const formData = new FormData(e.target as HTMLFormElement);
+    const tempoEstimadoForm = lerTempoEstimado(formData.get('tempo_estimado_min'));
+    const tempoRevisaoForm = null;
 
     const tipoData = {
       nome: formData.get('nome') as string,
-      ativo: formData.get('ativo') === 'true',
-      tempo_estimado_min: lerTempoEstimado(formData.get('tempo_estimado_min'))
+      ativo: formData.get('ativo') === 'true'
     };
 
     const nomeExiste = tipos.some(t =>
@@ -175,6 +177,9 @@ const TiposCozinha: React.FC = () => {
 
         notificar('Erro ao salvar tipo de cozinha');
       } else {
+        if (ehAdmin && result.data?.id) {
+          await salvarTempoEstimado('tipo_cozinha', result.data.id, tempoEstimadoForm, tempoRevisaoForm);
+        }
         await carregarTipos();
         setShowModal(false);
         setEditingTipo(null);
@@ -336,6 +341,7 @@ const TiposCozinha: React.FC = () => {
                 </p>
               </div>
 
+              {ehAdmin && (
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tempo estimado (min)
@@ -352,9 +358,10 @@ const TiposCozinha: React.FC = () => {
                   placeholder="ex.: 30"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Só a gestão vê. Usado para comparar com o tempo real.
+                  Só o administrador vê. Usado para comparar com o tempo real.
                 </p>
               </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

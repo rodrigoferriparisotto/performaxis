@@ -5,6 +5,7 @@ import { getDataAtual, subtractDaysBrazil } from '../../utils/dateUtils';
 import { PageHeader } from '../ui/PageHeader';
 import { EmptyState, LoadingState } from '../ui/Estados';
 import { notificar } from '../../lib/feedback';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Linha {
   modulo: string;
@@ -50,6 +51,8 @@ function SeloVariacao({ real, estimado }: { real: number; estimado: number | nul
 }
 
 export default function TempoRealEstimado() {
+  const { user } = useAuth();
+  const ehAdmin = user?.profile === 'admin';
   const [rascunho, setRascunho] = useState({ inicio: subtractDaysBrazil(30), fim: getDataAtual() });
   const [periodo, setPeriodo] = useState(rascunho);
   const [linhas, setLinhas] = useState<Linha[]>([]);
@@ -57,6 +60,10 @@ export default function TempoRealEstimado() {
 
   useEffect(() => {
     let ativo = true;
+    if (!ehAdmin) {
+      setCarregando(false);
+      return;
+    }
     (async () => {
       setCarregando(true);
       const { data, error } = await supabase.rpc('tempo_real_vs_estimado', {
@@ -75,7 +82,7 @@ export default function TempoRealEstimado() {
     return () => {
       ativo = false;
     };
-  }, [periodo]);
+  }, [periodo, ehAdmin]);
 
   const grupos = useMemo<Grupo[]>(() => {
     const mapa = new Map<string, Grupo>();
@@ -140,7 +147,9 @@ export default function TempoRealEstimado() {
         </p>
       </div>
 
-      {carregando ? (
+      {!ehAdmin ? (
+        <EmptyState icon={Timer} titulo="Relatório disponível só para o administrador" />
+      ) : carregando ? (
         <LoadingState />
       ) : grupos.length === 0 ? (
         <EmptyState icon={Timer} titulo="Nenhum registro concluído no período" />

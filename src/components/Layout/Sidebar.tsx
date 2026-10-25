@@ -535,7 +535,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
 
                 {relatoriosOpen && (
                   <div className="bg-gray-50">
-                    {relatoriosItems.map((item) => {
+                    {relatoriosItems.filter((item) => item.id !== 'tempo-real-estimado' || user?.profile === 'admin').map((item) => {
                       const Icon = item.icon;
                       const isActive = currentPage === item.id;
 

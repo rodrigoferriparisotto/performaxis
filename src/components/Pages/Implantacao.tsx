@@ -5,6 +5,7 @@ import { obterContextoUsuario } from '../../services/supabaseService';
 import { notificar } from '../../lib/feedback';
 import { PageHeader } from '../ui/PageHeader';
 import { LoadingState } from '../ui/Estados';
+import { salvarTempoEstimado } from '../../lib/tempoEstimado';
 
 // ---------------------------------------------------------------------------
 // Modelos genéricos (escritos para servir a qualquer hotel; cada um ajusta
@@ -172,15 +173,19 @@ export default function Implantacao() {
   const criarServicos = async () => {
     if (!empresaId) return;
     setOcupado('servicos');
-    const { error } = await supabase.from('servicos_camararia').insert(
-      SERVICOS_PADRAO.map((s) => ({
-        nome: s.nome,
-        ativo: true,
-        empresa_id: empresaId,
-        tempo_estimado_min: s.limpeza,
-        tempo_estimado_revisao_min: s.revisao,
-      }))
-    );
+    const { data: criados, error } = await supabase
+      .from('servicos_camararia')
+      .insert(SERVICOS_PADRAO.map((s) => ({ nome: s.nome, ativo: true, empresa_id: empresaId })))
+      .select('id, nome');
+    if (!error && criados) {
+      // tempos estimados iniciais (tabela só do admin; para gestor a gravação é ignorada pelo banco)
+      await Promise.all(
+        criados.map((c) => {
+          const p = SERVICOS_PADRAO.find((s) => s.nome === c.nome);
+          return p ? salvarTempoEstimado('servico_camararia', c.id, p.limpeza, p.revisao) : null;
+        })
+      );
+    }
     setOcupado(null);
     if (error) return notificar('Não foi possível criar os serviços.', 'erro');
     notificar('Serviços criados: check-out, check-in, permanência e suíte livre.', 'sucesso');

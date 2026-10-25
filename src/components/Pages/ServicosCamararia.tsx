@@ -11,7 +11,7 @@ import {
   Save
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
-import { lerTempoEstimado } from '../../lib/tempoEstimado';
+import { juntarTemposEstimados, lerTempoEstimado, salvarTempoEstimado } from '../../lib/tempoEstimado';
 import { obterContextoUsuario } from '../../services/supabaseService';
 
 interface ServicosCamararia {
@@ -27,6 +27,7 @@ interface ServicosCamararia {
 
 const ServicosCamararia: React.FC = () => {
   const { user } = useAuth();
+  const ehAdmin = user?.profile === 'admin';
   const [servicos, setServicos] = useState<ServicosCamararia[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -68,7 +69,7 @@ const ServicosCamararia: React.FC = () => {
 
         setServicos([]);
       } else {
-        setServicos(data || []);
+        setServicos(await juntarTemposEstimados('servico_camararia', data || []));
       }
     } catch (error) {
 
@@ -115,13 +116,13 @@ const ServicosCamararia: React.FC = () => {
     setSaving(true);
     
     const formData = new FormData(e.target as HTMLFormElement);
+    const tempoEstimadoForm = lerTempoEstimado(formData.get('tempo_estimado_min'));
+    const tempoRevisaoForm = lerTempoEstimado(formData.get('tempo_estimado_revisao_min'));
     
     const servicoData = {
       nome: formData.get('nome') as string,
       descricao: formData.get('descricao') as string || '',
-      ativo: formData.get('ativo') === 'true',
-      tempo_estimado_min: lerTempoEstimado(formData.get('tempo_estimado_min')),
-      tempo_estimado_revisao_min: lerTempoEstimado(formData.get('tempo_estimado_revisao_min'))
+      ativo: formData.get('ativo') === 'true'
     };
 
     // Verificar se o nome já existe (exceto para edição do próprio serviço)
@@ -182,6 +183,9 @@ const ServicosCamararia: React.FC = () => {
 
         notificar('Erro ao salvar serviço de governança');
       } else {
+        if (ehAdmin && result.data?.id) {
+          await salvarTempoEstimado('servico_camararia', result.data.id, tempoEstimadoForm, tempoRevisaoForm);
+        }
         await carregarServicos();
         setShowModal(false);
         setEditingServico(null);
@@ -374,6 +378,7 @@ const ServicosCamararia: React.FC = () => {
                 />
               </div>
 
+              {ehAdmin && (
               <div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -410,9 +415,10 @@ const ServicosCamararia: React.FC = () => {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-1">
-                  Só a gestão vê. Usado para comparar com o tempo real.
+                  Só o administrador vê. Usado para comparar com o tempo real.
                 </p>
               </div>
+              )}
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
