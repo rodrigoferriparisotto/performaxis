@@ -40,6 +40,8 @@ const Empresa: React.FC = () => {
   const [telefoneGestorValue, setTelefoneGestorValue] = useState('');
   const [gestorExistenteId, setGestorExistenteId] = useState<string>('');
   const [criarNovoGestor, setCriarNovoGestor] = useState(false);
+  // sem gestores livres, a tela já mostra "Criar Novo Gestor" marcado
+  const vaiCriarGestor = criarNovoGestor || gestoresSemEmpresa.length === 0;
   const [gestoresVinculados, setGestoresVinculados] = useState<any[]>([]);
   const [gestoresDisponiveis, setGestoresDisponiveis] = useState<any[]>([]);
   const [loadingGestores, setLoadingGestores] = useState(false);
@@ -136,7 +138,7 @@ const Empresa: React.FC = () => {
       if (gestorExistenteId) {
         // Usar gestor existente
         gestorData = { existenteId: gestorExistenteId };
-      } else if (criarNovoGestor) {
+      } else if (vaiCriarGestor) {
         // Criar novo gestor
         gestorData = {
           login: formData.get('loginGestor') as string,
@@ -1246,7 +1248,7 @@ const Empresa: React.FC = () => {
                     <label className="flex items-center space-x-2 cursor-pointer mb-4">
                       <input
                         type="radio"
-                        checked={criarNovoGestor || gestoresSemEmpresa.length === 0}
+                        checked={vaiCriarGestor}
                         onChange={() => {
                           setCriarNovoGestor(true);
                           setGestorExistenteId('');
@@ -1258,7 +1260,7 @@ const Empresa: React.FC = () => {
                       </span>
                     </label>
 
-                    {(criarNovoGestor || gestoresSemEmpresa.length === 0) && (
+                    {vaiCriarGestor && (
                       <>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
@@ -1270,7 +1272,7 @@ const Empresa: React.FC = () => {
                               name="nomeGestor"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               placeholder="Nome completo do gestor"
-                              required={criarNovoGestor || gestoresSemEmpresa.length === 0}
+                              required={vaiCriarGestor}
                             />
                           </div>
 
@@ -1285,7 +1287,7 @@ const Empresa: React.FC = () => {
                               onChange={handleTelefoneGestorChange}
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                               placeholder="(11) 99999-9999 ou (11) 9999-9999"
-                              required={criarNovoGestor || gestoresSemEmpresa.length === 0}
+                              required={vaiCriarGestor}
                             />
                             <p className="text-xs text-gray-500 mt-1">
                               Digite apenas números. Aceita 10 ou 11 dígitos.
@@ -1302,7 +1304,7 @@ const Empresa: React.FC = () => {
                             name="loginGestor"
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                             placeholder="gestor@empresa.com"
-                            required={criarNovoGestor || gestoresSemEmpresa.length === 0}
+                            required={vaiCriarGestor}
                           />
                         </div>
 
@@ -1317,7 +1319,7 @@ const Empresa: React.FC = () => {
                                 name="passwordGestor"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                                 placeholder="Mínimo 6 caracteres"
-                                required={criarNovoGestor || gestoresSemEmpresa.length === 0}
+                                required={vaiCriarGestor}
                               />
                               <button
                                 type="button"
@@ -1343,7 +1345,7 @@ const Empresa: React.FC = () => {
                                 name="confirmPasswordGestor"
                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
                                 placeholder="Confirme a senha"
-                                required={criarNovoGestor || gestoresSemEmpresa.length === 0}
+                                required={vaiCriarGestor}
                               />
                               <button
                                 type="button"
