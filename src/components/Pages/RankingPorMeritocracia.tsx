@@ -14,10 +14,12 @@ const LIMITE_PREMIO = 200;
 /** Modal do gestor: pesos do índice e prêmios do mês. */
 function ModalConfigMeritocracia({
   config,
+  empresaId,
   onFechar,
   onSalvo,
 }: {
   config: MeritocraciaConfig;
+  empresaId: string;
   onFechar: () => void;
   onSalvo: (c: MeritocraciaConfig) => void;
 }) {
@@ -74,6 +76,8 @@ function ModalConfigMeritocracia({
           premio_prata: premios.premio_prata.trim(),
           premio_bronze: premios.premio_bronze.trim(),
         },
+        // só vale para o admin do sistema; gestor grava na própria empresa
+        p_empresa: empresaId,
       });
       if (error) throw error;
       onSalvo(normalizarConfig(data));
@@ -183,11 +187,31 @@ const RankingPorMeritocracia: React.FC = () => {
 
   const podeConfigurar = user?.profile === 'admin' || user?.profile === 'gestor';
 
+  // admin do sistema não tem empresa: escolhe qual ver
+  const semEmpresa = !!user && !user.empresaId;
+  const [empresas, setEmpresas] = useState<{ id: string; nome: string }[]>([]);
+  const [empresaEscolhida, setEmpresaEscolhida] = useState('');
+  const empresaId: string | undefined = empresa?.id || empresaEscolhida || undefined;
+
   useEffect(() => {
-    if (!empresa?.id) return;
+    if (!semEmpresa) return;
+    supabase
+      .from('empresas')
+      .select('id, nome')
+      .eq('ativo', true)
+      .order('nome')
+      .then(({ data }) => {
+        const lista = (data as { id: string; nome: string }[]) || [];
+        setEmpresas(lista);
+        setEmpresaEscolhida((atual) => atual || lista[0]?.id || '');
+      });
+  }, [semEmpresa]);
+
+  useEffect(() => {
+    if (!empresaId) return;
     let ativo = true;
     (async () => {
-      const { data, error } = await supabase.rpc('meritocracia_config', { p_empresa: empresa.id });
+      const { data, error } = await supabase.rpc('meritocracia_config', { p_empresa: empresaId });
       if (!ativo) return;
       if (error) {
         console.error('Erro ao carregar configuração da meritocracia:', error);
@@ -198,7 +222,7 @@ const RankingPorMeritocracia: React.FC = () => {
     return () => {
       ativo = false;
     };
-  }, [empresa?.id]);
+  }, [empresaId]);
 
   const perfis = [
     { value: undefined, label: 'Todos os Perfis' },
@@ -221,7 +245,10 @@ const RankingPorMeritocracia: React.FC = () => {
     { chave: 'bronze', rotulo: 'Bronze', texto: config.premio_bronze, badge: ESTILO_FAIXA.bronze.badge, icone: Award },
   ].filter((p) => p.texto.trim() !== '');
 
-  if (!empresa?.id) {
+  if (!empresaId) {
+    if (semEmpresa && empresas.length === 0) {
+      return <LoadingState texto="Carregando empresas..." />;
+    }
     return <LoadingState texto="Carregando dados da empresa..." />;
   }
 
@@ -232,6 +259,20 @@ const RankingPorMeritocracia: React.FC = () => {
         subtitulo="Índice diário de 0 a 100, faixas e Selo 100% Performaxis"
         acoes={
           <>
+            {semEmpresa && (
+              <select
+                value={empresaEscolhida}
+                onChange={(e) => setEmpresaEscolhida(e.target.value)}
+                aria-label="Empresa"
+                className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+              >
+                {empresas.map((e) => (
+                  <option key={e.id} value={e.id}>
+                    {e.nome}
+                  </option>
+                ))}
+              </select>
+            )}
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Filter className="w-5 h-5 text-gray-600 flex-shrink-0" />
               <select
@@ -326,12 +367,12 @@ const RankingPorMeritocracia: React.FC = () => {
 
       <div className="space-y-6">
         <PerformanceDiaria
-          empresaId={empresa.id}
+          empresaId={empresaId}
           perfil={selectedPerfilFilter}
         />
 
         <PerformanceMensal
-          empresaId={empresa.id}
+          empresaId={empresaId}
           perfil={selectedPerfilFilter}
         />
       </div>
@@ -339,6 +380,7 @@ const RankingPorMeritocracia: React.FC = () => {
       {configAberta && (
         <ModalConfigMeritocracia
           config={config}
+          empresaId={empresaId}
           onFechar={() => setConfigAberta(false)}
           onSalvo={setConfig}
         />
