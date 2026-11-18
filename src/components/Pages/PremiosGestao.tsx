@@ -714,7 +714,7 @@ function FormularioPremio({
             </label>
           </div>
           <p className="text-xs text-gray-500 mt-1">
-            {inteiro(fator)} {config.nome_moeda} = R$ 1,00. A equipe vê só o custo em {config.nome_moeda}.
+            {decimalCampo(fator).replace(/,00$/, "")} {config.nome_moeda} = R$ 1,00. A equipe vê só o custo em {config.nome_moeda}.
           </p>
         </div>
 
@@ -1764,7 +1764,7 @@ const PremiosGestao: React.FC = () => {
     <div className="space-y-6">
       <PageHeader
         titulo={`Prêmios e ${config.nome_moeda}`}
-        subtitulo={`Moeda de recompensa da equipe · ${inteiro(config.fator_real)} ${config.nome_moeda} = R$ 1,00 (só a gestão vê)`}
+        subtitulo={`Moeda de recompensa da equipe · ${decimalCampo(config.fator_real).replace(/,00$/, "")} ${config.nome_moeda} = R$ 1,00 (só a gestão vê)`}
         acoes={
           semEmpresa ? (
             <select
