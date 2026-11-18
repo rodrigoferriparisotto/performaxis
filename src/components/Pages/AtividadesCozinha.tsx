@@ -16,6 +16,7 @@ import {
 import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
+import { FiltroTipos, atividadeNoTipo, nomesDosTipos } from '../common/FiltroTipos';
 
 const getCurrentUserEmpresaId = async () => {
   try {
@@ -42,6 +43,7 @@ const AtividadesCozinha: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingActivity, setEditingActivity] = useState<any>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [tipoFiltro, setTipoFiltro] = useState('');
   const [draggedItem, setDraggedItem] = useState<any>(null);
   const [selectedDias, setSelectedDias] = useState<string[]>([]);
   const [selectedTipos, setSelectedTipos] = useState<string[]>([]);
@@ -296,10 +298,18 @@ const AtividadesCozinha: React.FC = () => {
     setDraggedItem(null);
   };
 
+  // busca acha também pelo nome do tipo; o filtro de tipo separa (ex.: diurnas / noturnas)
+  const passaNaBusca = (atividade: any) => {
+    const termo = searchTerm.toLowerCase();
+    return (atividade.name || '').toLowerCase().includes(termo) ||
+      (atividade.description || '').toLowerCase().includes(termo) ||
+      nomesDosTipos(atividade.tipos_cozinha, tiposCozinha).includes(termo);
+  };
   const filteredAtividades = atividades.filter(atividade =>
-    atividade.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    atividade.description.toLowerCase().includes(searchTerm.toLowerCase())
+    passaNaBusca(atividade) && atividadeNoTipo(atividade.tipos_cozinha, tipoFiltro)
   );
+  const contarPorTipo = (filtro: string) =>
+    atividades.filter(atividade => passaNaBusca(atividade) && atividadeNoTipo(atividade.tipos_cozinha, filtro)).length;
 
   if (loading) {
     return (
@@ -344,8 +354,15 @@ const AtividadesCozinha: React.FC = () => {
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-800">Atividades da Cozinha</h2>
-              <p className="text-sm text-gray-600">{filteredAtividades.length} atividades cadastradas</p>
+              <p className="text-sm text-gray-600">
+                {filteredAtividades.length === atividades.length
+                  ? `${atividades.length} atividades cadastradas`
+                  : `${filteredAtividades.length} de ${atividades.length} atividades`}
+              </p>
             </div>
+          </div>
+          <div className="mt-4">
+            <FiltroTipos tipos={tiposCozinha} valor={tipoFiltro} onChange={setTipoFiltro} contar={contarPorTipo} />
           </div>
         </div>
 
