@@ -258,7 +258,7 @@ const PerformanceMensal: React.FC<PerformanceMensalProps> = ({ empresaId, perfil
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
-                      {fechouTudo}/{diasEscala > 0 ? diasEscala : trabalhados} fechou tudo
+                      {fechouTudo}/{trabalhados} fechou tudo
                     </span>
                     <span className="inline-flex items-center gap-1.5">
                       <TrendingUp className="w-3.5 h-3.5 text-indigo-600 flex-shrink-0" />
