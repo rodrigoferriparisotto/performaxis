@@ -45,6 +45,7 @@ import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
 import { FiltroTipos, atividadeNoTipo, nomesDosTipos } from '../common/FiltroTipos';
+import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
 const AtividadesNoturnas: React.FC = () => {
   const { user } = useAuth();
@@ -121,7 +122,7 @@ const AtividadesNoturnas: React.FC = () => {
         .filter(a => a.type === 'noturno')
         .sort((a, b) => a.order_position - b.order_position);
 
-      setAtividades(atividadesDiarias);
+      setAtividades(await alinharOrdemComHorario(atividadesDiarias));
     } catch (error) {
 
       setAtividades([]);
@@ -346,7 +347,7 @@ const AtividadesNoturnas: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Atividades Diárias</h1>
-        <p className="text-gray-600">Gerencie as atividades específicas das atividades diárias - arraste para reordenar</p>
+        <p className="text-gray-600">Gerencie as atividades específicas das atividades diárias - com horário seguem o relógio; arraste para ordenar as demais</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

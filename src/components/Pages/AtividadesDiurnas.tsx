@@ -17,6 +17,7 @@ import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
 import { FiltroTipos, atividadeNoTipo, nomesDosTipos } from '../common/FiltroTipos';
+import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
 // Função helper para obter empresa_id do usuário atual
 async function getCurrentUserEmpresaId(): Promise<string | null> {
@@ -112,7 +113,7 @@ const AtividadesDiurnas: React.FC = () => {
       // Ordenar por posição
       const atividadesOrdenadas = atividadesDiurnas.sort((a, b) => a.order_position - b.order_position);
       
-      setAtividades(atividadesOrdenadas);
+      setAtividades(await alinharOrdemComHorario(atividadesOrdenadas));
     } catch (error) {
 
       setAtividades([]);
@@ -337,7 +338,7 @@ const AtividadesDiurnas: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Atividades Extras</h1>
-        <p className="text-gray-600">Gerencie as atividades extras do estabelecimento - arraste para reordenar</p>
+        <p className="text-gray-600">Gerencie as atividades extras do estabelecimento - com horário seguem o relógio; arraste para ordenar as demais</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

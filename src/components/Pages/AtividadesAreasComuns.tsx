@@ -17,6 +17,7 @@ import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
 import { FiltroTipos, atividadeNoTipo, nomesDosTipos } from '../common/FiltroTipos';
+import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
 const AtividadesAreasComuns: React.FC = () => {
   const { user } = useAuth();
@@ -90,7 +91,7 @@ const AtividadesAreasComuns: React.FC = () => {
       // Usar o serviço que já filtra por empresa
       const atividadesAreasComuns = await atividadeService.getAtividadesByType('areas_comuns');
 
-      setAtividades(atividadesAreasComuns);
+      setAtividades(await alinharOrdemComHorario(atividadesAreasComuns));
     } catch (error) {
 
       setAtividades([]);
@@ -316,7 +317,7 @@ const AtividadesAreasComuns: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Atividades das Áreas Comuns</h1>
-        <p className="text-gray-600">Gerencie as atividades específicas das áreas comuns - arraste para reordenar</p>
+        <p className="text-gray-600">Gerencie as atividades específicas das áreas comuns - com horário seguem o relógio; arraste para ordenar as demais</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

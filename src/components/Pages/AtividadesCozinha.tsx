@@ -17,6 +17,7 @@ import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
 import { FiltroTipos, atividadeNoTipo, nomesDosTipos } from '../common/FiltroTipos';
+import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
 const getCurrentUserEmpresaId = async () => {
   try {
@@ -70,7 +71,7 @@ const AtividadesCozinha: React.FC = () => {
     const atividadesCozinha = todasAtividades
       .filter(a => a.type === 'cozinha')
       .sort((a, b) => a.order_position - b.order_position);
-    setAtividades(atividadesCozinha);
+    setAtividades(await alinharOrdemComHorario(atividadesCozinha));
     setLoading(false);
   };
 
@@ -323,7 +324,7 @@ const AtividadesCozinha: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Atividades da Cozinha</h1>
-        <p className="text-gray-600">Gerencie as atividades específicas da cozinha - arraste para reordenar</p>
+        <p className="text-gray-600">Gerencie as atividades específicas da cozinha - com horário seguem o relógio; arraste para ordenar as demais</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

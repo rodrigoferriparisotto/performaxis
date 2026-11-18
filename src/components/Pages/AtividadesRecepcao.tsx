@@ -17,6 +17,7 @@ import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
 import { FiltroTipos, atividadeNoTipo, nomesDosTipos } from '../common/FiltroTipos';
+import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
 const getCurrentUserEmpresaId = async () => {
   try {
@@ -60,7 +61,7 @@ const AtividadesRecepcao: React.FC = () => {
     const atividadesRecepcao = todasAtividades
       .filter(a => a.type === 'recepcao')
       .sort((a, b) => a.order_position - b.order_position);
-    setAtividades(atividadesRecepcao);
+    setAtividades(await alinharOrdemComHorario(atividadesRecepcao));
     setLoading(false);
   };
 
@@ -297,7 +298,7 @@ const AtividadesRecepcao: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Atividades da Recepção</h1>
-        <p className="text-gray-600">Gerencie as atividades específicas da recepção - arraste para reordenar</p>
+        <p className="text-gray-600">Gerencie as atividades específicas da recepção - com horário seguem o relógio; arraste para ordenar as demais</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

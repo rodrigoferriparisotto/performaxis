@@ -15,6 +15,7 @@ import {
 import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
+import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
 const AtividadesRevisao: React.FC = () => {
   const { user } = useAuth();
@@ -36,7 +37,7 @@ const AtividadesRevisao: React.FC = () => {
     setLoading(true);
     try {
       const atividadesRevisao = await atividadeService.getAtividadesByType('revisao');
-      setAtividades(atividadesRevisao);
+      setAtividades(await alinharOrdemComHorario(atividadesRevisao));
     } catch (error) {
 
       setAtividades([]);
@@ -228,7 +229,7 @@ const AtividadesRevisao: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Atividades da Revisão</h1>
-        <p className="text-gray-600">Gerencie as atividades específicas da revisão - arraste para reordenar</p>
+        <p className="text-gray-600">Gerencie as atividades específicas da revisão - com horário seguem o relógio; arraste para ordenar as demais</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

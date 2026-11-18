@@ -16,6 +16,7 @@ import {
 import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
+import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
 const AtividadesCamararia: React.FC = () => {
   const { user } = useAuth();
@@ -78,7 +79,7 @@ const AtividadesCamararia: React.FC = () => {
     const atividadesCamararia = todasAtividades
       .filter(a => a.type === 'camararia')
       .sort((a, b) => a.order_position - b.order_position);
-    setAtividades(atividadesCamararia);
+    setAtividades(await alinharOrdemComHorario(atividadesCamararia));
     setLoading(false);
   };
 
@@ -281,7 +282,7 @@ const AtividadesCamararia: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Atividades da Governança</h1>
-        <p className="text-gray-600">Gerencie as atividades específicas da governança - arraste para reordenar</p>
+        <p className="text-gray-600">Gerencie as atividades específicas da governança - com horário seguem o relógio; arraste para ordenar as demais</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">

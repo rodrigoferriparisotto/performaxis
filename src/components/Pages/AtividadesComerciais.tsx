@@ -17,6 +17,7 @@ import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
 import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
 import { FiltroTipos, atividadeNoTipo, nomesDosTipos } from '../common/FiltroTipos';
+import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
 const AtividadesComerciais: React.FC = () => {
   const { user } = useAuth();
@@ -83,7 +84,7 @@ const AtividadesComerciais: React.FC = () => {
     setLoading(true);
     try {
       const atividadesVendas = await atividadeService.getAtividadesByType('vendas');
-      setAtividades(atividadesVendas);
+      setAtividades(await alinharOrdemComHorario(atividadesVendas));
     } catch (error) {
       setAtividades([]);
     }
@@ -306,7 +307,7 @@ const AtividadesComerciais: React.FC = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Atividades Comerciais</h1>
-        <p className="text-gray-600">Gerencie as atividades comerciais e de vendas - arraste para reordenar</p>
+        <p className="text-gray-600">Gerencie as atividades comerciais e de vendas - com horário seguem o relógio; arraste para ordenar as demais</p>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
