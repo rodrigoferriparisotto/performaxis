@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { SidebarProvider } from '../contexts/SidebarContext';
 import { Menu } from 'lucide-react';
@@ -118,12 +118,44 @@ const DiagnosticoNotificacoes = lazyComRecarga(() => import('./Pages/Diagnostico
 const MainAppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // área rolável do conteúdo: cada página nova abre no topo
+  // área rolável do conteúdo: página nova abre no topo; no "voltar" do
+  // navegador/celular a página volta para onde a pessoa estava
   const conteudoRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    conteudoRef.current?.scrollTo({ top: 0 });
-    window.scrollTo({ top: 0 });
+  const posicoesRef = useRef(new Map<string, number>());
+  const entradaAtualRef = useRef<string | null>(null);
+  // layout effect: troca a entrada antes de o navegador soltar o evento de
+  // rolagem da página nova (senão ele sobrescreve a posição da anterior)
+  useLayoutEffect(() => {
+    const el = conteudoRef.current;
+    const estado = window.history.state as { pxEntrada?: string } | null;
+    let entrada = estado?.pxEntrada;
+    if (!entrada) {
+      // entrada nova no histórico: marca para reconhecer no voltar
+      entrada = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+      window.history.replaceState({ ...(estado || {}), pxEntrada: entrada }, '');
+    }
+    entradaAtualRef.current = entrada;
+    const alvo = posicoesRef.current.get(entrada);
+    if (!el || !alvo) {
+      el?.scrollTo({ top: 0 });
+      window.scrollTo({ top: 0 });
+      return;
+    }
+    // os dados chegam depois de abrir: tenta por até 2 s até a página ter altura
+    let tentativas = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const aplicar = () => {
+      el.scrollTop = alvo;
+      if (Math.abs(el.scrollTop - alvo) > 2 && ++tentativas < 20) timer = setTimeout(aplicar, 100);
+    };
+    aplicar();
+    return () => clearTimeout(timer);
   }, [currentPage]);
+  const guardarPosicao = () => {
+    if (entradaAtualRef.current && conteudoRef.current) {
+      posicoesRef.current.set(entradaAtualRef.current, conteudoRef.current.scrollTop);
+    }
+  };
   const [authView, setAuthView] = useState<'landing' | 'login' | 'register' | 'reset'>('landing');
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showBatteryGuideModal, setShowBatteryGuideModal] = useState(false);
@@ -655,7 +687,7 @@ const MainAppContent: React.FC = () => {
             <PendingRecordsBadge userId={user?.id || null} />
           </div>
 
-          <div ref={conteudoRef} className="flex-1 overflow-y-auto p-4 lg:p-6 pt-[60px] lg:pt-6">
+          <div ref={conteudoRef} onScroll={guardarPosicao} className="flex-1 overflow-y-auto p-4 lg:p-6 pt-[60px] lg:pt-6">
             <Suspense fallback={<LoadingState />}>{renderPage()}</Suspense>
           </div>
         </main>
