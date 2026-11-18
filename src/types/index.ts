@@ -65,7 +65,7 @@ export interface RegistroRecepcao {
   horaFim?: string;
   atividades: {
     atividadeId: string;
-    status: 'pendente' | 'realizada' | 'nao_realizada';
+    status: 'pendente' | 'realizada' | 'nao_realizada' | 'nao_aplicavel';
   }[];
   observacoes: string;
   fotos: string[];
@@ -103,7 +103,7 @@ export interface RegistroCamararia {
   horaFim?: string;
   atividades: {
     atividadeId: string;
-    status: 'pendente' | 'realizada' | 'nao_realizada';
+    status: 'pendente' | 'realizada' | 'nao_realizada' | 'nao_aplicavel';
   }[];
   observacoes: string;
   fotos: string[];
@@ -120,7 +120,7 @@ export interface RegistroRevisao {
   horaFim?: string;
   atividades: {
     atividadeId: string;
-    status: 'pendente' | 'realizada';
+    status: 'pendente' | 'realizada' | 'nao_aplicavel';
   }[];
   observacoes: string;
   fotos: string[];
@@ -136,7 +136,7 @@ export interface RegistroAreasComuns {
   horaFim?: string;
   atividades: {
     atividadeId: string;
-    status: 'pendente' | 'realizada' | 'nao_realizada';
+    status: 'pendente' | 'realizada' | 'nao_realizada' | 'nao_aplicavel';
   }[];
   observacoes: string;
   fotos: string[];

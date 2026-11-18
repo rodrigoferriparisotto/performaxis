@@ -12,6 +12,7 @@ import {
   FileText,
   CheckCircle,
   XCircle,
+  MinusCircle,
   Eye,
   ChevronDown,
   ChevronUp,
@@ -83,6 +84,8 @@ const HistoricoRecepcao: React.FC = () => {
     switch (status) {
       case 'realizada':
         return <CheckCircle className="w-4 h-4 text-green-600" />;
+      case 'nao_aplicavel':
+        return <MinusCircle className="w-4 h-4 text-gray-400" />;
       case 'nao_realizada':
         return <XCircle className="w-4 h-4 text-red-600" />;
       default:
@@ -94,6 +97,8 @@ const HistoricoRecepcao: React.FC = () => {
     switch (status) {
       case 'realizada':
         return 'bg-green-50 border-green-200 text-green-800';
+      case 'nao_aplicavel':
+        return 'bg-gray-50 border-gray-200 text-gray-500';
       case 'nao_realizada':
         return 'bg-red-50 border-red-200 text-red-800';
       default:
@@ -105,6 +110,8 @@ const HistoricoRecepcao: React.FC = () => {
     switch (status) {
       case 'realizada':
         return 'Realizada';
+      case 'nao_aplicavel':
+        return 'Não se aplica';
       case 'nao_realizada':
         return 'Não Realizada';
       default:

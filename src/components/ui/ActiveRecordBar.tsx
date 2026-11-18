@@ -22,6 +22,8 @@ interface ActiveRecordBarProps {
   detalhe?: React.ReactNode;
   concluidas: number;
   total: number;
+  /** percentual já calculado (checklist com "não se aplica"); se omitido, concluidas/total */
+  percentual?: number;
   /** início do registro (ISO) */
   inicio?: string | null;
   menuRecolhido: boolean;
@@ -45,11 +47,12 @@ export function ActiveRecordBar({
   detalhe,
   concluidas,
   total,
+  percentual,
   inicio,
   menuRecolhido,
 }: ActiveRecordBarProps) {
   const tema = TEMAS_MODULO[modulo];
-  const pct = total > 0 ? Math.round((concluidas / total) * 100) : 0;
+  const pct = percentual ?? (total > 0 ? Math.round((concluidas / total) * 100) : 0);
   const [minutos, setMinutos] = useState(() => minutosDesde(inicio));
 
   useEffect(() => {
