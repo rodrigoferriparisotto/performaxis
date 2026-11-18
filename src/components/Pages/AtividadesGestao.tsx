@@ -43,7 +43,7 @@ import {
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
 import { CamposRotina, lerCamposRotina } from '../common/CamposRotina';
-import { formatarHorarioPrevisto, formatarDuracao } from '../../utils/rotina';
+import { formatarHorarioPrevisto, formatarDuracao, sobreposicoesDeHorario } from '../../utils/rotina';
 import { FiltroTipos, atividadeNoTipo, nomesDosTipos } from '../common/FiltroTipos';
 import { alinharOrdemComHorario } from '../../lib/ordemAtividades';
 
@@ -334,6 +334,8 @@ const AtividadesGestao: React.FC = () => {
   const filteredAtividades = atividades.filter(atividade =>
     passaNaBusca(atividade) && atividadeNoTipo(atividade.tipos_gestao, tipoFiltro)
   );
+  // atividades que começam antes de outra terminar (mesmo tipo e dia da semana)
+  const alertasHorario = sobreposicoesDeHorario(atividades, (a: any) => a.tipos_gestao);
   const contarPorTipo = (filtro: string) =>
     atividades.filter(atividade => passaNaBusca(atividade) && atividadeNoTipo(atividade.tipos_gestao, filtro)).length;
 
@@ -422,7 +424,20 @@ const AtividadesGestao: React.FC = () => {
                             {formatarDuracao(atividade.duracao_prevista_min)}
                           </span>
                         )}
+                        {atividade.paralela && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-indigo-50 text-indigo-700 whitespace-nowrap">
+                            Paralela
+                          </span>
+                        )}
+                        {alertasHorario[atividade.id] && (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-800 border border-amber-200 whitespace-nowrap">
+                            ⚠️ Sobreposição
+                          </span>
+                        )}
                       </div>
+                      {alertasHorario[atividade.id] && (
+                        <p className="text-xs text-amber-800 mt-1">{alertasHorario[atividade.id]}</p>
+                      )}
                       {atividade.description && (
                         <p className="text-sm text-gray-600 mt-1 break-words">{atividade.description}</p>
                       )}
@@ -577,6 +592,7 @@ const AtividadesGestao: React.FC = () => {
               <CamposRotina
                 horario={editingActivity?.horario_previsto}
                 duracao={editingActivity?.duracao_prevista_min}
+                  paralela={editingActivity?.paralela}
               />
 
               <div>

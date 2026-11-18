@@ -5,6 +5,8 @@ interface Props {
   /** valores atuais (edição) */
   horario?: string | null;
   duracao?: number | null;
+  /** acontece junto com outras atividades */
+  paralela?: boolean | null;
   /** quando informados, mostra também a escolha dos dias da semana */
   dias?: string[];
   onDiasChange?: (dias: string[]) => void;
@@ -24,7 +26,7 @@ const ABREVIADO: Record<string, string> = {
  * Campos de rotina do cadastro de atividade. Os inputs têm name
  * horario_previsto / duracao_prevista_min para serem lidos com FormData.
  */
-export function CamposRotina({ horario, duracao, dias, onDiasChange }: Props) {
+export function CamposRotina({ horario, duracao, paralela, dias, onDiasChange }: Props) {
   const alternarDia = (dia: string) => {
     if (!dias || !onDiasChange) return;
     onDiasChange(dias.includes(dia) ? dias.filter((d) => d !== dia) : [...dias, dia]);
@@ -65,6 +67,21 @@ export function CamposRotina({ horario, duracao, dias, onDiasChange }: Props) {
         </div>
       </div>
 
+      <label className="flex items-start gap-2 cursor-pointer">
+        <input
+          type="checkbox"
+          name="paralela"
+          defaultChecked={!!paralela}
+          className="mt-0.5 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+        />
+        <span>
+          <span className="block text-sm font-medium text-gray-700">Acontece junto com outras (paralela)</span>
+          <span className="block text-xs text-gray-500">
+            Ex.: atender telefone durante o turno. Não gera alerta de sobreposição nem ocupa espaço na sugestão de horários.
+          </span>
+        </span>
+      </label>
+
       {dias && onDiasChange && (
         <div>
           <p className="text-sm font-medium text-gray-700 mb-1">Dias da semana</p>
@@ -99,5 +116,6 @@ export function lerCamposRotina(formData: FormData) {
   return {
     horario_previsto: horario || null,
     duracao_prevista_min: Number.isFinite(duracao) && duracao > 0 ? Math.min(Math.round(duracao), 720) : null,
+    paralela: formData.get('paralela') === 'on',
   };
 }

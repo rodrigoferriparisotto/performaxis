@@ -99,11 +99,13 @@ export function ordenarRotina<T extends { horario_previsto?: string | null; orde
  * (padrão 10 min), sem invadir o horário das tarefas fixas.
  * Devolve um mapa id → 'HH:MM' só para as que receberam sugestão.
  */
-export function sugerirHorarios<T extends { id: string; horario_previsto?: string | null; duracao_prevista_min?: number | null }>(
-  lista: T[],
+export function sugerirHorarios<T extends { id: string; horario_previsto?: string | null; duracao_prevista_min?: number | null; paralela?: boolean | null }>(
+  listaCompleta: T[],
   inicioMin: number,
   duracaoPadrao = 10
 ): Record<string, string> {
+  // paralelas acontecem junto com as outras: não ocupam a agenda nem recebem encaixe
+  const lista = listaCompleta.filter((t) => !t.paralela);
   const fixas = lista
     .map((t) => ({ ini: minutosDoDia(t.horario_previsto), dur: t.duracao_prevista_min || duracaoPadrao }))
     .filter((t): t is { ini: number; dur: number } => t.ini !== null)
@@ -130,4 +132,52 @@ export function sugerirHorarios<T extends { id: string; horario_previsto?: strin
     cursor += dur;
   }
   return sugestoes;
+}
+
+const hhmm = (min: number) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+
+interface ItemAgenda {
+  id: string;
+  name?: string;
+  horario_previsto?: string | null;
+  duracao_prevista_min?: number | null;
+  dias_semana?: string[] | null;
+  paralela?: boolean | null;
+  active?: boolean | null;
+}
+
+/**
+ * Atividades que começam antes de outra terminar (cadastro da gestão).
+ * Só compara: ativas, com horário, não paralelas, do mesmo grupo (tipo/serviço;
+ * `grupos` devolve os ids, lista vazia = vale para todos) e que caem num mesmo
+ * dia da semana (sem dias marcados = todos). Sem duração conta como 1 minuto.
+ * Devolve id → texto do alerta.
+ */
+export function sobreposicoesDeHorario<T extends ItemAgenda>(
+  lista: T[],
+  grupos: (item: T) => string[] | null | undefined = () => []
+): Record<string, string> {
+  const itens = lista
+    .filter((a) => a.active !== false && !a.paralela && minutosDoDia(a.horario_previsto) !== null)
+    .map((a) => {
+      const ini = minutosDoDia(a.horario_previsto) as number;
+      return { a, ini, fim: ini + Math.max(1, a.duracao_prevista_min || 0), grupos: grupos(a) || [], dias: a.dias_semana || [] };
+    });
+  const mesmoGrupo = (x: string[], y: string[]) => x.length === 0 || y.length === 0 || x.some((g) => y.includes(g));
+  const mesmoDia = (x: string[], y: string[]) => x.length === 0 || y.length === 0 || x.some((d) => y.includes(d));
+
+  const alertas: Record<string, string> = {};
+  for (const x of itens) {
+    // conflita com quem começou antes (ou no mesmo minuto) e ainda não terminou
+    const conflitos = itens.filter(
+      (y) => y.a.id !== x.a.id && y.ini <= x.ini && x.ini < y.fim
+        && mesmoGrupo(x.grupos, y.grupos) && mesmoDia(x.dias, y.dias)
+    );
+    if (conflitos.length) {
+      alertas[x.a.id] = 'Sobrepõe ' + conflitos
+        .map((y) => `“${y.a.name || 'outra atividade'}” (${hhmm(y.ini)}–${hhmm(y.fim)})`)
+        .join(', ') + '. Ajuste o horário ou marque como paralela.';
+    }
+  }
+  return alertas;
 }
