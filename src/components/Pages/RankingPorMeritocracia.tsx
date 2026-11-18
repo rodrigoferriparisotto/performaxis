@@ -9,8 +9,6 @@ import { supabase } from '../../lib/supabase';
 import { notificar } from '../../lib/feedback';
 import { CONFIG_PADRAO, ESTILO_FAIXA, MeritocraciaConfig, normalizarConfig } from '../Dashboard/meritocracia';
 
-const LIMITE_PREMIO = 200;
-
 /** Modal do gestor: pesos do índice e prêmios do mês. */
 function ModalConfigMeritocracia({
   config,
@@ -28,7 +26,7 @@ function ModalConfigMeritocracia({
     peso_qualidade: String(config.peso_qualidade),
     peso_ritmo: String(config.peso_ritmo),
   });
-  const [premios, setPremios] = useState({
+  const [premios] = useState({
     premio_selo: config.premio_selo,
     premio_ouro: config.premio_ouro,
     premio_prata: config.premio_prata,
@@ -40,12 +38,6 @@ function ModalConfigMeritocracia({
     { chave: 'peso_uso', rotulo: 'Uso' },
     { chave: 'peso_qualidade', rotulo: 'Qualidade' },
     { chave: 'peso_ritmo', rotulo: 'Ritmo' },
-  ];
-  const camposPremio: { chave: keyof typeof premios; rotulo: string; exemplo: string }[] = [
-    { chave: 'premio_selo', rotulo: 'Selo 100% Performaxis', exemplo: 'Ex.: Folga extra' },
-    { chave: 'premio_ouro', rotulo: 'Faixa Ouro', exemplo: 'Ex.: Rancho (cesta básica)' },
-    { chave: 'premio_prata', rotulo: 'Faixa Prata', exemplo: 'Ex.: Vale-lanche' },
-    { chave: 'premio_bronze', rotulo: 'Faixa Bronze', exemplo: 'Ex.: Reconhecimento no mural' },
   ];
 
   const soma = camposPeso.reduce((acc, c) => acc + (Number(pesos[c.chave]) || 0), 0);
@@ -132,25 +124,6 @@ function ModalConfigMeritocracia({
             </p>
           </section>
 
-          <section>
-            <h3 className="text-sm font-semibold text-gray-800 mb-1">Prêmios do mês</h3>
-            <p className="text-xs text-gray-500 mb-3">Deixe em branco o que não tiver prêmio. Aparece para toda a equipe.</p>
-            <div className="space-y-3">
-              {camposPremio.map((c) => (
-                <label key={c.chave} className="block">
-                  <span className="text-xs font-medium text-gray-600">{c.rotulo}</span>
-                  <input
-                    type="text"
-                    maxLength={LIMITE_PREMIO}
-                    value={premios[c.chave]}
-                    placeholder={c.exemplo}
-                    onChange={(e) => setPremios((p) => ({ ...p, [c.chave]: e.target.value.slice(0, LIMITE_PREMIO) }))}
-                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </label>
-              ))}
-            </div>
-          </section>
         </div>
 
         <div className="sticky bottom-0 bg-white flex gap-2 justify-end px-5 py-4 border-t border-gray-200">
@@ -207,6 +180,13 @@ const RankingPorMeritocracia: React.FC = () => {
       });
   }, [semEmpresa]);
 
+  // moeda de prêmios: quanto cada faixa vale (sem reais para a equipe)
+  const [moeda, setMoeda] = useState<{ nome_moeda: string; credito_ouro: number; credito_prata: number; credito_bronze: number; credito_selo: number } | null>(null);
+  useEffect(() => {
+    if (!empresaId) return;
+    supabase.rpc('premios_config', { p_empresa: empresaId }).then(({ data }) => setMoeda((data as any) || null));
+  }, [empresaId]);
+
   useEffect(() => {
     if (!empresaId) return;
     let ativo = true;
@@ -238,12 +218,16 @@ const RankingPorMeritocracia: React.FC = () => {
     { value: 'atividades_extras', label: 'Atividades Extras' }
   ];
 
-  const premios = [
-    { chave: 'selo', rotulo: 'Selo 100% Performaxis', texto: config.premio_selo, badge: 'bg-emerald-50 text-emerald-800 border-emerald-300', icone: BadgeCheck },
-    { chave: 'ouro', rotulo: 'Ouro', texto: config.premio_ouro, badge: ESTILO_FAIXA.ouro.badge, icone: Award },
-    { chave: 'prata', rotulo: 'Prata', texto: config.premio_prata, badge: ESTILO_FAIXA.prata.badge, icone: Award },
-    { chave: 'bronze', rotulo: 'Bronze', texto: config.premio_bronze, badge: ESTILO_FAIXA.bronze.badge, icone: Award },
-  ].filter((p) => p.texto.trim() !== '');
+  const valor = (n: number) => `${n.toLocaleString('pt-BR')} ${moeda?.nome_moeda || 'Lhamas'}`;
+  // para a equipe, o programa só aparece quando a empresa liberou (senão vem só { visivel_equipe: false })
+  const premios = moeda && typeof moeda.credito_ouro === 'number'
+    ? [
+        { chave: 'ouro', rotulo: 'Ouro', texto: valor(moeda.credito_ouro), qtd: moeda.credito_ouro, badge: ESTILO_FAIXA.ouro.badge, icone: Award },
+        { chave: 'prata', rotulo: 'Prata', texto: valor(moeda.credito_prata), qtd: moeda.credito_prata, badge: ESTILO_FAIXA.prata.badge, icone: Award },
+        { chave: 'bronze', rotulo: 'Bronze', texto: valor(moeda.credito_bronze), qtd: moeda.credito_bronze, badge: ESTILO_FAIXA.bronze.badge, icone: Award },
+        { chave: 'selo', rotulo: 'Selo 100% Performaxis', texto: `+${valor(moeda.credito_selo)}`, qtd: moeda.credito_selo, badge: 'bg-emerald-50 text-emerald-800 border-emerald-300', icone: BadgeCheck },
+      ].filter((p) => p.qtd > 0)
+    : [];
 
   if (!empresaId) {
     if (semEmpresa && empresas.length === 0) {
@@ -334,19 +318,21 @@ const RankingPorMeritocracia: React.FC = () => {
         </div>
       </div>
 
-      {(premios.length > 0 || podeConfigurar) && (
+      {premios.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-4 sm:p-5">
           <div className="flex items-center justify-between gap-3 mb-3">
             <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
               <Gift className="w-5 h-5 text-pink-600" />
-              Prêmios do mês
+              Quanto vale cada faixa no mês
             </h3>
+            <button
+              onClick={() => { window.location.hash = 'premios'; }}
+              className="px-3 py-1.5 rounded-lg border border-pink-200 text-pink-700 text-sm font-medium hover:bg-pink-50"
+            >
+              Ver prêmios
+            </button>
           </div>
-          {premios.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              Nenhum prêmio cadastrado. Use <strong>Configurar</strong> para definir os prêmios por faixa e do selo.
-            </p>
-          ) : (
+          {premios.length === 0 ? null : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {premios.map((p) => {
                 const Icone = p.icone;

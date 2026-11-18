@@ -36,9 +36,12 @@ import {
   Rocket,
   LayoutGrid,
   SlidersHorizontal,
+  Gift,
+  ClipboardCheck,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
+import { supabase } from '../../lib/supabase';
 
 interface SidebarProps {
   currentPage: string;
@@ -60,7 +63,7 @@ type Grupo = 'setores' | 'relatorios' | 'sistema' | 'cadastros' | 'admin';
 const SETORES_SOLTOS_ATE = 3;
 
 const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, onToggle }) => {
-  const { user, logout, hasAccess, hasModuleAccess } = useAuth();
+  const { user, empresa, logout, hasAccess, hasModuleAccess } = useAuth();
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const ehGestao = user?.profile === 'admin' || user?.profile === 'gestor';
 
@@ -83,6 +86,21 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
   ].filter((i) => i.access);
 
   const verAcessos: ItemMenu = { id: 'ver-acessos', label: 'Ver Acessos', icon: Eye, access: hasAccess('ver_acessos') };
+  // a equipe só vê os prêmios quando a empresa liberou (cadastro da empresa)
+  const premiosItem: ItemMenu = { id: 'premios', label: 'Prêmios', icon: Gift, access: ehGestao || empresa?.premios_visivel_equipe === true };
+  const premiosGestaoItem: ItemMenu = { id: 'premios-gestao', label: 'Gestão de prêmios', icon: ClipboardCheck, access: ehGestao };
+
+  // pedidos de troca aguardando entrega (aviso no menu da gestão)
+  const [pedidosPendentes, setPedidosPendentes] = React.useState(0);
+  React.useEffect(() => {
+    if (!ehGestao || !user?.empresaId) return;
+    supabase
+      .from('resgates')
+      .select('id', { count: 'exact', head: true })
+      .eq('empresa_id', user.empresaId)
+      .eq('status', 'solicitado')
+      .then(({ count }) => setPedidosPendentes(count || 0));
+  }, [ehGestao, user?.empresaId, currentPage]);
 
   const relatoriosItems: ItemMenu[] = [
     { id: 'dashboard-relatorios', label: 'Visão Geral', icon: FileText },
@@ -205,7 +223,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
     ) : null;
 
   // item de primeiro nível (também aparece com o menu recolhido)
-  const renderItem = (item: ItemMenu) => {
+  const renderItem = (item: ItemMenu, contador = 0) => {
     const Icon = item.icon;
     const isActive = currentPage === item.id;
     return (
@@ -219,6 +237,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
       >
         <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
         <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+        {contador > 0 && (
+          <span className={`ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-red-500 text-white text-[11px] font-semibold flex items-center justify-center ${isCollapsed ? 'lg:absolute lg:top-0 lg:right-3 lg:ml-0' : ''}`}>
+            {contador}
+          </span>
+        )}
         <Dica texto={item.label} />
       </button>
     );
@@ -301,12 +324,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
 
   const menuOperacao = (
     <>
-      {topoItems.filter((i) => i.access).map(renderItem)}
+      {topoItems.filter((i) => i.access).map((i) => renderItem(i))}
 
       {/* Setores: agrupados para quem tem muitos; soltos para quem tem poucos (e no menu recolhido) */}
       {setoresAgrupados && !isCollapsed
         ? renderGrupo('setores', 'Setores', LayoutGrid, contem(setoresItems), setoresItems.map((i) => renderSubItem(i)))
-        : setoresItems.map(renderItem)}
+        : setoresItems.map((i) => renderItem(i))}
+
+      {premiosItem.access && renderItem(premiosItem)}
+      {premiosGestaoItem.access && renderItem(premiosGestaoItem, pedidosPendentes)}
 
       {verAcessos.access && renderItem(verAcessos)}
 

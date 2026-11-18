@@ -128,7 +128,8 @@ const Empresa: React.FC = () => {
       valor_mensalidade: formData.get('valorMensalidade') ? parseFloat(formData.get('valorMensalidade') as string) : 0,
       tipo_pagamento: formData.get('tipoPagamento') as string || null,
       forma_pagamento: formData.get('formaPagamento') as string || null,
-      modulos_contratados: modulosSelecionados
+      modulos_contratados: modulosSelecionados,
+      premios_visivel_equipe: formData.get('premiosVisivelEquipe') === 'on'
     };
     
     // Dados do usuário gestor (apenas para nova empresa)
@@ -845,6 +846,23 @@ const Empresa: React.FC = () => {
                 <p className="text-xs text-gray-500 mt-1">
                   ⚠️ Ao marcar como inativa, todos os usuários da empresa também serão inativados
                 </p>
+              </div>
+
+              <div>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="premiosVisivelEquipe"
+                    defaultChecked={editingEmpresa?.premios_visivel_equipe === true}
+                    className="mt-0.5 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <span>
+                    <span className="block text-sm font-medium text-gray-700">Programa de prêmios visível para a equipe</span>
+                    <span className="block text-xs text-gray-500">
+                      Desligado, o saldo continua sendo creditado todo mês, mas só a gestão vê. Ligado, a equipe vê o saldo, o catálogo e pode pedir trocas.
+                    </span>
+                  </span>
+                </label>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

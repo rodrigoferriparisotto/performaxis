@@ -105,6 +105,8 @@ const RecalcularPerformance = lazyComRecarga(() => import('./Pages/RecalcularPer
 const MonitoramentoPerformance = lazyComRecarga(() => import('./Pages/MonitoramentoPerformance'));
 const ConfiguracaoMetas = lazyComRecarga(() => import('./Pages/ConfiguracaoMetas'));
 const RankingPorMeritocracia = lazyComRecarga(() => import('./Pages/RankingPorMeritocracia'));
+const Premios = lazyComRecarga(() => import('./Pages/Premios'));
+const PremiosGestao = lazyComRecarga(() => import('./Pages/PremiosGestao'));
 const PublicarVersao = lazyComRecarga(() => import('./Pages/PublicarVersao').then((m) => ({ default: m.PublicarVersao })));
 const EnviarMensagem = lazyComRecarga(() => import('./Pages/EnviarMensagem').then((m) => ({ default: m.EnviarMensagem })));
 const ConfiguracoesLembretes = lazyComRecarga(() => import('./Pages/ConfiguracoesLembretes'));
@@ -159,7 +161,7 @@ const MainAppContent: React.FC = () => {
   const [authView, setAuthView] = useState<'landing' | 'login' | 'register' | 'reset'>('landing');
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showBatteryGuideModal, setShowBatteryGuideModal] = useState(false);
-  const { user, loading, login } = useAuth();
+  const { user, empresa, loading, login } = useAuth();
 
   const reminderChecker = useReminderChecker({
     userId: user?.id || null,
@@ -635,6 +637,13 @@ const MainAppContent: React.FC = () => {
         return <ConfiguracaoMetas />;
       case 'ranking-meritocracia':
         return <RankingPorMeritocracia />;
+      case 'premios':
+        return user?.profile === 'admin' || user?.profile === 'gestor' || empresa?.premios_visivel_equipe === true
+          ? <Premios />
+          : <div className="p-6 text-sm text-gray-600">O programa de prêmios ainda não está disponível.</div>;
+      case 'premios-gestao':
+        // só a gestão; os demais caem nos próprios prêmios
+        return user?.profile === 'admin' || user?.profile === 'gestor' ? <PremiosGestao /> : <Premios />;
       case 'publicar-versao':
         return <PublicarVersao />;
       case 'enviar-mensagem':
