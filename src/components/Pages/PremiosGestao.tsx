@@ -114,6 +114,20 @@ const CONFIG_PADRAO: PremiosConfig = {
 /** Escada padrão de valores de prêmio (R$). */
 const ESCADA_REAIS = [50, 80, 240, 480, 960];
 
+const ROTULO_PERFIL: Record<string, string> = {
+  admin: 'Administração',
+  gestor: 'Gestão',
+  recepcao: 'Recepção',
+  camararia: 'Governança',
+  revisao: 'Revisão',
+  areas_comuns: 'Áreas Comuns',
+  manutencao: 'Manutenção',
+  cozinha: 'Cozinha',
+  vendas: 'Vendas',
+  atividades_diarias: 'Atividades Diárias',
+  atividades_extras: 'Atividades Extras',
+};
+
 const ROTULO_MOVIMENTO: Record<Movimento['tipo'], string> = {
   credito: 'Crédito do mês',
   troca: 'Troca por prêmio',
@@ -1250,13 +1264,13 @@ function AbaEquipe({
         </div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-          <div className="hidden lg:grid grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_auto] gap-3 px-5 py-2 border-b border-gray-100 text-xs font-medium text-gray-500 uppercase">
+          <div className="hidden xl:grid grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_360px] gap-3 px-5 py-2 border-b border-gray-100 text-xs font-medium text-gray-500 uppercase">
             <span>Pessoa</span>
             <span className="text-right">Saldo</span>
             <span className="text-right">Recebido</span>
             <span className="text-right">Trocado</span>
             <span className="text-right">Perdido</span>
-            <span className="w-[300px]" />
+            <span />
           </div>
           <ul className="divide-y divide-gray-100">
             {visiveis.map((s) => {
@@ -1264,7 +1278,7 @@ function AbaEquipe({
               return (
                 <li
                   key={s.usuario_id}
-                  className="px-4 lg:px-5 py-3 flex flex-col gap-2 lg:grid lg:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_auto] lg:gap-3 lg:items-center"
+                  className="px-4 xl:px-5 py-3 flex flex-col gap-2 xl:grid xl:grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_360px] xl:gap-3 xl:items-center"
                 >
                   <div className="min-w-0">
                     <p className="font-medium text-gray-900 break-words">
@@ -1275,15 +1289,15 @@ function AbaEquipe({
                         </span>
                       )}
                     </p>
-                    {s.perfil && <p className="text-xs text-gray-500">{s.perfil}</p>}
+                    {s.perfil && <p className="text-xs text-gray-500">{ROTULO_PERFIL[s.perfil] || s.perfil}</p>}
                   </div>
-                  <div className="grid grid-cols-4 gap-2 text-xs lg:contents lg:text-sm">
+                  <div className="grid grid-cols-4 gap-2 text-xs xl:contents xl:text-sm">
                     <Numero rotulo="Saldo" valor={s.saldo} reais={num(s.valor_reais, num(s.saldo) / config.fator_real)} forte />
                     <Numero rotulo="Recebido" valor={s.recebido} />
                     <Numero rotulo="Trocado" valor={s.trocado} />
                     <Numero rotulo="Perdido" valor={s.perdido} />
                   </div>
-                  <div className="flex flex-wrap gap-2 lg:justify-end lg:w-[300px]">
+                  <div className="flex flex-wrap gap-2 xl:justify-end xl:w-[360px] xl:flex-nowrap">
                     <button onClick={() => setExtrato(s)} className={CLASSE_BOTAO_SECUNDARIO}>
                       <FileText className="w-4 h-4" />
                       Extrato
@@ -1332,8 +1346,8 @@ function AbaEquipe({
 
 function Numero({ rotulo, valor, reais, forte = false }: { rotulo: string; valor: number; reais?: number; forte?: boolean }) {
   return (
-    <div className="min-w-0 lg:text-right">
-      <p className="text-gray-500 lg:hidden">{rotulo}</p>
+    <div className="min-w-0 xl:text-right">
+      <p className="text-gray-500 xl:hidden">{rotulo}</p>
       <p className={`tabular-nums ${forte ? 'font-bold text-gray-900' : 'text-gray-800'}`}>{inteiro(valor)}</p>
       {reais !== undefined && <p className="text-xs text-gray-500 tabular-nums">{brl(reais)}</p>}
     </div>
