@@ -8,6 +8,7 @@ import {
   Calendar,
   Play,
   Square,
+  MinusSquare,
   CheckSquare,
   FileText,
   Clock,
@@ -30,6 +31,8 @@ import { nomeSuite } from '../../utils/nomeSuite';
 import { ordenarRotina, atividadeValeHoje } from '../../utils/rotina';
 import { HorarioItem } from '../common/HorarioItem';
 import { revisarEncerramento } from '../../lib/encerramento';
+import { progressoChecklist, alternarRealizada, alternarNaoAplicavel } from '../../lib/checklist';
+import { BotaoNaoSeAplica } from '../common/BotaoNaoSeAplica';
 import { ordenarFilaRevisao, prioridadeRevisao } from '../../utils/revisao';
 
 const NovoRegistroRevisao: React.FC = () => {
@@ -259,14 +262,14 @@ const NovoRegistroRevisao: React.FC = () => {
     }
   };
 
-  const toggleAtividade = async (atividadeId: string) => {
+  const toggleAtividade = async (atividadeId: string, proximoStatus: (status: string) => string = alternarRealizada) => {
     if (!registroAtivo) return;
 
     const atividadesAtualizadas = registroAtivo.atividades.map((a: any) => {
       if (a.atividade_id === atividadeId) {
         return {
           ...a,
-          status: a.status === 'pendente' ? 'realizada' : 'pendente'
+          status: proximoStatus(a.status)
         };
       }
       return a;
@@ -302,7 +305,7 @@ const NovoRegistroRevisao: React.FC = () => {
     // conferência: registro rápido (pergunta o tempo real) e itens não feitos (observação final)
     const conferencia = await revisarEncerramento({
       horaInicio: registroAtivo.hora_inicio,
-      itensNaoFeitos: (registroAtivo.atividades || []).filter((a: any) => a.status !== 'realizada').length,
+      itensNaoFeitos: progressoChecklist(registroAtivo.atividades).pendentes,
       observacao: observacoes,
       pedirResultado: true,
     });
@@ -407,6 +410,8 @@ const NovoRegistroRevisao: React.FC = () => {
     switch (status) {
       case 'realizada':
         return <CheckSquare className="w-5 h-5 text-green-600" />;
+      case 'nao_aplicavel':
+        return <MinusSquare className="w-5 h-5 text-gray-400" />;
       case 'pendente':
         return <Square className="w-5 h-5 text-gray-400" />;
       default:
@@ -418,6 +423,8 @@ const NovoRegistroRevisao: React.FC = () => {
     switch (status) {
       case 'realizada':
         return 'bg-green-50 border-green-200 text-green-800';
+      case 'nao_aplicavel':
+        return 'bg-gray-100 border-gray-200 text-gray-500';
       case 'pendente':
         return 'bg-gray-50 border-gray-200 text-gray-800';
       default:
@@ -461,8 +468,8 @@ const NovoRegistroRevisao: React.FC = () => {
     Math.floor((Date.now() - new Date(registroAtivo.hora_inicio).getTime()) / (1000 * 60)) : 0;
 
   // Calcular progresso e frase motivacional
-  const progressPercentage = registroAtivo ? 
-    Math.round((registroAtivo.atividades.filter((a: any) => a.status === 'realizada').length / registroAtivo.atividades.length) * 100) : 0;
+  const progresso = progressoChecklist(registroAtivo?.atividades);
+  const progressPercentage = progresso.percentual;
   
   const motivationalPhrase = getRandomMotivationalPhrase(progressPercentage, registroAtivo?.id, user?.name);
   const motivationalTextColor = getMotivationalColor(progressPercentage);
@@ -542,8 +549,9 @@ const NovoRegistroRevisao: React.FC = () => {
           modulo="revisao"
           icon={Eye}
           detalhe={<>{getSuiteNome(registroAtivo.suite_id)}</>}
-          concluidas={registroAtivo.atividades.filter((a: any) => a.status === 'realizada').length}
-          total={registroAtivo.atividades.length}
+          concluidas={progresso.realizadas}
+          total={progresso.aplicaveis}
+          percentual={progresso.percentual}
           inicio={registroAtivo.hora_inicio}
           menuRecolhido={isCollapsed}
         />
@@ -710,14 +718,17 @@ const NovoRegistroRevisao: React.FC = () => {
                     <div key={index} className="flex items-center space-x-2 text-sm">
                       {atividade.status === 'realizada' ? (
                         <CheckSquare className="w-4 h-4 text-green-600" />
+                      ) : atividade.status === 'nao_aplicavel' ? (
+                        <MinusSquare className="w-4 h-4 text-gray-400" />
                       ) : (
                         <Square className="w-4 h-4 text-red-600" />
                       )}
-                      <span className={atividade.status === 'realizada' ? 'text-gray-800' : 'text-red-600'}>
+                      <span className={atividade.status === 'realizada' ? 'text-gray-800' : atividade.status === 'nao_aplicavel' ? 'text-gray-500' : 'text-red-600'}>
                         {getAtividadeNome(atividade.atividade_id || atividade.atividadeId)}
                       </span>
                       <span className="text-xs text-gray-500">
-                        ({atividade.status === 'realizada' ? 'Realizada' : 
+                        ({atividade.status === 'realizada' ? 'Realizada' :
+                          atividade.status === 'nao_aplicavel' ? 'Não se aplica' :
                           atividade.status === 'nao_realizada' ? 'Não Realizada' : 'Pendente'})
                       </span>
                     </div>
@@ -833,22 +844,27 @@ const NovoRegistroRevisao: React.FC = () => {
                   )?.status || 'pendente';
 
                   return (
-                    <button
-                      key={atividade.id}
-                      onClick={() => toggleAtividade(atividade.id)}
-                      className={`w-full p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-md ${getStatusColor(atividadeStatus)}`}
-                    >
-                      <div className="flex items-center space-x-3">
-                        {getStatusIcon(atividadeStatus)}
-                        <div className="flex-1">
-                          <h4 className="font-medium">{atividade.name}</h4>
-                          <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} />
-                          {atividade.description && (
-                            <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
-                          )}
+                    <div key={atividade.id} className="flex items-stretch gap-2">
+                      <button
+                        onClick={() => toggleAtividade(atividade.id)}
+                        className={`flex-1 min-w-0 p-4 rounded-lg border-2 text-left transition-all duration-200 hover:shadow-md ${getStatusColor(atividadeStatus)}`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          {getStatusIcon(atividadeStatus)}
+                          <div className="flex-1">
+                            <h4 className="font-medium">{atividade.name}</h4>
+                            <HorarioItem horario={atividade.horario_previsto} duracao={atividade.duracao_prevista_min} status={atividadeStatus} />
+                            {atividade.description && (
+                              <p className="text-sm text-gray-600 mt-1">{atividade.description}</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </button>
+                      </button>
+                      <BotaoNaoSeAplica
+                        ativo={atividadeStatus === 'nao_aplicavel'}
+                        onClick={() => toggleAtividade(atividade.id, alternarNaoAplicavel)}
+                      />
+                    </div>
                   );
                 })}
               </div>

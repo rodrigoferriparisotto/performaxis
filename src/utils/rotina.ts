@@ -67,7 +67,8 @@ export type SituacaoHorario = 'sem_horario' | 'futura' | 'agora' | 'atrasada' | 
 export function situacaoHorario(horario: string | null | undefined, statusItem: string, agora = new Date()): SituacaoHorario {
   const previsto = minutosDoDia(horario);
   if (previsto === null) return 'sem_horario';
-  if (statusItem === 'realizada' || statusItem === 'nao_realizada') return 'feita';
+  // "não se aplica" (sem demanda no dia) também sai da fila: nunca aparece como atrasada
+  if (statusItem === 'realizada' || statusItem === 'nao_realizada' || statusItem === 'nao_aplicavel') return 'feita';
   const atual = minutosAgora(agora);
   if (atual < previsto) return 'futura';
   if (atual <= previsto + TOLERANCIA_ATRASO_MIN) return 'agora';

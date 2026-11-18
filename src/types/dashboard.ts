@@ -18,7 +18,7 @@ export interface DepartmentData {
 
 export interface Atividade {
   nome: string;
-  status: 'realizada' | 'nao_realizada' | 'pendente' | 'em_andamento' | 'pausada';
+  status: 'realizada' | 'nao_realizada' | 'nao_aplicavel' | 'pendente' | 'em_andamento' | 'pausada';
   tipo?: string;
   descricao?: string;
   prioridade?: string;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Clock, MapPin, User, CheckCircle, Circle, XCircle, Wrench, AlertTriangle, Pause } from 'lucide-react';
+import { X, Clock, MapPin, User, CheckCircle, Circle, XCircle, MinusCircle, Wrench, AlertTriangle, Pause } from 'lucide-react';
 import { UsuarioAtivo } from '../../types/dashboard';
 import { DashboardService } from '../../services/dashboardService';
 
@@ -20,6 +20,8 @@ const DetailModal: React.FC<DetailModalProps> = ({ usuario, onClose }) => {
     switch (status) {
       case 'realizada':
         return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'nao_aplicavel':
+        return <MinusCircle className="w-5 h-5 text-gray-400" />;
       case 'nao_realizada':
         return <XCircle className="w-5 h-5 text-red-500" />;
       case 'em_andamento':
@@ -35,6 +37,8 @@ const DetailModal: React.FC<DetailModalProps> = ({ usuario, onClose }) => {
     switch (status) {
       case 'realizada':
         return 'Realizada';
+      case 'nao_aplicavel':
+        return 'Não se aplica';
       case 'nao_realizada':
         return 'Não Realizada';
       case 'em_andamento':
@@ -50,6 +54,8 @@ const DetailModal: React.FC<DetailModalProps> = ({ usuario, onClose }) => {
     switch (status) {
       case 'realizada':
         return 'bg-green-50 border-green-200';
+      case 'nao_aplicavel':
+        return 'bg-gray-50 border-gray-200';
       case 'nao_realizada':
         return 'bg-red-50 border-red-200';
       case 'em_andamento':
