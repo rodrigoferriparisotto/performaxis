@@ -98,7 +98,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
 
   return (
     <div className="min-h-screen bg-white">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-blue-900 via-blue-700 to-blue-600 shadow-lg">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-marinho border-b border-white/10 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-4">
             <div className="flex flex-col items-start">
@@ -107,7 +107,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 alt="PERFORMAXIS - Sistema de Gestão Inteligente para Hotéis, Pousadas, Hospitais e Salões de Beleza"
                 className="h-10 md:h-12 w-auto object-contain mb-1"
               />
-              <p className="text-xs text-blue-200">Gestão Inteligente, Resultados Reais</p>
+              <p className="text-xs text-slate-300">Gestão Inteligente, Resultados Reais</p>
             </div>
 
             <button
@@ -127,7 +127,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                   className={`px-4 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 transition-colors text-gray-900 ${
                     hasError
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-blue-400 focus:ring-blue-300'
+                      : 'border-slate-500 focus:ring-slate-300'
                   }`}
                   required
                 />
@@ -146,7 +146,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                   className={`px-4 py-2 pr-20 rounded-lg border-2 focus:outline-none focus:ring-2 transition-colors text-gray-900 ${
                     hasError
                       ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                      : 'border-blue-400 focus:ring-blue-300'
+                      : 'border-slate-500 focus:ring-slate-300'
                   }`}
                   required
                 />
@@ -167,21 +167,21 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
               <button
                 type="submit"
                 disabled={loading}
-                className="px-6 py-2 bg-white text-blue-700 rounded-lg font-semibold hover:bg-blue-50 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-white text-institucional rounded-lg font-semibold hover:bg-slate-100 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Entrando...' : 'Acessar'}
               </button>
               {/* <button
                 type="button"
                 onClick={onRegister}
-                className="px-6 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-400 transition-colors shadow-md"
+                className="px-6 py-2 bg-institucional text-white rounded-lg font-semibold hover:bg-institucional-claro transition-colors shadow-md"
               >
                 Registrar
               </button> */}
               <button
                 type="button"
                 onClick={onForgotPassword}
-                className="text-sm text-blue-200 hover:text-white transition-colors underline"
+                className="text-sm text-slate-300 hover:text-white transition-colors underline"
               >
                 Esqueci minha senha
               </button>
@@ -189,7 +189,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
 
           {mobileMenuOpen && (
-            <div className="lg:hidden pb-4 border-t border-blue-500 mt-4 pt-4">
+            <div className="lg:hidden pb-4 border-t border-white/10 mt-4 pt-4">
               <form onSubmit={handleSubmit} className="flex flex-col space-y-3">
                 <div className="relative">
                   <input
@@ -200,7 +200,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                     className={`w-full px-4 py-2 rounded-lg border-2 focus:outline-none focus:ring-2 transition-colors text-gray-900 ${
                       hasError
                         ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                        : 'border-blue-400 focus:ring-blue-300'
+                        : 'border-slate-500 focus:ring-slate-300'
                     }`}
                     required
                   />
@@ -219,7 +219,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                     className={`w-full px-4 py-2 pr-20 rounded-lg border-2 focus:outline-none focus:ring-2 transition-colors text-gray-900 ${
                       hasError
                         ? 'border-red-500 bg-red-50 focus:ring-red-500'
-                        : 'border-blue-400 focus:ring-blue-300'
+                        : 'border-slate-500 focus:ring-slate-300'
                     }`}
                     required
                   />
@@ -241,14 +241,14 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                   <button
                     type="submit"
                     disabled={loading}
-                    className="flex-1 px-4 py-2 bg-white text-blue-700 rounded-lg font-semibold hover:bg-blue-50 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2 bg-white text-institucional rounded-lg font-semibold hover:bg-slate-100 transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {loading ? 'Entrando...' : 'Acessar'}
                   </button>
                   {/* <button
                     type="button"
                     onClick={onRegister}
-                    className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-400 transition-colors shadow-md"
+                    className="flex-1 px-4 py-2 bg-institucional text-white rounded-lg font-semibold hover:bg-institucional-claro transition-colors shadow-md"
                   >
                     Registrar
                   </button> */}
@@ -256,7 +256,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 <button
                   type="button"
                   onClick={onForgotPassword}
-                  className="text-sm text-blue-200 hover:text-white transition-colors underline"
+                  className="text-sm text-slate-300 hover:text-white transition-colors underline"
                 >
                   Esqueci minha senha
                 </button>
@@ -292,7 +292,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
       )}
 
       <main className="pt-24">
-        <section className="relative bg-gradient-to-br from-blue-900 via-blue-700 to-blue-600 text-white py-20 overflow-hidden">
+        <section className="relative bg-marinho text-white py-20 overflow-hidden">
           <div className="absolute inset-0 bg-black opacity-10"></div>
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <div className="mb-8">
@@ -306,10 +306,10 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 text-white leading-tight">
               PERFORMAXIS Gestão de Equipes de Pousadas, Hotéis, Hospitais e Salões de Beleza
             </h1>
-            <p className="text-xl md:text-2xl font-light mb-8 text-blue-100 max-w-5xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl font-light mb-8 text-slate-200 max-w-5xl mx-auto leading-relaxed">
               Sistema inteligente de gestão operacional de pousadas, hotéis, hospitais e salões de beleza. Automatize processos, aumente produtividade e garanta excelência com menos recursos.
             </p>
-            <p className="text-lg md:text-xl font-semibold text-blue-200">
+            <p className="text-lg md:text-xl font-semibold text-slate-300">
               Gestão Inteligente, Resultados Reais.
             </p>
           </div>
@@ -317,9 +317,9 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
 
         <section className="py-16 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="bg-gradient-to-br from-blue-50 to-white p-8 md:p-12 rounded-2xl shadow-xl">
+            <div className="bg-white border border-slate-200 p-8 md:p-12 rounded-2xl shadow-xl">
               <div className="flex items-start space-x-4 mb-6">
-                <div className="bg-blue-600 p-3 rounded-lg">
+                <div className="bg-institucional p-3 rounded-lg">
                   <Target className="text-white" size={32} />
                 </div>
                 <div>
@@ -341,16 +341,16 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </section>
 
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 py-8">
+        <div className="bg-slate-100 border-y border-slate-200 py-8">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-white text-xl md:text-2xl font-semibold mb-4">
+            <p className="text-slate-800 text-xl md:text-2xl font-semibold mb-4">
               Transforme sua gestão operacional hoje mesmo
             </p>
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-colors shadow-lg"
+              className="inline-flex items-center space-x-2 bg-institucional text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-marinho transition-colors shadow-sm"
             >
               <MessageCircle size={24} />
               <span>Fale com um especialista: (54) 99995.5333</span>
@@ -358,10 +358,10 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </div>
 
-        <section className="py-16 bg-gradient-to-br from-white to-blue-50">
+        <section className="py-16 bg-slate-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center bg-blue-600 p-4 rounded-full mb-6">
+              <div className="inline-flex items-center justify-center bg-institucional p-4 rounded-full mb-6">
                 <Play className="text-white" size={40} />
               </div>
               <h3 className="text-4xl font-bold text-gray-900 mb-4">
@@ -380,32 +380,32 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
               <h4 className="text-2xl font-bold text-gray-900 mb-6">Como funciona:</h4>
 
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="flex items-start space-x-4 p-4 bg-blue-50 rounded-lg">
-                  <Eye className="text-blue-600 flex-shrink-0" size={28} />
+                <div className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg">
+                  <Eye className="text-institucional flex-shrink-0" size={28} />
                   <div>
                     <h5 className="font-bold text-lg text-gray-900 mb-2">Visualização</h5>
                     <p className="text-gray-700">O colaborador vê o que precisa ser feito.</p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-blue-50 rounded-lg">
-                  <Zap className="text-blue-600 flex-shrink-0" size={28} />
+                <div className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg">
+                  <Zap className="text-institucional flex-shrink-0" size={28} />
                   <div>
                     <h5 className="font-bold text-lg text-gray-900 mb-2">Execução</h5>
                     <p className="text-gray-700">Ele executa as atividades conforme o fluxo.</p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-blue-50 rounded-lg">
-                  <CheckCircle className="text-blue-600 flex-shrink-0" size={28} />
+                <div className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg">
+                  <CheckCircle className="text-institucional flex-shrink-0" size={28} />
                   <div>
                     <h5 className="font-bold text-lg text-gray-900 mb-2">Conclusão</h5>
                     <p className="text-gray-700">Ao terminar, marca a atividade como concluída.</p>
                   </div>
                 </div>
 
-                <div className="flex items-start space-x-4 p-4 bg-blue-50 rounded-lg">
-                  <BarChart3 className="text-blue-600 flex-shrink-0" size={28} />
+                <div className="flex items-start space-x-4 p-4 bg-slate-50 rounded-lg">
+                  <BarChart3 className="text-institucional flex-shrink-0" size={28} />
                   <div>
                     <h5 className="font-bold text-lg text-gray-900 mb-2">Registro</h5>
                     <p className="text-gray-700">Todo o progresso é registrado para análise de desempenho.</p>
@@ -413,7 +413,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 </div>
               </div>
 
-              <div className="mt-8 p-6 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl text-white text-center">
+              <div className="mt-8 p-6 bg-institucional rounded-xl text-white text-center">
                 <p className="text-xl font-semibold">
                   Nada é deixado para a memória. Nada é improvisado. Nada é esquecido.
                 </p>
@@ -422,16 +422,16 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </section>
 
-        <div className="bg-gradient-to-r from-blue-700 to-blue-600 py-8">
+        <div className="bg-slate-100 border-y border-slate-200 py-8">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-white text-xl md:text-2xl font-semibold mb-4">
+            <p className="text-slate-800 text-xl md:text-2xl font-semibold mb-4">
               Veja o sistema em ação com uma demonstração gratuita
             </p>
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-colors shadow-lg"
+              className="inline-flex items-center space-x-2 bg-institucional text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-marinho transition-colors shadow-sm"
             >
               <MessageCircle size={24} />
               <span>Agende sua demo: (54) 99995.5333</span>
@@ -442,7 +442,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
         <section className="py-16 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center bg-blue-600 p-4 rounded-full mb-6">
+              <div className="inline-flex items-center justify-center bg-institucional p-4 rounded-full mb-6">
                 <Settings className="text-white" size={40} />
               </div>
               <h3 className="text-4xl font-bold text-gray-900 mb-4">
@@ -468,10 +468,10 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
               ].map((dept, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-blue-50 to-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-blue-100"
+                  className="bg-white border border-slate-200 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow border border-slate-200"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="bg-blue-600 p-2 rounded-lg">
+                    <div className="bg-institucional p-2 rounded-lg">
                       <CheckCircle className="text-white" size={20} />
                     </div>
                     <h4 className="font-bold text-gray-900">{dept}</h4>
@@ -480,7 +480,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
               ))}
             </div>
 
-            <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-8 md:p-12 rounded-2xl shadow-xl text-white">
+            <div className="bg-marinho p-8 md:p-12 rounded-2xl shadow-xl text-white">
               <h4 className="text-2xl font-bold mb-6">Cada departamento possui:</h4>
               <ul className="space-y-3 text-lg">
                 <li className="flex items-start space-x-3">
@@ -504,16 +504,16 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </section>
 
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 py-8">
+        <div className="bg-slate-100 border-y border-slate-200 py-8">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-white text-xl md:text-2xl font-semibold mb-4">
+            <p className="text-slate-800 text-xl md:text-2xl font-semibold mb-4">
               Quer conhecer como funciona na prática?
             </p>
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-colors shadow-lg"
+              className="inline-flex items-center space-x-2 bg-institucional text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-marinho transition-colors shadow-sm"
             >
               <MessageCircle size={24} />
               <span>Tire suas dúvidas: (54) 99995.5333</span>
@@ -521,10 +521,10 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </div>
 
-        <section className="py-16 bg-gradient-to-br from-white to-blue-50">
+        <section className="py-16 bg-slate-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center bg-blue-600 p-4 rounded-full mb-6">
+              <div className="inline-flex items-center justify-center bg-institucional p-4 rounded-full mb-6">
                 <Shield className="text-white" size={40} />
               </div>
               <h3 className="text-4xl font-bold text-gray-900 mb-4">
@@ -543,19 +543,19 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
               <h4 className="text-2xl font-bold text-gray-900 mb-6">Cada processo pode incluir:</h4>
 
               <div className="grid md:grid-cols-2 gap-6 mb-8">
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-slate-50 rounded-lg">
                   <p className="text-gray-700">✓ Fotos de padrões ideais de organização</p>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-slate-50 rounded-lg">
                   <p className="text-gray-700">✓ Exemplos de ambientes corretos</p>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-slate-50 rounded-lg">
                   <p className="text-gray-700">✓ Checklists visuais para montagem e conferência</p>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="p-4 bg-slate-50 rounded-lg">
                   <p className="text-gray-700">✓ Lista de itens e insumos necessários</p>
                 </div>
-                <div className="p-4 bg-blue-50 rounded-lg md:col-span-2">
+                <div className="p-4 bg-slate-50 rounded-lg md:col-span-2">
                   <p className="text-gray-700">✓ Orientações claras para evitar erros recorrentes</p>
                 </div>
               </div>
@@ -569,7 +569,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                   'Menos dependência de funcionários antigos',
                   'Menos perda de padrão ao trocar equipes'
                 ].map((item, index) => (
-                  <div key={index} className="flex items-center space-x-3 p-3 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg text-white">
+                  <div key={index} className="flex items-center space-x-3 p-3 bg-white border border-slate-200 rounded-lg text-slate-800 [&>svg]:text-institucional">
                     <CheckCircle size={24} />
                     <span className="text-lg font-semibold">{item}</span>
                   </div>
@@ -579,16 +579,16 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </section>
 
-        <div className="bg-gradient-to-r from-blue-700 to-blue-600 py-8">
+        <div className="bg-slate-100 border-y border-slate-200 py-8">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-white text-xl md:text-2xl font-semibold mb-4">
+            <p className="text-slate-800 text-xl md:text-2xl font-semibold mb-4">
               Pronto para elevar o padrão da sua operação?
             </p>
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-colors shadow-lg"
+              className="inline-flex items-center space-x-2 bg-institucional text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-marinho transition-colors shadow-sm"
             >
               <MessageCircle size={24} />
               <span>Conheça o PERFORMAXIS: (54) 99995.5333</span>
@@ -599,7 +599,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
         <section className="py-16 bg-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center bg-blue-600 p-4 rounded-full mb-6">
+              <div className="inline-flex items-center justify-center bg-institucional p-4 rounded-full mb-6">
                 <TrendingUp className="text-white" size={40} />
               </div>
               <h3 className="text-4xl font-bold text-gray-900 mb-4">
@@ -610,7 +610,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-white p-8 md:p-12 rounded-2xl shadow-xl">
+            <div className="bg-white border border-slate-200 p-8 md:p-12 rounded-2xl shadow-xl">
               <p className="text-lg text-gray-700 leading-relaxed mb-6">
                 Com o uso diário, a gestão passa a ter dados reais como:
               </p>
@@ -625,9 +625,9 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 ].map((item, index) => (
                   <div
                     key={index}
-                    className="flex items-start space-x-4 p-4 bg-white rounded-lg shadow-md border border-blue-100"
+                    className="flex items-start space-x-4 p-4 bg-white rounded-lg shadow-md border border-slate-200"
                   >
-                    <div className="bg-blue-600 p-2 rounded-lg text-white flex-shrink-0">
+                    <div className="bg-institucional p-2 rounded-lg text-white flex-shrink-0">
                       {item.icon}
                     </div>
                     <p className="text-gray-700">{item.text}</p>
@@ -635,7 +635,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 ))}
               </div>
 
-              <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl text-white text-center">
+              <div className="bg-institucional p-6 rounded-xl text-white text-center">
                 <p className="text-xl font-semibold">
                   Com isso, a gestão é baseada em indicadores operacionais, não em opinião.
                 </p>
@@ -644,16 +644,16 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </section>
 
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 py-8">
+        <div className="bg-slate-100 border-y border-slate-200 py-8">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-white text-xl md:text-2xl font-semibold mb-4">
+            <p className="text-slate-800 text-xl md:text-2xl font-semibold mb-4">
               Descubra como aumentar a performance da sua equipe
             </p>
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-colors shadow-lg"
+              className="inline-flex items-center space-x-2 bg-institucional text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-marinho transition-colors shadow-sm"
             >
               <MessageCircle size={24} />
               <span>Solicite uma apresentação: (54) 99995.5333</span>
@@ -661,10 +661,10 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </div>
 
-        <section className="py-16 bg-gradient-to-br from-white to-blue-50">
+        <section className="py-16 bg-slate-50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center bg-blue-600 p-4 rounded-full mb-6">
+              <div className="inline-flex items-center justify-center bg-institucional p-4 rounded-full mb-6">
                 <Users className="text-white" size={40} />
               </div>
               <h3 className="text-4xl font-bold text-gray-900 mb-4">
@@ -677,16 +677,16 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
 
             <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl mb-8">
               <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-white rounded-xl">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">O processo</div>
+                <div className="text-center p-6 bg-white border border-slate-200 rounded-xl">
+                  <div className="text-4xl font-bold text-institucional mb-2">O processo</div>
                   <div className="text-2xl font-semibold text-gray-900">educa</div>
                 </div>
-                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-white rounded-xl">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">O padrão</div>
+                <div className="text-center p-6 bg-white border border-slate-200 rounded-xl">
+                  <div className="text-4xl font-bold text-institucional mb-2">O padrão</div>
                   <div className="text-2xl font-semibold text-gray-900">orienta</div>
                 </div>
-                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-white rounded-xl">
-                  <div className="text-4xl font-bold text-blue-600 mb-2">O indicador</div>
+                <div className="text-center p-6 bg-white border border-slate-200 rounded-xl">
+                  <div className="text-4xl font-bold text-institucional mb-2">O indicador</div>
                   <div className="text-2xl font-semibold text-gray-900">desenvolve</div>
                 </div>
               </div>
@@ -705,7 +705,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 ].map((benefit, index) => (
                   <div
                     key={index}
-                    className="flex items-center space-x-4 p-4 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg text-white"
+                    className="flex items-center space-x-4 p-4 bg-white border border-slate-200 rounded-lg text-slate-800 [&>svg]:text-institucional"
                   >
                     <CheckCircle size={28} className="flex-shrink-0" />
                     <span className="text-lg font-semibold">{benefit}</span>
@@ -716,16 +716,16 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </section>
 
-        <div className="bg-gradient-to-r from-blue-700 to-blue-600 py-8">
+        <div className="bg-slate-100 border-y border-slate-200 py-8">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-white text-xl md:text-2xl font-semibold mb-4">
+            <p className="text-slate-800 text-xl md:text-2xl font-semibold mb-4">
               Comece a transformação da sua gestão agora
             </p>
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-colors shadow-lg"
+              className="inline-flex items-center space-x-2 bg-institucional text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-marinho transition-colors shadow-sm"
             >
               <MessageCircle size={24} />
               <span>Entre em contato: (54) 99995.5333</span>
@@ -733,18 +733,18 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </div>
 
-        <section className="py-16 bg-gradient-to-b from-gray-900 to-gray-800 text-white">
+        <section className="py-16 bg-marinho text-white">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h3 className="text-4xl md:text-5xl font-bold mb-6">
                 A REALIDADE DO MERCADO
               </h3>
-              <p className="text-2xl md:text-3xl font-light text-blue-300">
+              <p className="text-2xl md:text-3xl font-light text-slate-400">
                 Menos Pessoas. Mais Pressão.
               </p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-900 to-blue-800 p-8 md:p-12 rounded-2xl shadow-2xl mb-8">
+            <div className="bg-white/5 border border-white/10 p-8 md:p-12 rounded-2xl mb-8">
               <p className="text-lg leading-relaxed mb-6">
                 O mercado mudou. A escassez de mão de obra qualificada deixou de ser exceção e virou regra.
               </p>
@@ -753,19 +753,19 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
               </p>
               <ul className="space-y-3 text-lg mb-6">
                 <li className="flex items-start space-x-3">
-                  <span className="text-blue-300">•</span>
+                  <span className="text-slate-400">•</span>
                   <span>Equipes reduzidas</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <span className="text-blue-300">•</span>
+                  <span className="text-slate-400">•</span>
                   <span>Alta rotatividade</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <span className="text-blue-300">•</span>
+                  <span className="text-slate-400">•</span>
                   <span>Profissionais menos experientes</span>
                 </li>
                 <li className="flex items-start space-x-3">
-                  <span className="text-blue-300">•</span>
+                  <span className="text-slate-400">•</span>
                   <span>Pressão constante por qualidade e padrão</span>
                 </li>
               </ul>
@@ -777,7 +777,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
             </div>
 
             <div className="grid md:grid-cols-2 gap-8 mb-8">
-              <div className="bg-gradient-to-br from-blue-800 to-blue-700 p-8 rounded-2xl shadow-xl">
+              <div className="bg-white/5 border border-white/10 p-8 rounded-2xl">
                 <h4 className="text-2xl font-bold mb-4">O PERFORMAXIS Foi Criado Para Esse Cenário</h4>
                 <p className="text-lg leading-relaxed mb-4">
                   O PERFORMAXIS não depende de equipes grandes. Ele depende de processos claros.
@@ -799,7 +799,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 <p className="text-xl font-bold mt-6 text-center">Ele segue o processo.</p>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-700 to-blue-600 p-8 rounded-2xl shadow-xl">
+              <div className="bg-white/5 border border-white/10 p-8 rounded-2xl">
                 <h4 className="text-2xl font-bold mb-4">Fazer Mais Com Menos, Sem Perder Padrão</h4>
                 <p className="text-lg leading-relaxed mb-4">
                   Com o PERFORMAXIS, equipes menores conseguem entregar mais, porque:
@@ -845,9 +845,9 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 ].map((impact, index) => (
                   <div
                     key={index}
-                    className="flex items-start space-x-3 p-4 bg-blue-50 rounded-lg border border-blue-200"
+                    className="flex items-start space-x-3 p-4 bg-slate-50 rounded-lg border border-slate-200"
                   >
-                    <CheckCircle className="text-blue-600 flex-shrink-0 mt-1" size={20} />
+                    <CheckCircle className="text-institucional flex-shrink-0 mt-1" size={20} />
                     <span className="text-gray-800">{impact}</span>
                   </div>
                 ))}
@@ -856,16 +856,16 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </section>
 
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 py-8">
+        <div className="bg-slate-100 border-y border-slate-200 py-8">
           <div className="max-w-4xl mx-auto px-4 text-center">
-            <p className="text-white text-xl md:text-2xl font-semibold mb-4">
+            <p className="text-slate-800 text-xl md:text-2xl font-semibold mb-4">
               Fale agora mesmo com nossa equipe pelo WhatsApp
             </p>
             <a
               href={whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center space-x-2 bg-white text-blue-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-blue-50 transition-colors shadow-lg"
+              className="inline-flex items-center space-x-2 bg-institucional text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-marinho transition-colors shadow-sm"
             >
               <MessageCircle size={24} />
               <span>(54) 99995.5333</span>
@@ -873,20 +873,20 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </div>
 
-        <section className="py-20 bg-gradient-to-br from-blue-900 via-blue-700 to-blue-600 text-white">
+        <section className="py-20 bg-marinho text-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div className="inline-flex items-center justify-center bg-white bg-opacity-20 p-6 rounded-2xl backdrop-blur-sm mb-8 animate-pulse">
+            <div className="inline-flex items-center justify-center bg-white bg-opacity-20 p-6 rounded-2xl backdrop-blur-sm mb-8">
               <BarChart3 className="text-white" size={64} />
             </div>
             <h3 className="text-4xl md:text-5xl font-bold mb-8">
               O Futuro da Gestão
             </h3>
             <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-xl md:text-2xl lg:text-3xl font-light mb-12">
-              <p className="text-blue-100">Menos gente.</p>
-              <span className="text-blue-300 text-2xl md:text-3xl">•</span>
-              <p className="text-blue-100">Mais clareza.</p>
-              <span className="text-blue-300 text-2xl md:text-3xl">•</span>
-              <p className="text-blue-100">Mais performance.</p>
+              <p className="text-slate-200">Menos gente.</p>
+              <span className="text-slate-400 text-2xl md:text-3xl">•</span>
+              <p className="text-slate-200">Mais clareza.</p>
+              <span className="text-slate-400 text-2xl md:text-3xl">•</span>
+              <p className="text-slate-200">Mais performance.</p>
             </div>
             <div className="bg-white bg-opacity-10 backdrop-blur-sm p-8 rounded-2xl mb-12">
               <p className="text-xl leading-relaxed mb-4">
@@ -909,7 +909,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block bg-white text-blue-700 px-10 py-4 rounded-full font-bold text-xl hover:bg-blue-50 transition-colors shadow-2xl"
+                className="inline-block bg-white text-marinho px-10 py-4 rounded-full font-bold text-xl hover:bg-slate-100 transition-colors"
               >
                 Solicite uma Demonstração Grátis
               </a>
@@ -918,7 +918,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-3 bg-green-500 text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-green-600 transition-colors shadow-2xl"
+                className="inline-flex items-center space-x-3 border-2 border-white/60 text-white px-10 py-4 rounded-full font-bold text-xl hover:bg-white/10 transition-colors"
               >
                 <MessageCircle size={28} />
                 <span>Entre em Contato: (54) 99995.5333</span>
@@ -930,7 +930,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
         <section className="py-16 bg-white">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <div className="inline-flex items-center justify-center bg-blue-600 p-4 rounded-full mb-6">
+              <div className="inline-flex items-center justify-center bg-institucional p-4 rounded-full mb-6">
                 <HelpCircle className="text-white" size={40} />
               </div>
               <h3 className="text-4xl font-bold text-gray-900 mb-4">
@@ -970,15 +970,15 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
               ].map((faq, index) => (
                 <div
                   key={index}
-                  className="bg-gradient-to-br from-blue-50 to-white rounded-xl shadow-md overflow-hidden border border-blue-100 hover:shadow-lg transition-shadow"
+                  className="bg-white border border-slate-200 rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-lg transition-shadow"
                 >
                   <button
                     onClick={() => setOpenFaqIndex(openFaqIndex === index ? null : index)}
-                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-blue-50 transition-colors"
+                    className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-slate-100 transition-colors"
                   >
                     <h4 className="text-lg font-bold text-gray-900 pr-4">{faq.question}</h4>
                     <ChevronDown
-                      className={`flex-shrink-0 text-blue-600 transition-transform ${
+                      className={`flex-shrink-0 text-institucional transition-transform ${
                         openFaqIndex === index ? 'transform rotate-180' : ''
                       }`}
                       size={24}
@@ -1001,7 +1001,7 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
                 href={whatsappLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 bg-green-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-600 transition-colors shadow-lg"
+                className="inline-flex items-center space-x-2 bg-institucional text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-marinho transition-colors shadow-sm"
               >
                 <MessageCircle size={24} />
                 <span>Tire suas dúvidas: (54) 99995.5333</span>
@@ -1010,10 +1010,10 @@ export default function LandingPage({ onLogin, onRegister, onForgotPassword }: L
           </div>
         </section>
 
-        <footer className="bg-gray-900 text-white py-8">
+        <footer className="bg-marinho text-white py-8">
           <div className="max-w-6xl mx-auto px-4 text-center">
-            <div className="inline-flex items-center justify-center bg-blue-600 bg-opacity-20 p-3 rounded-xl backdrop-blur-sm mb-4">
-              <BarChart3 className="text-blue-400" size={48} />
+            <div className="inline-flex items-center justify-center bg-white/10 p-3 rounded-xl backdrop-blur-sm mb-4">
+              <BarChart3 className="text-slate-400" size={48} />
             </div>
             <p className="text-gray-400">© {new Date().getFullYear()} PERFORMAXIS. Todos os direitos reservados.</p>
             <p className="text-gray-400 mt-2">Gestão Inteligente, Resultados Reais.</p>

@@ -1,12 +1,13 @@
 /* Páginas estáticas de marketing do Performaxis */
 :root {
-  --azul: #1e40af;
-  --azul-escuro: #1e3a8a;
-  --azul-claro: #bfdbfe;
+  --azul: #1e4a8a;
+  --azul-escuro: #0f1e33;
+  --azul-claro: #cbd5e1;
+  --grafite: #1f2937;
   --cinza: #64748b;
   --cinza-escuro: #334155;
   --fundo: #ffffff;
-  --fundo-suave: #f8fafc;
+  --fundo-suave: #f3f5f8;
 }
 * { box-sizing: border-box; }
 body {
@@ -17,22 +18,22 @@ body {
   line-height: 1.7;
 }
 .container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-header.topo { background: linear-gradient(90deg, #1e3a8a, #1d4ed8); padding: 14px 0; }
+header.topo { background: var(--azul-escuro); padding: 14px 0; }
 header.topo .container { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 header.topo a.marca { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; font-weight: 800; font-size: 1.15rem; letter-spacing: .02em; }
 header.topo img { height: 36px; width: auto; }
 header.topo nav { display: flex; gap: 8px; flex-wrap: wrap; }
-header.topo nav a { color: #dbeafe; text-decoration: none; font-size: .95rem; padding: 6px 10px; border-radius: 6px; }
+header.topo nav a { color: #cbd5e1; text-decoration: none; font-size: .95rem; padding: 6px 10px; border-radius: 6px; }
 header.topo nav a:hover, header.topo nav a.ativo { color: #fff; background: rgba(255,255,255,.12); }
-.hero { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: #fff; padding: 64px 0 56px; text-align: center; }
+.hero { background: var(--azul-escuro); color: #fff; padding: 64px 0 56px; text-align: center; }
 .hero h1 { font-size: 2.3rem; line-height: 1.25; margin: 0 0 16px; }
-.hero p.sub { font-size: 1.2rem; color: #dbeafe; max-width: 760px; margin: 0 auto 28px; }
-.botao { display: inline-block; background: #fff; color: var(--azul); font-weight: 700; padding: 14px 28px; border-radius: 10px; text-decoration: none; }
+.hero p.sub { font-size: 1.2rem; color: #cbd5e1; max-width: 760px; margin: 0 auto 28px; }
+.botao { display: inline-block; background: #fff; color: var(--azul-escuro); font-weight: 700; padding: 14px 28px; border-radius: 10px; text-decoration: none; }
 .botao.secundario { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,.6); margin-left: 10px; }
 .botao.azul { background: var(--azul); color: #fff; }
 section { padding: 48px 0; }
-section.suave { background: var(--fundo-suave); }
-h2 { color: var(--azul); font-size: 1.7rem; margin: 0 0 18px; }
+section.suave { background: var(--fundo-suave); border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; }
+h2 { color: var(--grafite); font-size: 1.7rem; margin: 0 0 18px; }
 h3 { color: var(--cinza-escuro); font-size: 1.15rem; margin: 0 0 8px; }
 p { margin: 0 0 14px; color: #475569; }
 ul.checado { list-style: none; padding: 0; margin: 0; }
@@ -42,9 +43,9 @@ ul.checado li::before { content: "✓ "; color: var(--azul); font-weight: 700; }
 .cartao { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; }
 .cartao p { margin: 0; font-size: .97rem; }
 .faq h3 { color: var(--cinza-escuro); margin-top: 20px; }
-.cta-final { background: var(--azul); color: #fff; text-align: center; border-radius: 14px; padding: 44px 24px; }
+.cta-final { background: var(--azul-escuro); color: #fff; text-align: center; border-radius: 14px; padding: 44px 24px; }
 .cta-final h2 { color: #fff; }
-.cta-final p { color: #dbeafe; }
+.cta-final p { color: #cbd5e1; }
 footer { border-top: 1px solid #e2e8f0; padding: 32px 0; color: var(--cinza); font-size: .95rem; }
 footer .container { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 footer a { color: var(--azul); text-decoration: none; }
