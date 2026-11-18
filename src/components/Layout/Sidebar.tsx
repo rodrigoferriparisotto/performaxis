@@ -12,7 +12,6 @@ import {
   Building,
   ChevronDown,
   ChevronRight,
-  Menu,
   X,
   Sun,
   Activity,
@@ -35,6 +34,8 @@ import {
   Volume2,
   Timer,
   Rocket,
+  LayoutGrid,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -46,103 +47,102 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
+interface ItemMenu {
+  id: string;
+  label: string;
+  icon: any;
+  access?: boolean;
+}
+
+type Grupo = 'setores' | 'relatorios' | 'sistema' | 'cadastros' | 'admin';
+
+// até este número de setores o menu mostra os setores soltos (funcionário com 1–3 áreas)
+const SETORES_SOLTOS_ATE = 3;
+
 const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, onToggle }) => {
   const { user, logout, hasAccess, hasModuleAccess } = useAuth();
   const { isCollapsed, setIsCollapsed } = useSidebar();
-  const [cadastrosOpen, setCadastrosOpen] = React.useState(false);
-  const [relatoriosOpen, setRelatoriosOpen] = React.useState(false);
-  
-  // Estados para submenus de cadastros
-  const [recepcaoOpen, setRecepcaoOpen] = React.useState(false);
-  const [camarariaOpen, setCamarariaOpen] = React.useState(false);
-  const [revisaoOpen, setRevisaoOpen] = React.useState(false);
-  const [gestaoOpen, setGestaoOpen] = React.useState(false);
-  const [areasComunsOpen, setAreasComunsOpen] = React.useState(false);
-  const [atividadesDiariasOpen, setAtividadesDiariasOpen] = React.useState(false);
-  const [atividadesExtrasOpen, setAtividadesExtrasOpen] = React.useState(false);
-  const [cozinhaOpen, setCozinhaOpen] = React.useState(false);
-  const [vendasOpen, setVendasOpen] = React.useState(false);
-  const [adminOpen, setAdminOpen] = React.useState(false);
-  const [sistemaOpen, setSistemaOpen] = React.useState(false);
+  const ehGestao = user?.profile === 'admin' || user?.profile === 'gestor';
 
-  const menuItems = [
+  const topoItems: ItemMenu[] = [
     { id: 'dashboard', label: 'Dashboard', icon: Home, access: true },
-    { id: 'dashboard-ao-vivo', label: 'Dashboard Ao Vivo', icon: Monitor, access: user?.profile === 'admin' || user?.profile === 'gestor' },
+    { id: 'dashboard-ao-vivo', label: 'Dashboard Ao Vivo', icon: Monitor, access: ehGestao },
+  ];
+
+  const setoresItems: ItemMenu[] = [
     { id: 'atividades-diarias', label: 'Atividades Diárias', icon: Activity, access: hasModuleAccess('atividades_diarias') },
     { id: 'recepcao', label: 'Recepção', icon: Phone, access: hasModuleAccess('recepcao') },
     { id: 'areas-comuns', label: 'Áreas Comuns', icon: Building, access: hasModuleAccess('areas_comuns') },
     { id: 'camararia', label: 'Governança', icon: Bed, access: hasModuleAccess('camararia') },
     { id: 'revisao', label: 'Revisão', icon: CheckCircle, access: hasModuleAccess('revisao') },
     { id: 'cozinha', label: 'Cozinha', icon: ChefHat, access: hasModuleAccess('cozinha') },
-    { id: 'manutencao', label: 'Manutenção', icon: Wrench, access: hasAccess('manutencao') },
     { id: 'gestao', label: 'Gestão', icon: Briefcase, access: hasModuleAccess('gestao') },
     { id: 'vendas', label: 'Vendas', icon: ShoppingBag, access: hasModuleAccess('vendas') },
     { id: 'atividades-extras', label: 'Atividades Extras', icon: Sun, access: hasModuleAccess('atividades_extras') },
-    { id: 'ver-acessos', label: 'Ver Acessos', icon: Eye, access: hasAccess('ver_acessos') },
-    { id: 'relatorios', label: 'Relatórios', icon: FileText, access: hasAccess('relatorios') }
-  ];
+    { id: 'manutencao', label: 'Manutenção', icon: Wrench, access: hasAccess('manutencao') },
+  ].filter((i) => i.access);
 
-  const relatoriosItems = [
+  const verAcessos: ItemMenu = { id: 'ver-acessos', label: 'Ver Acessos', icon: Eye, access: hasAccess('ver_acessos') };
+
+  const relatoriosItems: ItemMenu[] = [
     { id: 'dashboard-relatorios', label: 'Visão Geral', icon: FileText },
     { id: 'analise-operacional', label: 'Análise Operacional', icon: Settings },
     { id: 'analise-funcionario', label: 'Análise por Funcionário', icon: Users },
     { id: 'dados-gerais', label: 'Dados Gerais', icon: FileText },
     { id: 'eficiencia-area', label: 'Eficiência por Área', icon: TrendingUp },
-    { id: 'tempo-real-estimado', label: 'Tempo Real × Estimado', icon: Timer },
-    { id: 'ranking-meritocracia', label: 'Ranking por Meritocracia', icon: Trophy }
-  ];
+    { id: 'tempo-real-estimado', label: 'Tempo Real × Estimado', icon: Timer, access: ehGestao },
+    { id: 'ranking-meritocracia', label: 'Ranking por Meritocracia', icon: Trophy },
+  ].filter((i) => i.access !== false);
 
-  // Definir itens de cadastros organizados por categoria
-  const cadastrosItems = {
-    recepcao: [
+  // cadastros por setor (cada setor abre os seus)
+  const cadastrosSetores: { id: string; titulo: string; icon: any; modulo: string; itens: ItemMenu[] }[] = [
+    { id: 'recepcao', titulo: 'Recepção', icon: Phone, modulo: 'recepcao', itens: [
       { id: 'tipos-recepcao', label: 'Tipos de Recepção', icon: Phone },
-      { id: 'atividades-recepcao', label: 'Atividades Recepção', icon: Phone }
-    ],
-    camararia: [
+      { id: 'atividades-recepcao', label: 'Atividades Recepção', icon: Phone },
+    ] },
+    { id: 'camararia', titulo: 'Governança', icon: Bed, modulo: 'camararia', itens: [
       { id: 'itens-camararia', label: 'Itens Governança', icon: Package },
       { id: 'servicos-camararia', label: 'Serviços Governança', icon: Bed },
       { id: 'fotos-camararia', label: 'Fotos Governança', icon: Camera },
-      { id: 'atividades-camararia', label: 'Atividades Governança', icon: Bed }
-    ],
-    revisao: [
-      { id: 'atividades-revisao', label: 'Atividades Revisão', icon: CheckCircle }
-    ],
-    gestao: [
+      { id: 'atividades-camararia', label: 'Atividades Governança', icon: Bed },
+    ] },
+    { id: 'revisao', titulo: 'Revisão', icon: CheckCircle, modulo: 'revisao', itens: [
+      { id: 'atividades-revisao', label: 'Atividades Revisão', icon: CheckCircle },
+    ] },
+    { id: 'gestao', titulo: 'Gestão', icon: Briefcase, modulo: 'gestao', itens: [
       { id: 'tipos-gestao', label: 'Tipos de Gestão', icon: Briefcase },
-      { id: 'atividades-gestao', label: 'Atividades Gestão', icon: Settings }
-    ],
-    cozinha: [
+      { id: 'atividades-gestao', label: 'Atividades Gestão', icon: Settings },
+    ] },
+    { id: 'cozinha', titulo: 'Cozinha', icon: ChefHat, modulo: 'cozinha', itens: [
       { id: 'tipos-cozinha', label: 'Tipos de Cozinha', icon: ChefHat },
       { id: 'atividades-cozinha', label: 'Atividades Cozinha', icon: ChefHat },
-      { id: 'fotos-cozinha', label: 'Fotos Cozinha', icon: Camera }
-    ],
-    areasComuns: [
+      { id: 'fotos-cozinha', label: 'Fotos Cozinha', icon: Camera },
+    ] },
+    { id: 'areas-comuns', titulo: 'Áreas Comuns', icon: Building, modulo: 'areas_comuns', itens: [
       { id: 'tipos-areas-comuns', label: 'Tipos de Áreas Comuns', icon: Building },
-      { id: 'atividades-areas-comuns', label: 'Atividades Áreas Comuns', icon: Building }
-    ],
-    vendas: [
+      { id: 'atividades-areas-comuns', label: 'Atividades Áreas Comuns', icon: Building },
+    ] },
+    { id: 'vendas', titulo: 'Vendas', icon: ShoppingBag, modulo: 'vendas', itens: [
       { id: 'tipos-funcoes-comerciais', label: 'Tipos de Funções Comerciais', icon: ShoppingBag },
-      { id: 'atividades-comerciais', label: 'Atividades Comerciais', icon: ShoppingBag }
-    ],
-    atividadesDiarias: [
+      { id: 'atividades-comerciais', label: 'Atividades Comerciais', icon: ShoppingBag },
+    ] },
+    { id: 'atividades-diarias', titulo: 'Atividades Diárias', icon: Activity, modulo: 'atividades_diarias', itens: [
       { id: 'tipos-atividades', label: 'Tipos de Atividades', icon: Settings },
-      { id: 'atividades-diarias-config', label: 'Atividades Diárias', icon: Activity }
-    ],
-    atividadesExtras: [
+      { id: 'atividades-diarias-config', label: 'Atividades Diárias', icon: Activity },
+    ] },
+    { id: 'atividades-extras', titulo: 'Atividades Extras', icon: Sun, modulo: 'atividades_extras', itens: [
       { id: 'tipos-extras', label: 'Tipos de Extras', icon: Settings },
-      { id: 'atividades-extras-config', label: 'Config. Atividades Extras', icon: Sun }
-    ]
-  };
+      { id: 'atividades-extras-config', label: 'Config. Atividades Extras', icon: Sun },
+    ] },
+  ].filter((s) => hasModuleAccess(s.modulo));
 
-  // Definir itens de sistema separadamente
-  const sistemaItems = [
+  const sistemaItems: ItemMenu[] = [
     { id: 'configuracoes-lembretes', label: 'Lembretes', icon: Bell, access: hasAccess('lembretes') },
     { id: 'configuracoes-som', label: 'Som', icon: Volume2, access: true },
-    { id: 'diagnostico-notificacoes', label: 'Diagnóstico de Notificações', icon: Activity, access: true }
-  ];
+    { id: 'diagnostico-notificacoes', label: 'Diagnóstico de Notificações', icon: Activity, access: true },
+  ].filter((i) => i.access);
 
-  // Definir itens de administração separadamente
-  const adminItems = [
+  const adminItems: ItemMenu[] = [
     { id: 'implantacao', label: 'Configuração inicial', icon: Rocket, access: hasAccess('usuarios') && hasAccess('cadastros') },
     { id: 'usuarios', label: 'Usuários', icon: Users, access: hasAccess('usuarios') },
     { id: 'empresa', label: 'Empresa', icon: Building, access: hasAccess('empresa') },
@@ -154,144 +154,195 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
     { id: 'monitoramento-performance', label: 'Monitoramento', icon: Activity, access: hasAccess('monitoramento_performance') },
     { id: 'gerenciar-tokens-push', label: 'Dispositivos de notificação', icon: Bell, access: user?.profile === 'admin' },
     { id: 'monitoramento-push', label: 'Painel de notificações push', icon: Bell, access: user?.profile === 'admin' },
-    { id: 'limpeza-historico', label: 'Limpeza de Histórico', icon: Trash2, access: user?.profile === 'admin' || user?.profile === 'gestor' },
+    { id: 'limpeza-historico', label: 'Limpeza de Histórico', icon: Trash2, access: ehGestao },
     { id: 'publicar-versao', label: 'Publicar Versão', icon: Package, access: user?.profile === 'admin' },
     { id: 'enviar-mensagem', label: 'Enviar Mensagem', icon: MessageSquare, access: user?.profile === 'gestor' },
     { id: 'teste-notificacoes', label: 'Teste de notificações push', icon: Bell, access: user?.profile === 'admin' },
-    { id: 'blog-admin', label: 'Gerenciar Blog', icon: FileText, access: user?.profile === 'admin' }
-  ];
+    { id: 'blog-admin', label: 'Gerenciar Blog', icon: FileText, access: user?.profile === 'admin' },
+  ].filter((i) => i.access);
 
-  // Verificar se algum item de cadastros está ativo (sem admin)
-  const allCadastrosItems = Object.values(cadastrosItems).flat();
-  const isCadastrosActive = allCadastrosItems.some(item => currentPage === item.id);
-  const isRelatoriosActive = relatoriosItems.some(item => currentPage === item.id) || currentPage === 'relatorios';
-  const isSistemaActive = sistemaItems.some(item => currentPage === item.id);
-  const isAdminActive = adminItems.some(item => currentPage === item.id) || currentPage.startsWith('blog-admin');
+  // quem configura o hotel tem dois menus: Operação (dia a dia) e Configurações
+  const temConfiguracoes = hasAccess('usuarios');
+  const podeVerCadastros = hasAccess('cadastros');
+  const setoresAgrupados = setoresItems.length > SETORES_SOLTOS_ATE;
 
-  // Verificar quais submenus devem estar abertos
-  const isRecepcaoActive = cadastrosItems.recepcao.some(item => currentPage === item.id);
-  const isCamarariaActive = cadastrosItems.camararia.some(item => currentPage === item.id);
-  const isRevisaoActive = cadastrosItems.revisao.some(item => currentPage === item.id);
-  const isGestaoActive = cadastrosItems.gestao.some(item => currentPage === item.id);
-  const isCozinhaActive = cadastrosItems.cozinha.some(item => currentPage === item.id);
-  const isAreasComunsActive = cadastrosItems.areasComuns.some(item => currentPage === item.id);
-  const isVendasActive = cadastrosItems.vendas.some(item => currentPage === item.id);
-  const isAtividadesDiariasActive = cadastrosItems.atividadesDiarias.some(item => currentPage === item.id);
-  const isAtividadesExtrasActive = cadastrosItems.atividadesExtras.some(item => currentPage === item.id);
+  const contem = (itens: ItemMenu[]) => itens.some((i) => i.id === currentPage);
+  const setorCadastroAtivo = cadastrosSetores.find((s) => contem(s.itens))?.id ?? null;
+  const grupoDaPagina: Grupo | null =
+    contem(setoresItems) && setoresAgrupados ? 'setores'
+      : contem(relatoriosItems) || currentPage === 'relatorios' ? 'relatorios'
+      : contem(sistemaItems) ? 'sistema'
+      : setorCadastroAtivo ? 'cadastros'
+      : contem(adminItems) || currentPage.startsWith('blog-admin') ? 'admin'
+      : null;
+  const paginaDeConfiguracao = grupoDaPagina === 'cadastros' || grupoDaPagina === 'admin'
+    || (temConfiguracoes && grupoDaPagina === 'sistema');
 
-  // Abrir automaticamente se um item de cadastros estiver ativo
+  const [modo, setModo] = React.useState<'operacao' | 'config'>(paginaDeConfiguracao ? 'config' : 'operacao');
+  // um grupo aberto por vez; sem página ativa em grupo, Setores começa aberto
+  const [grupoAberto, setGrupoAberto] = React.useState<Grupo | null>(grupoDaPagina ?? 'setores');
+  const [setorCadastroAberto, setSetorCadastroAberto] = React.useState<string | null>(setorCadastroAtivo);
+
   React.useEffect(() => {
-    if (isCadastrosActive) {
-      setCadastrosOpen(true);
-    }
-    if (isRecepcaoActive) setRecepcaoOpen(true);
-    if (isCamarariaActive) setCamarariaOpen(true);
-    if (isRevisaoActive) setRevisaoOpen(true);
-    if (isGestaoActive) setGestaoOpen(true);
-    if (isCozinhaActive) setCozinhaOpen(true);
-    if (isAreasComunsActive) setAreasComunsOpen(true);
-    if (isVendasActive) setVendasOpen(true);
-    if (isAtividadesDiariasActive) setAtividadesDiariasOpen(true);
-    if (isAtividadesExtrasActive) setAtividadesExtrasOpen(true);
-  }, [isCadastrosActive, isRecepcaoActive, isCamarariaActive, isRevisaoActive, isGestaoActive, isCozinhaActive, isAreasComunsActive, isVendasActive, isAtividadesDiariasActive, isAtividadesExtrasActive]);
+    if (grupoDaPagina) setGrupoAberto(grupoDaPagina);
+    if (setorCadastroAtivo) setSetorCadastroAberto(setorCadastroAtivo);
+    if (temConfiguracoes) setModo(paginaDeConfiguracao ? 'config' : 'operacao');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage]);
 
-  // Abrir automaticamente se um item de relatórios estiver ativo
-  React.useEffect(() => {
-    setRelatoriosOpen(isRelatoriosActive);
-  }, [isRelatoriosActive]);
+  const alternarGrupo = (g: Grupo) => setGrupoAberto((atual) => (atual === g ? null : g));
 
-  // Abrir automaticamente se um item de sistema estiver ativo
-  React.useEffect(() => {
-    if (isSistemaActive) {
-      setSistemaOpen(true);
-    }
-  }, [isSistemaActive]);
-
-  // Abrir automaticamente se um item de administração estiver ativo
-  React.useEffect(() => {
-    if (isAdminActive) {
-      setAdminOpen(true);
-    }
-  }, [isAdminActive]);
-
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+  const trocarModo = (novo: 'operacao' | 'config') => {
+    setModo(novo);
+    setGrupoAberto(grupoDaPagina ?? (novo === 'config' ? 'cadastros' : 'setores'));
   };
 
-  const renderSubMenu = (items: any[], isOpen: boolean, setOpen: (open: boolean) => void, title: string, icon: any, hasAccessCheck: boolean = true) => {
-    if (!hasAccessCheck) return null;
+  const Dica = ({ texto }: { texto: string }) =>
+    isCollapsed ? (
+      <div className="hidden lg:block fixed left-20 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[9999]">
+        {texto}
+      </div>
+    ) : null;
 
-    const Icon = icon;
-    const hasActiveItem = items.some(item => currentPage === item.id);
-
+  // item de primeiro nível (também aparece com o menu recolhido)
+  const renderItem = (item: ItemMenu) => {
+    const Icon = item.icon;
+    const isActive = currentPage === item.id;
     return (
-      <div>
+      <button
+        key={item.id}
+        onClick={() => onPageChange(item.id)}
+        className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group ${
+          isActive ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-700 hover:bg-gray-50'
+        } ${isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'}`}
+        title={isCollapsed ? item.label : ''}
+      >
+        <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
+        <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
+        <Dica texto={item.label} />
+      </button>
+    );
+  };
+
+  // item dentro de um grupo
+  const renderSubItem = (item: ItemMenu, recuo = 'px-8') => {
+    const Icon = item.icon;
+    const isActive = currentPage === item.id;
+    return (
+      <button
+        key={item.id}
+        onClick={() => onPageChange(item.id)}
+        className={`w-full flex items-center ${recuo} py-1.5 text-left text-sm transition-colors duration-200 ${
+          isActive ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
+        }`}
+      >
+        <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
+        <span className="truncate text-xs">{item.label}</span>
+      </button>
+    );
+  };
+
+  const renderGrupo = (g: Grupo, titulo: string, Icon: any, ativo: boolean, conteudo: React.ReactNode) => {
+    const aberto = grupoAberto === g;
+    return (
+      <div key={g}>
         <button
-          onClick={() => setOpen(!isOpen)}
-          className={`w-full flex items-center justify-between px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
-            hasActiveItem
-              ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
+          onClick={() => alternarGrupo(g)}
+          aria-expanded={aberto}
+          className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
+            ativo ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700' : 'text-gray-700 hover:bg-gray-50'
           }`}
         >
           <div className="flex items-center min-w-0 flex-1">
-            <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${hasActiveItem ? 'text-blue-700' : 'text-gray-400'}`} />
-            <span className="truncate text-xs">{title}</span>
+            <Icon className={`w-5 h-5 mr-3 flex-shrink-0 ${ativo ? 'text-blue-700' : 'text-gray-500'}`} />
+            <span className="truncate">{titulo}</span>
           </div>
-          <div className="flex-shrink-0 ml-2">
-            {isOpen ? (
-              <ChevronDown className={`w-3 h-3 ${hasActiveItem ? 'text-blue-700' : 'text-gray-500'}`} />
-            ) : (
-              <ChevronRight className={`w-3 h-3 ${hasActiveItem ? 'text-blue-700' : 'text-gray-500'}`} />
-            )}
-          </div>
+          {aberto ? (
+            <ChevronDown className={`w-3 h-3 flex-shrink-0 ml-2 ${ativo ? 'text-blue-700' : 'text-gray-500'}`} />
+          ) : (
+            <ChevronRight className={`w-3 h-3 flex-shrink-0 ml-2 ${ativo ? 'text-blue-700' : 'text-gray-500'}`} />
+          )}
         </button>
-
-        {isOpen && (
-          <div className="bg-gray-100">
-            {items.map((item) => {
-              // Verificar permissões específicas para cada item
-              let hasItemAccess = false;
-
-              if (item.id === 'empresa') {
-                hasItemAccess = hasAccess('empresa');
-              } else if (item.id === 'perfis') {
-                hasItemAccess = hasAccess('perfis');
-              } else if (item.id === 'usuarios') {
-                hasItemAccess = hasAccess('usuarios');
-              } else if (item.id === 'suites') {
-                hasItemAccess = hasAccess('suites');
-              } else {
-                // Para atividades, verificar se tem acesso a cadastros
-                hasItemAccess = hasAccess('cadastros');
-              }
-
-              // Se não tem acesso, não renderizar o item
-              if (!hasItemAccess) return null;
-
-              const ItemIcon = item.icon;
-              const isActive = currentPage === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onPageChange(item.id)}
-                  className={`w-full flex items-center px-12 py-1.5 text-left text-sm transition-colors duration-200 ${
-                    isActive
-                      ? 'bg-blue-200 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-600 hover:bg-gray-200 hover:text-gray-700'
-                  }`}
-                >
-                  <ItemIcon className={`w-3 h-3 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
-                  <span className="truncate text-xs">{item.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+        {aberto && <div className="bg-gray-50">{conteudo}</div>}
       </div>
     );
   };
+
+  const renderCadastros = () =>
+    cadastrosSetores.map((setor) => {
+      const aberto = setorCadastroAberto === setor.id;
+      const ativo = setorCadastroAtivo === setor.id;
+      const Icon = setor.icon;
+      return (
+        <div key={setor.id}>
+          <button
+            onClick={() => setSetorCadastroAberto(aberto ? null : setor.id)}
+            aria-expanded={aberto}
+            className={`w-full flex items-center justify-between px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
+              ativo ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
+            }`}
+          >
+            <div className="flex items-center min-w-0 flex-1">
+              <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${ativo ? 'text-blue-700' : 'text-gray-400'}`} />
+              <span className="truncate text-xs">{setor.titulo}</span>
+            </div>
+            {aberto ? (
+              <ChevronDown className={`w-3 h-3 flex-shrink-0 ml-2 ${ativo ? 'text-blue-700' : 'text-gray-500'}`} />
+            ) : (
+              <ChevronRight className={`w-3 h-3 flex-shrink-0 ml-2 ${ativo ? 'text-blue-700' : 'text-gray-500'}`} />
+            )}
+          </button>
+          {aberto && <div className="bg-gray-100">{setor.itens.map((i) => renderSubItem(i, 'px-12'))}</div>}
+        </div>
+      );
+    });
+
+  const mostrarConfig = temConfiguracoes && modo === 'config' && !isCollapsed;
+
+  const menuOperacao = (
+    <>
+      {topoItems.filter((i) => i.access).map(renderItem)}
+
+      {/* Setores: agrupados para quem tem muitos; soltos para quem tem poucos (e no menu recolhido) */}
+      {setoresAgrupados && !isCollapsed
+        ? renderGrupo('setores', 'Setores', LayoutGrid, contem(setoresItems), setoresItems.map((i) => renderSubItem(i)))
+        : setoresItems.map(renderItem)}
+
+      {verAcessos.access && renderItem(verAcessos)}
+
+      {hasAccess('relatorios') && !isCollapsed &&
+        renderGrupo('relatorios', 'Relatórios', FileText, grupoDaPagina === 'relatorios', relatoriosItems.map((i) => renderSubItem(i)))}
+
+      {/* quem não configura o hotel vê Sistema aqui mesmo */}
+      {!temConfiguracoes && !isCollapsed && sistemaItems.length > 0 &&
+        renderGrupo('sistema', 'Sistema', Settings, grupoDaPagina === 'sistema', sistemaItems.map((i) => renderSubItem(i)))}
+
+      {temConfiguracoes && (
+        <button
+          onClick={() => window.open('https://performaxis-ia.com.br/', '_blank')}
+          className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group text-gray-700 hover:bg-gray-50 ${
+            isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'
+          }`}
+          title={isCollapsed ? 'Agente IA' : ''}
+        >
+          <Lightbulb className={`w-5 h-5 flex-shrink-0 text-gray-500 ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
+          <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>Agente IA</span>
+          <Dica texto="Agente IA" />
+        </button>
+      )}
+    </>
+  );
+
+  const menuConfiguracoes = (
+    <>
+      {podeVerCadastros && cadastrosSetores.length > 0 &&
+        renderGrupo('cadastros', 'Cadastros', FolderOpen, grupoDaPagina === 'cadastros', renderCadastros())}
+      {adminItems.length > 0 &&
+        renderGrupo('admin', 'Administração', Settings, grupoDaPagina === 'admin', adminItems.map((i) => renderSubItem(i)))}
+      {sistemaItems.length > 0 &&
+        renderGrupo('sistema', 'Sistema', Bell, grupoDaPagina === 'sistema', sistemaItems.map((i) => renderSubItem(i)))}
+    </>
+  );
 
   return (
     <>
@@ -302,7 +353,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
           onClick={onToggle}
         />
       )}
-      
+
       {/* Sidebar */}
       <div className={`
         fixed lg:static inset-y-0 left-0 z-[70] lg:z-auto
@@ -346,15 +397,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
             )}
 
             <button
-              onClick={toggleCollapse}
+              onClick={() => setIsCollapsed(!isCollapsed)}
               className="hidden lg:block p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               title={isCollapsed ? 'Expandir menu' : 'Recolher menu'}
             >
-              {isCollapsed ? (
-                <ChevronRight className="w-5 h-5" />
-              ) : (
-                <ChevronLeft className="w-5 h-5" />
-              )}
+              {isCollapsed ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
             </button>
           </div>
         </div>
@@ -370,378 +417,38 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
               <p className="text-xs text-gray-500 capitalize">{user?.profile}</p>
             </div>
           </div>
+
+          {/* Operação × Configurações */}
+          {temConfiguracoes && !isCollapsed && (
+            <div className="mt-3 grid grid-cols-2 gap-1 rounded-lg bg-gray-100 p-1" role="tablist" aria-label="Menu">
+              {([
+                { id: 'operacao', rotulo: 'Operação', icon: LayoutGrid },
+                { id: 'config', rotulo: 'Configurações', icon: SlidersHorizontal },
+              ] as const).map((m) => {
+                const ativo = modo === m.id;
+                const Icone = m.icon;
+                return (
+                  <button
+                    key={m.id}
+                    role="tab"
+                    aria-selected={ativo}
+                    onClick={() => trocarModo(m.id)}
+                    className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium transition-colors ${
+                      ativo ? 'bg-white text-blue-700 shadow-sm' : 'text-gray-600 hover:text-gray-800'
+                    }`}
+                  >
+                    <Icone className="w-3.5 h-3.5" />
+                    {m.rotulo}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Menu navegável */}
         <div className="flex-1 overflow-y-auto">
-          <nav className="py-1">
-            {menuItems.map((item) => {
-              if (!item.access) return null;
-
-              // Pular o item relatórios pois será tratado separadamente
-              if (item.id === 'relatorios') return null;
-
-              // Pular manutenção aqui, será renderizado após Cadastros
-              if (item.id === 'manutencao') return null;
-
-              // Pular ver-acessos aqui, será renderizado após Manutenção
-              if (item.id === 'ver-acessos') return null;
-
-              const Icon = item.icon;
-              const isActive = currentPage === item.id;
-
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => onPageChange(item.id)}
-                  className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group ${
-                    isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  } ${isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'}`}
-                  title={isCollapsed ? item.label : ''}
-                >
-                  <Icon className={`w-5 h-5 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
-                  <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>{item.label}</span>
-
-                  {isCollapsed && (
-                    <div className="hidden lg:block fixed left-20 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[9999]">
-                      {item.label}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-
-            {/* Botão Manutenção */}
-            {hasAccess('manutencao') && (
-              <button
-                onClick={() => onPageChange('manutencao')}
-                className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group ${
-                  currentPage === 'manutencao'
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
-                } ${isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'}`}
-                title={isCollapsed ? 'Manutenção' : ''}
-              >
-                <Wrench className={`w-5 h-5 flex-shrink-0 ${currentPage === 'manutencao' ? 'text-blue-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
-                <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>Manutenção</span>
-
-                {isCollapsed && (
-                  <div className="hidden lg:block fixed left-20 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[9999]">
-                    Manutenção
-                  </div>
-                )}
-              </button>
-            )}
-
-            {/* Botão Ver Acessos */}
-            {hasAccess('ver_acessos') && (
-              <button
-                onClick={() => onPageChange('ver-acessos')}
-                className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group ${
-                  currentPage === 'ver-acessos'
-                    ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
-                } ${isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'}`}
-                title={isCollapsed ? 'Ver Acessos' : ''}
-              >
-                <Eye className={`w-5 h-5 flex-shrink-0 ${currentPage === 'ver-acessos' ? 'text-blue-700' : 'text-gray-500'} ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
-                <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>Ver Acessos</span>
-
-                {isCollapsed && (
-                  <div className="hidden lg:block fixed left-20 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[9999]">
-                    Ver Acessos
-                  </div>
-                )}
-              </button>
-            )}
-
-            {/* Menu Sistema Expansível */}
-            {!isCollapsed && (
-              <div>
-                <button
-                  onClick={() => setSistemaOpen(!sistemaOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
-                    isSistemaActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center min-w-0 flex-1">
-                    <Settings className={`w-5 h-5 mr-3 flex-shrink-0 ${isSistemaActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    <span className="truncate">Sistema</span>
-                  </div>
-                  <div className="flex-shrink-0 ml-2">
-                    {sistemaOpen ? (
-                      <ChevronDown className={`w-3 h-3 ${isSistemaActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    ) : (
-                      <ChevronRight className={`w-3 h-3 ${isSistemaActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    )}
-                  </div>
-                </button>
-
-                {sistemaOpen && (
-                  <div className="bg-gray-50">
-                    {sistemaItems.map((item) => {
-                      if (!item.access) return null;
-
-                      const Icon = item.icon;
-                      const isActive = currentPage === item.id;
-
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => onPageChange(item.id)}
-                          className={`w-full flex items-center px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
-                            isActive
-                              ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
-                          }`}
-                        >
-                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
-                          <span className="truncate text-xs">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Menu Relatórios Expansível */}
-            {hasAccess('relatorios') && !isCollapsed && (
-              <div>
-                <button
-                  onClick={() => setRelatoriosOpen(!relatoriosOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
-                    isRelatoriosActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center min-w-0 flex-1">
-                    <FileText className={`w-5 h-5 mr-3 flex-shrink-0 ${isRelatoriosActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    <span className="truncate">Relatórios</span>
-                  </div>
-                  <div className="flex-shrink-0 ml-2">
-                    {relatoriosOpen ? (
-                      <ChevronDown className={`w-3 h-3 ${isRelatoriosActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    ) : (
-                      <ChevronRight className={`w-3 h-3 ${isRelatoriosActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    )}
-                  </div>
-                </button>
-
-                {relatoriosOpen && (
-                  <div className="bg-gray-50">
-                    {relatoriosItems.filter((item) => item.id !== 'tempo-real-estimado' || user?.profile === 'admin' || user?.profile === 'gestor').map((item) => {
-                      const Icon = item.icon;
-                      const isActive = currentPage === item.id;
-
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => onPageChange(item.id)}
-                          className={`w-full flex items-center px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
-                            isActive
-                              ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
-                          }`}
-                        >
-                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
-                          <span className="truncate text-xs">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Menu Cadastros Expansível */}
-            {hasAccess('usuarios') && !isCollapsed && (
-              <div>
-                <button
-                  onClick={() => setCadastrosOpen(!cadastrosOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
-                    isCadastrosActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center min-w-0 flex-1">
-                    <FolderOpen className={`w-5 h-5 mr-3 flex-shrink-0 ${isCadastrosActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    <span className="truncate">Cadastros</span>
-                  </div>
-                  <div className="flex-shrink-0 ml-2">
-                    {cadastrosOpen ? (
-                      <ChevronDown className={`w-3 h-3 ${isCadastrosActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    ) : (
-                      <ChevronRight className={`w-3 h-3 ${isCadastrosActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    )}
-                  </div>
-                </button>
-
-                {cadastrosOpen && (
-                  <div className="bg-gray-50">
-                    {/* Recepção */}
-                    {hasModuleAccess('recepcao') && renderSubMenu(
-                      cadastrosItems.recepcao,
-                      recepcaoOpen,
-                      setRecepcaoOpen,
-                      'Recepção',
-                      Phone
-                    )}
-
-                    {/* Governança */}
-                    {hasModuleAccess('camararia') && renderSubMenu(
-                      cadastrosItems.camararia,
-                      camarariaOpen,
-                      setCamarariaOpen,
-                      'Governança',
-                      Bed
-                    )}
-
-                    {/* Revisão */}
-                    {hasModuleAccess('revisao') && renderSubMenu(
-                      cadastrosItems.revisao,
-                      revisaoOpen,
-                      setRevisaoOpen,
-                      'Revisão',
-                      CheckCircle
-                    )}
-
-                    {/* Gestão */}
-                    {hasModuleAccess('gestao') && renderSubMenu(
-                      cadastrosItems.gestao,
-                      gestaoOpen,
-                      setGestaoOpen,
-                      'Gestão',
-                      Briefcase
-                    )}
-
-                    {/* Cozinha */}
-                    {hasModuleAccess('cozinha') && renderSubMenu(
-                      cadastrosItems.cozinha,
-                      cozinhaOpen,
-                      setCozinhaOpen,
-                      'Cozinha',
-                      ChefHat
-                    )}
-
-                    {/* Áreas Comuns */}
-                    {hasModuleAccess('areas_comuns') && renderSubMenu(
-                      cadastrosItems.areasComuns,
-                      areasComunsOpen,
-                      setAreasComunsOpen,
-                      'Áreas Comuns',
-                      Building
-                    )}
-
-                    {/* Vendas */}
-                    {hasModuleAccess('vendas') && renderSubMenu(
-                      cadastrosItems.vendas,
-                      vendasOpen,
-                      setVendasOpen,
-                      'Vendas',
-                      ShoppingBag
-                    )}
-
-                    {/* Atividades Diárias */}
-                    {hasModuleAccess('atividades_diarias') && renderSubMenu(
-                      cadastrosItems.atividadesDiarias,
-                      atividadesDiariasOpen,
-                      setAtividadesDiariasOpen,
-                      'Atividades Diárias',
-                      Activity
-                    )}
-
-                    {/* Atividades Extras */}
-                    {hasModuleAccess('atividades_extras') && renderSubMenu(
-                      cadastrosItems.atividadesExtras,
-                      atividadesExtrasOpen,
-                      setAtividadesExtrasOpen,
-                      'Atividades Extras',
-                      Sun
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Menu Administração Expansível */}
-            {hasAccess('usuarios') && !isCollapsed && (
-              <div>
-                <button
-                  onClick={() => setAdminOpen(!adminOpen)}
-                  className={`w-full flex items-center justify-between px-4 py-2 text-left text-sm transition-colors duration-200 ${
-                    isAdminActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center min-w-0 flex-1">
-                    <Settings className={`w-5 h-5 mr-3 flex-shrink-0 ${isAdminActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    <span className="truncate">Administração</span>
-                  </div>
-                  <div className="flex-shrink-0 ml-2">
-                    {adminOpen ? (
-                      <ChevronDown className={`w-3 h-3 ${isAdminActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    ) : (
-                      <ChevronRight className={`w-3 h-3 ${isAdminActive ? 'text-blue-700' : 'text-gray-500'}`} />
-                    )}
-                  </div>
-                </button>
-
-                {adminOpen && (
-                  <div className="bg-gray-50">
-                    {adminItems.map((item) => {
-                      if (!item.access) return null;
-
-                      const Icon = item.icon;
-                      const isActive = currentPage === item.id;
-
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => onPageChange(item.id)}
-                          className={`w-full flex items-center px-8 py-1.5 text-left text-sm transition-colors duration-200 ${
-                            isActive
-                              ? 'bg-blue-100 text-blue-700 border-r-2 border-blue-700'
-                              : 'text-gray-600 hover:bg-gray-100 hover:text-gray-700'
-                          }`}
-                        >
-                          <Icon className={`w-4 h-4 mr-3 flex-shrink-0 ${isActive ? 'text-blue-700' : 'text-gray-400'}`} />
-                          <span className="truncate text-xs">{item.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Botão Agente IA */}
-            {hasAccess('usuarios') && (
-              <button
-                onClick={() => window.open('https://performaxis-ia.com.br/', '_blank')}
-                className={`w-full flex items-center text-left text-sm transition-colors duration-200 relative group text-gray-700 hover:bg-gray-50 ${
-                  isCollapsed ? 'lg:justify-center lg:px-0 lg:py-2' : 'px-4 py-2'
-                }`}
-                title={isCollapsed ? 'Agente IA' : ''}
-              >
-                <Lightbulb className={`w-5 h-5 flex-shrink-0 text-gray-500 ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
-                <span className={`truncate ${isCollapsed ? 'lg:hidden' : ''}`}>Agente IA</span>
-
-                {isCollapsed && (
-                  <div className="hidden lg:block fixed left-20 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[9999]">
-                    Agente IA
-                  </div>
-                )}
-              </button>
-            )}
-          </nav>
+          <nav className="py-1">{mostrarConfig ? menuConfiguracoes : menuOperacao}</nav>
         </div>
 
         {/* Footer fixo */}
@@ -755,12 +462,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
           >
             <LogOut className={`w-5 h-5 text-gray-500 flex-shrink-0 ${isCollapsed ? 'lg:mr-0' : 'mr-3'}`} />
             <span className={`${isCollapsed ? 'lg:hidden' : ''}`}>Sair</span>
-
-            {isCollapsed && (
-              <div className="hidden lg:block fixed left-20 px-2 py-1 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-[9999]">
-                Sair
-              </div>
-            )}
+            <Dica texto="Sair" />
           </button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { SidebarProvider } from '../contexts/SidebarContext';
 import { Menu } from 'lucide-react';
@@ -118,6 +118,12 @@ const DiagnosticoNotificacoes = lazyComRecarga(() => import('./Pages/Diagnostico
 const MainAppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // área rolável do conteúdo: cada página nova abre no topo
+  const conteudoRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    conteudoRef.current?.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0 });
+  }, [currentPage]);
   const [authView, setAuthView] = useState<'landing' | 'login' | 'register' | 'reset'>('landing');
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showBatteryGuideModal, setShowBatteryGuideModal] = useState(false);
@@ -649,7 +655,7 @@ const MainAppContent: React.FC = () => {
             <PendingRecordsBadge userId={user?.id || null} />
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4 lg:p-6 pt-[60px] lg:pt-6">
+          <div ref={conteudoRef} className="flex-1 overflow-y-auto p-4 lg:p-6 pt-[60px] lg:pt-6">
             <Suspense fallback={<LoadingState />}>{renderPage()}</Suspense>
           </div>
         </main>
