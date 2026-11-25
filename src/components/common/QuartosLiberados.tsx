@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { notificar, confirmar } from '../../lib/feedback';
 import { nomeSuite } from '../../utils/nomeSuite';
 import { ResumoSuitesDia } from './ResumoSuitesDia';
+import { useAuth } from '../../contexts/AuthContext';
 
 // Recepção avisa a governança: "Quarto liberado" (o hóspede já saiu) em cada suíte do dia.
 
@@ -28,6 +29,9 @@ const hora = (iso: string) =>
   new Date(iso).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' });
 
 export function QuartosLiberados() {
+  const { user } = useAuth();
+  // só recepção e gestão marcam; os demais só acompanham
+  const podeMarcar = ['recepcao', 'gestor', 'admin'].includes(user?.profile || '');
   const [lista, setLista] = useState<SuiteDoDia[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [marcando, setMarcando] = useState<string | null>(null);
@@ -108,13 +112,13 @@ export function QuartosLiberados() {
                     <p className="text-xs text-gray-600">{TIPOS[s.tipo_servico] || s.tipo_servico} · {situacao(s)}</p>
                     <button
                       onClick={() => alternar(s)}
-                      disabled={marcando === s.registro_id}
-                      className={`mt-3 w-full px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 ${
+                      disabled={!podeMarcar || marcando === s.registro_id}
+                      className={`mt-3 w-full px-3 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 ${podeMarcar ? 'disabled:opacity-50' : 'cursor-default'} ${
                         ok ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'border border-emerald-600 text-emerald-700 hover:bg-emerald-50'
                       }`}
                     >
                       <DoorOpen className="w-4 h-4" />
-                      {ok ? `Liberado às ${hora(s.quarto_liberado_em!)}` : 'Quarto liberado'}
+                      {ok ? `Liberado às ${hora(s.quarto_liberado_em!)}` : podeMarcar ? 'Quarto liberado' : 'Aguardando a recepção'}
                     </button>
                     {ok && s.quarto_liberado_por_nome && (
                       <p className="text-[11px] text-emerald-800 mt-1 text-center">por {s.quarto_liberado_por_nome}</p>
