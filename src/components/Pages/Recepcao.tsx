@@ -4,8 +4,12 @@ import {
   Plus,
   History,
   Calendar,
-  Clock
+  Clock,
+  DoorOpen,
+  PackageSearch
 } from 'lucide-react';
+import { QuartosLiberados } from '../common/QuartosLiberados';
+import { ListaObjetosEsquecidos } from '../common/ObjetosEsquecidos';
 import NovoRegistroRecepcao from './NovoRegistroRecepcao';
 import HistoricoRecepcao from './HistoricoRecepcao';
 import { PageHeader } from '../ui/PageHeader';
@@ -16,6 +20,8 @@ const Recepcao: React.FC = () => {
 
   const tabs = [
     { id: 'novo-registro', label: 'Novo Registro', icon: Plus },
+    { id: 'quartos', label: 'Quartos liberados', icon: DoorOpen },
+    { id: 'achados', label: 'Achados e perdidos', icon: PackageSearch },
     { id: 'historico', label: 'Histórico', icon: History }
   ];
 
@@ -23,6 +29,10 @@ const Recepcao: React.FC = () => {
     switch (activeTab) {
       case 'novo-registro':
         return <NovoRegistroRecepcao />;
+      case 'quartos':
+        return <QuartosLiberados />;
+      case 'achados':
+        return <ListaObjetosEsquecidos />;
       case 'historico':
         return <HistoricoRecepcao />;
       default:

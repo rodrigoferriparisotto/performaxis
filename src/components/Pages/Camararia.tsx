@@ -10,6 +10,8 @@ import {
 import NovoRegistroCamararia from './NovoRegistroCamararia';
 import HistoricoCamararia from './HistoricoCamararia';
 import ProgramacaoCamararia from './ProgramacaoCamararia';
+import { ListaObjetosEsquecidos } from '../common/ObjetosEsquecidos';
+import { PackageSearch } from 'lucide-react';
 import { ModuleTabs } from '../ui/ModuleTabs';
 import { PageHeader } from '../ui/PageHeader';
 import { obterContextoUsuario } from '../../services/supabaseService';
@@ -111,6 +113,7 @@ const Camararia: React.FC = () => {
   const tabs = [
     { id: 'novo-registro', label: 'Novo Registro', icon: Plus },
     { id: 'programacao', label: 'Programação', icon: Calendar },
+    { id: 'achados', label: 'Achados e perdidos', icon: PackageSearch },
     { id: 'historico', label: 'Histórico', icon: History }
   ];
 
@@ -120,6 +123,8 @@ const Camararia: React.FC = () => {
         return <NovoRegistroCamararia />;
       case 'programacao':
         return <ProgramacaoCamararia />;
+      case 'achados':
+        return <ListaObjetosEsquecidos />;
       case 'historico':
         return <HistoricoCamararia />;
       default:

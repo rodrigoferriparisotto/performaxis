@@ -32,6 +32,7 @@ import { HorarioItem } from '../common/HorarioItem';
 import { revisarEncerramento } from '../../lib/encerramento';
 import { progressoChecklist, alternarRealizada, alternarNaoAplicavel } from '../../lib/checklist';
 import { BotaoNaoSeAplica } from '../common/BotaoNaoSeAplica';
+import { BotaoObjetoEsquecido } from '../common/ObjetosEsquecidos';
 
 const NovoRegistroCamararia: React.FC = () => {
   const { user } = useAuth();
@@ -166,9 +167,10 @@ const NovoRegistroCamararia: React.FC = () => {
     return ordenarSuites(suites);
   }, [suites]);
 
-  // Ordenar registros programados alfabeticamente pelo nome da suíte
+  // Quartos liberados pela recepção primeiro; depois pelo nome da suíte
   const registrosProgramadosOrdenados = React.useMemo(() => {
     return [...registrosProgramados].sort((a, b) => {
+      if (!!a.quarto_liberado_em !== !!b.quarto_liberado_em) return a.quarto_liberado_em ? -1 : 1;
       const suiteA = suites.find(s => s.id === a.suite_id);
       const suiteB = suites.find(s => s.id === b.suite_id);
 
@@ -185,6 +187,13 @@ const NovoRegistroCamararia: React.FC = () => {
   useEffect(() => {
     carregarDados();
   }, [user]);
+
+  // a recepção marca "Quarto liberado": atualiza a lista do dia a cada minuto enquanto não há registro aberto
+  useEffect(() => {
+    if (registroAtivo) return;
+    const t = setInterval(() => carregarRegistrosProgramados(), 60_000);
+    return () => clearInterval(t);
+  }, [registroAtivo, user]);
 
   const carregarServicosCamararia = async () => {
     try {
@@ -989,6 +998,17 @@ const NovoRegistroCamararia: React.FC = () => {
                           <p className="text-sm text-gray-600">
                             {getTipoServicoLabel(registro.tipo_servico)}
                           </p>
+                          {registro.tipo_servico !== 'suite_livre' && (
+                            registro.quarto_liberado_em ? (
+                              <p className="mt-1 inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium">
+                                Quarto liberado às {new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            ) : (
+                              <p className="mt-1 inline-block px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 text-xs font-medium">
+                                Aguardando liberação da recepção
+                              </p>
+                            )
+                          )}
                           {String(registro.observacoes || '').startsWith('RETRABALHO:') && (
                             <p className="mt-1 inline-block px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">
                               Retrabalho: {String(registro.observacoes).replace('RETRABALHO:', '').trim()}
@@ -1095,8 +1115,13 @@ const NovoRegistroCamararia: React.FC = () => {
 
           {/* Observações e Fotos */}
           <div className="bg-white rounded-lg shadow-md border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
+            <div className="p-6 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-gray-800">Observações</h3>
+              <BotaoObjetoEsquecido
+                registroId={registroAtivo.id}
+                suiteId={registroAtivo.suite_id}
+                suiteNome={getSuiteNome(registroAtivo.suite_id)}
+              />
             </div>
 
             <div className="p-6 space-y-6">
