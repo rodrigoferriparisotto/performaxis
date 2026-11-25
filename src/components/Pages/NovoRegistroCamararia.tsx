@@ -54,6 +54,9 @@ const NovoRegistroCamararia: React.FC = () => {
   // registro sem programação: fechado quando há suítes programadas (abre ao tocar)
   const [avulsoAberto, setAvulsoAberto] = useState(false);
   const formAvulsoVisivel = avulsoAberto || registrosProgramados.length === 0;
+  // recepção e gestão marcam "Quarto liberado" direto no quadro da suíte
+  const podeLiberarQuarto = ['recepcao', 'gestor', 'admin'].includes(user?.profile || '');
+  const [liberando, setLiberando] = useState<string | null>(null);
 
   // Mapeamento de nomes de serviços para valores do enum
   const mapearServicoParaEnum = (nomeServico: string): string => {
@@ -252,6 +255,21 @@ const NovoRegistroCamararia: React.FC = () => {
       console.error('Erro ao carregar registros programados:', error);
       setRegistrosProgramados([]);
     }
+  };
+
+  const alternarQuartoLiberado = async (registro: any) => {
+    const liberar = !registro.quarto_liberado_em;
+    if (!liberar && !(await confirmar(`Desfazer "Quarto liberado" da ${getSuiteNome(registro.suite_id)}?`))) return;
+    setLiberando(registro.id);
+    const { data, error } = await supabase.rpc('marcar_quarto_liberado', { p_registro: registro.id, p_liberado: liberar });
+    setLiberando(null);
+    if (error) {
+      notificar('Não foi possível salvar. Verifique a conexão.', 'erro');
+      return;
+    }
+    setRegistrosProgramados((lista) =>
+      lista.map((r) => (r.id === registro.id ? { ...r, quarto_liberado_em: data || null } : r))
+    );
   };
 
   const iniciarRegistroProgramado = async (registro: any) => {
@@ -983,7 +1001,7 @@ const NovoRegistroCamararia: React.FC = () => {
       </div>
 
       {/* Quadros do dia: liberados, tipos, limpas e por fazer */}
-      {!registroAtivo && <ResumoSuitesDia atualizar={registrosProgramados.length} />}
+      {!registroAtivo && <ResumoSuitesDia atualizar={registrosProgramados.length + 1000 * registrosProgramados.filter((r) => r.quarto_liberado_em).length} />}
 
       {/* Registros Programados para Hoje */}
       {!registroAtivo && registrosProgramados.length > 0 && (
@@ -1018,11 +1036,26 @@ const NovoRegistroCamararia: React.FC = () => {
                       {getTipoServicoLabel(registro.tipo_servico)} · {getUsuarioNome(registro.usuario_id)}
                     </p>
                     {registro.tipo_servico !== 'suite_livre' && (
-                      <p className={`mt-1 text-[11px] font-medium ${liberado ? 'text-emerald-700' : 'text-amber-700'}`}>
-                        {liberado
-                          ? `Liberado às ${new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`
-                          : 'Aguardando a recepção'}
-                      </p>
+                      podeLiberarQuarto ? (
+                        <button
+                          type="button"
+                          onClick={() => alternarQuartoLiberado(registro)}
+                          disabled={liberando === registro.id}
+                          className={`mt-1.5 w-full py-1 rounded-md text-xs font-medium border disabled:opacity-50 ${
+                            liberado ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700' : 'border-emerald-600 text-emerald-700 bg-white hover:bg-emerald-50'
+                          }`}
+                        >
+                          {liberado
+                            ? `Liberado às ${new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`
+                            : 'Quarto liberado'}
+                        </button>
+                      ) : (
+                        <p className={`mt-1 text-[11px] font-medium ${liberado ? 'text-emerald-700' : 'text-amber-700'}`}>
+                          {liberado
+                            ? `Liberado às ${new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`
+                            : 'Aguardando a recepção'}
+                        </p>
+                      )
                     )}
                     {retrabalho && (
                       <p className="mt-1 px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[11px] font-medium line-clamp-2">
