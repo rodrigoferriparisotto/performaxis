@@ -18,7 +18,8 @@ import {
   AlertCircle,
   Home,
   ChevronDown,
-  X
+  X,
+  DoorOpen
 } from 'lucide-react';
 import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgColor } from '../../utils/motivationalPhrases';
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
@@ -1029,33 +1030,34 @@ const NovoRegistroCamararia: React.FC = () => {
                 return (
                   <div
                     key={registro.id}
-                    className={`flex flex-col rounded-lg border p-3 ${liberado ? 'border-emerald-300 bg-emerald-50' : 'border-blue-200 bg-blue-50'}`}
+                    className={`relative flex flex-col rounded-lg border p-3 ${liberado ? 'border-emerald-300 bg-emerald-50' : 'border-blue-200 bg-blue-50'}`}
                   >
-                    <p className="font-semibold text-gray-800 truncate">{getSuiteNome(registro.suite_id)}</p>
+                    {/* recepção/gestão: "Quarto liberado" no canto do quadro */}
+                    {podeLiberarQuarto && registro.tipo_servico !== 'suite_livre' && (
+                      <button
+                        type="button"
+                        onClick={() => alternarQuartoLiberado(registro)}
+                        disabled={liberando === registro.id}
+                        title={liberado ? 'Desfazer "Quarto liberado"' : 'Marcar "Quarto liberado"'}
+                        aria-label={liberado ? 'Desfazer quarto liberado' : 'Marcar quarto liberado'}
+                        className={`absolute top-2 right-2 inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-medium border disabled:opacity-50 ${
+                          liberado ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700' : 'bg-white border-emerald-600 text-emerald-700 hover:bg-emerald-50'
+                        }`}
+                      >
+                        <DoorOpen className="w-3.5 h-3.5" />
+                        {liberado ? 'Liberado' : 'Liberar'}
+                      </button>
+                    )}
+                    <p className={`font-semibold text-gray-800 truncate ${podeLiberarQuarto ? 'pr-20' : ''}`}>{getSuiteNome(registro.suite_id)}</p>
                     <p className="text-xs text-gray-600 truncate" title={`Programado por ${getUsuarioNome(registro.usuario_id)}`}>
                       {getTipoServicoLabel(registro.tipo_servico)} · {getUsuarioNome(registro.usuario_id)}
                     </p>
                     {registro.tipo_servico !== 'suite_livre' && (
-                      podeLiberarQuarto ? (
-                        <button
-                          type="button"
-                          onClick={() => alternarQuartoLiberado(registro)}
-                          disabled={liberando === registro.id}
-                          className={`mt-1.5 w-full py-1 rounded-md text-xs font-medium border disabled:opacity-50 ${
-                            liberado ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700' : 'border-emerald-600 text-emerald-700 bg-white hover:bg-emerald-50'
-                          }`}
-                        >
-                          {liberado
-                            ? `Liberado às ${new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`
-                            : 'Quarto liberado'}
-                        </button>
-                      ) : (
-                        <p className={`mt-1 text-[11px] font-medium ${liberado ? 'text-emerald-700' : 'text-amber-700'}`}>
-                          {liberado
-                            ? `Liberado às ${new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`
-                            : 'Aguardando a recepção'}
-                        </p>
-                      )
+                      <p className={`mt-1 text-[11px] font-medium ${liberado ? 'text-emerald-700' : 'text-amber-700'}`}>
+                        {liberado
+                          ? `Liberado às ${new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`
+                          : 'Aguardando a recepção'}
+                      </p>
                     )}
                     {retrabalho && (
                       <p className="mt-1 px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[11px] font-medium line-clamp-2">
