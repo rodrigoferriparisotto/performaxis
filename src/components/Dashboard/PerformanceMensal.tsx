@@ -272,6 +272,7 @@ const PerformanceMensal: React.FC<PerformanceMensalProps> = ({ empresaId, perfil
                       <span className="inline-flex items-center gap-1.5 text-red-600 font-medium">
                         <Ban className="w-3.5 h-3.5 flex-shrink-0" />
                         {semUso} {plural(semUso, 'dia', 'dias')} sem uso
+                        {Number(perf.indice_medio || 0) >= 90 && ' · faixa limitada a Prata'}
                       </span>
                     )}
                   </div>

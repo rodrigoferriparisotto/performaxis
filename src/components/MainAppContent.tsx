@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, lazy, Suspense } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { SidebarProvider } from '../contexts/SidebarContext';
+import { PerguntaDiasSemUso } from './common/PerguntaDiasSemUso';
 import { Menu } from 'lucide-react';
 import LoginForm from './Auth/LoginForm';
 import RegisterForm from './Auth/RegisterForm';
@@ -700,6 +701,9 @@ const MainAppContent: React.FC = () => {
             <Suspense fallback={<LoadingState />}>{renderPage()}</Suspense>
           </div>
         </main>
+
+        {/* dia da escala sem registro: pergunta se foi folga */}
+        <PerguntaDiasSemUso />
 
         {showNotificationModal && (
           <Suspense fallback={null}>
