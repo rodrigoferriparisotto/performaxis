@@ -18,8 +18,7 @@ import {
   AlertCircle,
   Home,
   ChevronDown,
-  X,
-  User
+  X
 } from 'lucide-react';
 import { getRandomMotivationalPhrase, getMotivationalColor, getMotivationalBgColor } from '../../utils/motivationalPhrases';
 import { useAchievementTracker } from '../../hooks/useAchievementTracker';
@@ -989,7 +988,7 @@ const NovoRegistroCamararia: React.FC = () => {
       {/* Registros Programados para Hoje */}
       {!registroAtivo && registrosProgramados.length > 0 && (
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+          <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-800">
                 Registros Programados para Hoje
@@ -999,79 +998,55 @@ const NovoRegistroCamararia: React.FC = () => {
               </span>
             </div>
             <p className="text-sm text-gray-600 mt-1">
-              Clique em "Iniciar Registro" para começar a trabalhar
+              Toque em "Iniciar" para começar · liberadas pela recepção aparecem primeiro
             </p>
           </div>
 
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {registrosProgramadosOrdenados.map((registro) => (
-                <div
-                  key={registro.id}
-                  className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-2">
-                        <div className="p-2 bg-blue-100 rounded-lg">
-                          <Home className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">
-                            {getSuiteNome(registro.suite_id)}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            {getTipoServicoLabel(registro.tipo_servico)}
-                          </p>
-                          {registro.tipo_servico !== 'suite_livre' && (
-                            registro.quarto_liberado_em ? (
-                              <p className="mt-1 inline-block px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-medium">
-                                Quarto liberado às {new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                            ) : (
-                              <p className="mt-1 inline-block px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 text-xs font-medium">
-                                Aguardando liberação da recepção
-                              </p>
-                            )
-                          )}
-                          {String(registro.observacoes || '').startsWith('RETRABALHO:') && (
-                            <p className="mt-1 inline-block px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">
-                              Retrabalho: {String(registro.observacoes).replace('RETRABALHO:', '').trim()}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center space-x-2 text-gray-600">
-                        <User className="w-4 h-4" />
-                        <span className="font-medium">Programado por:</span>
-                        <span>{getUsuarioNome(registro.usuario_id)}</span>
-                      </div>
-                    </div>
-
-                    {registro.observacoes && (
-                      <div className="text-xs text-gray-600 bg-white rounded p-2 border border-blue-100">
-                        <p className="line-clamp-2">{registro.observacoes}</p>
-                      </div>
+          <div className="p-3 sm:p-4">
+            {/* quadros compactos: várias suítes por linha */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+              {registrosProgramadosOrdenados.map((registro) => {
+                const liberado = !!registro.quarto_liberado_em;
+                const retrabalho = String(registro.observacoes || '').startsWith('RETRABALHO:');
+                return (
+                  <div
+                    key={registro.id}
+                    className={`flex flex-col rounded-lg border p-3 ${liberado ? 'border-emerald-300 bg-emerald-50' : 'border-blue-200 bg-blue-50'}`}
+                  >
+                    <p className="font-semibold text-gray-800 truncate">{getSuiteNome(registro.suite_id)}</p>
+                    <p className="text-xs text-gray-600 truncate" title={`Programado por ${getUsuarioNome(registro.usuario_id)}`}>
+                      {getTipoServicoLabel(registro.tipo_servico)} · {getUsuarioNome(registro.usuario_id)}
+                    </p>
+                    {registro.tipo_servico !== 'suite_livre' && (
+                      <p className={`mt-1 text-[11px] font-medium ${liberado ? 'text-emerald-700' : 'text-amber-700'}`}>
+                        {liberado
+                          ? `Liberado às ${new Date(registro.quarto_liberado_em).toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit' })}`
+                          : 'Aguardando a recepção'}
+                      </p>
                     )}
-
-                    <button
-                      onClick={() => iniciarRegistroProgramado(registro)}
-                      disabled={saving}
-                      className={`w-full mt-3 px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 ${
-                        saving
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : 'bg-blue-600 text-white hover:bg-blue-700'
-                      }`}
-                    >
-                      <Play className="w-4 h-4" />
-                      <span>{saving ? 'Iniciando...' : 'Iniciar Registro'}</span>
-                    </button>
+                    {retrabalho && (
+                      <p className="mt-1 px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[11px] font-medium line-clamp-2">
+                        Retrabalho: {String(registro.observacoes).replace('RETRABALHO:', '').trim()}
+                      </p>
+                    )}
+                    {registro.observacoes && !retrabalho && (
+                      <p className="mt-1 text-[11px] text-gray-600 line-clamp-1" title={registro.observacoes}>{registro.observacoes}</p>
+                    )}
+                    <div className="mt-auto pt-2">
+                      <button
+                        onClick={() => iniciarRegistroProgramado(registro)}
+                        disabled={saving}
+                        className={`w-full py-1.5 rounded-md flex items-center justify-center gap-1.5 text-sm font-medium transition-colors duration-200 ${
+                          saving ? 'bg-gray-400 cursor-not-allowed text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      >
+                        <Play className="w-3.5 h-3.5" />
+                        <span>{saving ? 'Iniciando...' : 'Iniciar'}</span>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
