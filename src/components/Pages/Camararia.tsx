@@ -11,7 +11,7 @@ import NovoRegistroCamararia from './NovoRegistroCamararia';
 import HistoricoCamararia from './HistoricoCamararia';
 import ProgramacaoCamararia from './ProgramacaoCamararia';
 import { ListaObjetosEsquecidos } from '../common/ObjetosEsquecidos';
-import { PackageSearch } from 'lucide-react';
+import { PackageSearch, ChevronDown } from 'lucide-react';
 import { ModuleTabs } from '../ui/ModuleTabs';
 import { PageHeader } from '../ui/PageHeader';
 import { obterContextoUsuario } from '../../services/supabaseService';
@@ -137,9 +137,15 @@ const Camararia: React.FC = () => {
       <div>
         <PageHeader titulo="Governança" subtitulo="Gerencie os registros de limpeza das suítes" />
 
-        {/* Lista de Itens para Trabalho */}
-        <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-green-800 mb-3">Os itens para uso no seu trabalho são:</h3>
+        <ModuleTabs modulo="camararia" abas={tabs} ativa={activeTab} onChange={setActiveTab} />
+
+        {/* Itens de trabalho: fechado; abre ao tocar */}
+        <details className="mt-4 bg-green-50 border border-green-200 rounded-lg group">
+          <summary className="cursor-pointer list-none flex items-center justify-between gap-2 px-4 py-3 text-sm font-semibold text-green-800">
+            <span>Itens para uso no seu trabalho{!itensCarregando && itensCamararia.length > 0 ? ` (${itensCamararia.length})` : ''}</span>
+            <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="px-4 pb-4">
           {itensCarregando ? (
             <div className="flex items-center justify-center py-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
@@ -161,10 +167,10 @@ const Camararia: React.FC = () => {
               </p>
             </div>
           )}
-        </div>
+          </div>
+        </details>
       </div>
 
-      <ModuleTabs modulo="camararia" abas={tabs} ativa={activeTab} onChange={setActiveTab} />
 
       {/* Tab Content */}
       <div className="mb-6">

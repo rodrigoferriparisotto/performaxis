@@ -3,6 +3,7 @@ import { DoorOpen, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { notificar, confirmar } from '../../lib/feedback';
 import { nomeSuite } from '../../utils/nomeSuite';
+import { ResumoSuitesDia } from './ResumoSuitesDia';
 
 // Recepção avisa a governança: "Quarto liberado" (o hóspede já saiu) em cada suíte do dia.
 
@@ -30,6 +31,7 @@ export function QuartosLiberados() {
   const [lista, setLista] = useState<SuiteDoDia[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [marcando, setMarcando] = useState<string | null>(null);
+  const [versao, setVersao] = useState(0);
 
   const carregar = async () => {
     const { data, error } = await supabase.rpc('suites_do_dia_governanca');
@@ -61,6 +63,7 @@ export function QuartosLiberados() {
       return;
     }
     carregar();
+    setVersao((v) => v + 1);
   };
 
   const situacao = (s: SuiteDoDia) =>
@@ -71,6 +74,8 @@ export function QuartosLiberados() {
   const liberados = lista.filter((s) => s.quarto_liberado_em).length;
 
   return (
+    <div className="space-y-4">
+    <ResumoSuitesDia atualizar={versao} />
     <div className="bg-white rounded-lg shadow-md border border-gray-200">
       <div className="p-4 sm:p-6 border-b border-gray-200 flex items-start justify-between gap-3">
         <div>
@@ -121,6 +126,7 @@ export function QuartosLiberados() {
           </>
         )}
       </div>
+    </div>
     </div>
   );
 }

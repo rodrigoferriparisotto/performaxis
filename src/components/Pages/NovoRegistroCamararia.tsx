@@ -33,6 +33,7 @@ import { revisarEncerramento } from '../../lib/encerramento';
 import { progressoChecklist, alternarRealizada, alternarNaoAplicavel } from '../../lib/checklist';
 import { BotaoNaoSeAplica } from '../common/BotaoNaoSeAplica';
 import { BotaoObjetoEsquecido } from '../common/ObjetosEsquecidos';
+import { ResumoSuitesDia } from '../common/ResumoSuitesDia';
 
 const NovoRegistroCamararia: React.FC = () => {
   const { user } = useAuth();
@@ -960,6 +961,9 @@ const NovoRegistroCamararia: React.FC = () => {
         )}
 
       </div>
+
+      {/* Quadros do dia: liberados, tipos, limpas e por fazer */}
+      {!registroAtivo && <ResumoSuitesDia atualizar={registrosProgramados.length} />}
 
       {/* Registros Programados para Hoje */}
       {!registroAtivo && registrosProgramados.length > 0 && (
