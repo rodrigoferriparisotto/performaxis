@@ -14,8 +14,6 @@ import {
   X,
   Edit,
   Trash2,
-  Clock,
-  User,
   Layers
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
@@ -384,57 +382,40 @@ const ProgramacaoCamararia: React.FC = () => {
 
         <div className="p-6">
           {registrosProgramados.length > 0 ? (
-            <div className="space-y-4">
+            // quadros compactos: cabem várias suítes por linha
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
               {registrosProgramados.map((registro) => (
-                <div key={registro.id} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <Home className="w-4 h-4 text-blue-600" />
-                        <span className="font-medium text-gray-800">{getSuiteNome(registro.suite_id)}</span>
-                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                          {getTipoServicoLabel(registro.tipo_servico)}
-                        </span>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                          Programado
-                        </span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4 text-sm text-gray-600">
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-3 h-3" />
-                          <span>{formatarData(registro.data)}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <User className="w-3 h-3" />
-                          <span>{registro.usuarios?.name || 'Usuário não encontrado'}</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-3 h-3" />
-                          <span>Criado: {new Date(registro.created_at).toLocaleDateString('pt-BR')}</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <button 
-                        onClick={() => handleEditRegistro(registro)}
-                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors duration-200"
-                        title="Editar programação"
+                <div key={registro.id} className="relative p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="absolute top-1.5 right-1.5 flex">
+                    <button
+                      onClick={() => handleEditRegistro(registro)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-100 rounded-md"
+                      title="Editar programação"
+                      aria-label="Editar programação"
+                    >
+                      <Edit className="w-3.5 h-3.5" />
+                    </button>
+                    {(user?.profile === 'admin' || registro.usuario_id === user?.id) && (
+                      <button
+                        onClick={() => handleDeleteRegistro(registro.id)}
+                        className="p-1.5 text-red-600 hover:bg-red-100 rounded-md"
+                        title="Excluir programação"
+                        aria-label="Excluir programação"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
-                      {(user?.profile === 'admin' || registro.usuario_id === user?.id) && (
-                        <button 
-                          onClick={() => handleDeleteRegistro(registro.id)}
-                          className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200"
-                          title="Excluir programação"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
+                    )}
                   </div>
+                  <div className="flex items-center gap-1.5 pr-14">
+                    <Home className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                    <span className="font-semibold text-gray-800 truncate">{getSuiteNome(registro.suite_id)}</span>
+                  </div>
+                  <span className="mt-1.5 inline-block px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                    {getTipoServicoLabel(registro.tipo_servico)}
+                  </span>
+                  <p className="mt-1.5 text-[11px] text-gray-600 truncate" title={`Programado por ${registro.usuarios?.name || '—'} em ${new Date(registro.created_at).toLocaleDateString('pt-BR')}`}>
+                    {formatarData(registro.data).slice(0, 5)} · {registro.usuarios?.name || '—'}
+                  </p>
                 </div>
               ))}
             </div>

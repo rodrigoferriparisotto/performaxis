@@ -52,6 +52,9 @@ const NovoRegistroCamararia: React.FC = () => {
   const [oldRecord, setOldRecord] = useState<any>(null);
   const [registrosAntigos, setRegistrosAntigos] = useState<any[]>([]);
   const [registrosProgramados, setRegistrosProgramados] = useState<any[]>([]);
+  // registro sem programação: fechado quando há suítes programadas (abre ao tocar)
+  const [avulsoAberto, setAvulsoAberto] = useState(false);
+  const formAvulsoVisivel = avulsoAberto || registrosProgramados.length === 0;
 
   // Mapeamento de nomes de serviços para valores do enum
   const mapearServicoParaEnum = (nomeServico: string): string => {
@@ -851,18 +854,36 @@ const NovoRegistroCamararia: React.FC = () => {
       )}
       
 
-      {/* Data Atual e Seleções */}
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
+      {/* Data Atual e Seleções (sem registro aberto e com suítes programadas, fica recolhido) */}
+      <div className={`bg-white rounded-lg shadow-md border border-gray-200 ${formAvulsoVisivel || registroAtivo ? 'p-6' : 'p-4'}`}>
+        <div className={`flex items-center justify-between ${formAvulsoVisivel || registroAtivo ? 'mb-6' : ''}`}>
+          <button
+            type="button"
+            disabled={!!registroAtivo || registrosProgramados.length === 0}
+            onClick={() => setAvulsoAberto((v) => !v)}
+            aria-expanded={formAvulsoVisivel}
+            className="flex items-center space-x-3 text-left disabled:cursor-default"
+          >
             <div className="p-3 bg-green-100 rounded-lg">
               <Calendar className="w-6 h-6 text-green-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">Data do Registro</h2>
+              <h2 className="text-lg font-semibold text-gray-800">
+                {registroAtivo || registrosProgramados.length === 0 ? 'Data do Registro' : 'Registro sem programação'}
+              </h2>
               <p className="text-gray-600 capitalize">{dataAtual}</p>
             </div>
-          </div>
+          </button>
+          {!registroAtivo && registrosProgramados.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setAvulsoAberto((v) => !v)}
+              aria-label={formAvulsoVisivel ? 'Recolher' : 'Abrir'}
+              className="p-2 rounded-lg text-gray-500 hover:bg-gray-100"
+            >
+              <ChevronDown className={`w-5 h-5 transition-transform ${formAvulsoVisivel ? 'rotate-180' : ''}`} />
+            </button>
+          )}
           
           {registroAtivo && (
             <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -872,7 +893,7 @@ const NovoRegistroCamararia: React.FC = () => {
           )}
         </div>
 
-        {!registroAtivo && (
+        {!registroAtivo && formAvulsoVisivel && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Seleção de Suíte */}
