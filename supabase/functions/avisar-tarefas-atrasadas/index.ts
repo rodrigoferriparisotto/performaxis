@@ -49,6 +49,11 @@ Deno.serve(async (req: Request) => {
     .maybeSingle();
   if (!cfg || cfg.valor !== segredo) return json({ erro: 'não autorizado' }, 401);
 
+  // chamada imediata do marcar_quarto_liberado: só os quartos liberados
+  const corpo = await req.json().catch(() => ({}));
+  const quartos = await avisarQuartosLiberados(admin);
+  if (corpo?.apenas === 'quartos_liberados') return json({ quartos });
+
   const manutencao = await avisarManutencoesVencidas(admin);
   const inicioTurno = await avisarInicioTurno(admin);
 
@@ -115,7 +120,7 @@ Deno.serve(async (req: Request) => {
     );
   }
 
-  return json({ tarefas: lista.length, pessoas: porUsuario.size, pushes: enviados, manutencao, inicioTurno });
+  return json({ tarefas: lista.length, pessoas: porUsuario.size, pushes: enviados, manutencao, inicioTurno, quartos });
 });
 
 interface Vencida {
@@ -223,4 +228,32 @@ async function avisarInicioTurno(admin: ReturnType<typeof createClient>) {
     { onConflict: 'usuario_id,data,turno_inicio', ignoreDuplicates: true }
   );
   return { pessoas: ids.length, turnos: turnos.length, pushes };
+}
+
+// recepção marcou "Quarto liberado": avisa quem está na suíte, ou as camareiras do turno
+async function avisarQuartosLiberados(admin: ReturnType<typeof createClient>) {
+  const { data, error } = await admin.rpc('quartos_liberados_para_avisar');
+  if (error) return { erro: error.message };
+  const avisos = (data || []) as { registro_id: string; suite_nome: string; tipo_servico: string; destinatarios: string[] }[];
+  if (avisos.length === 0) return { quartos: 0 };
+
+  const tipos: Record<string, string> = { check_in: 'check-in', check_out: 'check-out', permanencia: 'permanência' };
+  const ids = [...new Set(avisos.flatMap((a) => a.destinatarios || []))];
+  const tokensPorUsuario = new Map<string, string[]>();
+  if (ids.length > 0) {
+    const { data: t } = await admin.from('push_tokens').select('usuario_id, token').in('usuario_id', ids).eq('is_active', true);
+    for (const x of t || []) tokensPorUsuario.set(x.usuario_id, [...(tokensPorUsuario.get(x.usuario_id) || []), x.token]);
+  }
+
+  let pushes = 0;
+  for (const a of avisos) {
+    const tokens = (a.destinatarios || []).flatMap((id) => tokensPorUsuario.get(id) || []);
+    const tipo = tipos[a.tipo_servico] ? ` (${tipos[a.tipo_servico]})` : '';
+    if (await enviarPush(tokens, `🚪 ${a.suite_nome} liberada`, `A recepção liberou a ${a.suite_nome}${tipo}. Pode começar a limpeza.`, '/#camararia', 'quarto_liberado')) pushes++;
+  }
+  await admin
+    .from('avisos_quarto_liberado')
+    .update({ enviado_em: new Date().toISOString() })
+    .in('registro_id', avisos.map((a) => a.registro_id));
+  return { quartos: avisos.length, pushes };
 }
