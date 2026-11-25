@@ -111,8 +111,8 @@ const Camararia: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'programacao', label: 'Programação', icon: Calendar },
     { id: 'novo-registro', label: 'Novo Registro', icon: Plus },
+    { id: 'programacao', label: 'Programação', icon: Calendar },
     { id: 'achados', label: 'Achados e perdidos', icon: PackageSearch },
     { id: 'historico', label: 'Histórico', icon: History }
   ];
