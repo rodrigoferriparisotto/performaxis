@@ -15,6 +15,7 @@ export const PRESETS_CICLO = [
   { rotulo: '12x36', trabalha: 1, folga: 1 },
   { rotulo: '24x48', trabalha: 1, folga: 2 },
   { rotulo: '2x2', trabalha: 2, folga: 2 },
+  { rotulo: '5x2', trabalha: 5, folga: 2 },
   { rotulo: '6x1', trabalha: 6, folga: 1 },
 ];
 
