@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ProgramacaoEmLote from './ProgramacaoEmLote';
+import ImportarPms from './ImportarPms';
 import ResumoProgramacao from './ResumoProgramacao';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,7 +15,8 @@ import {
   X,
   Edit,
   Trash2,
-  Layers
+  Layers,
+  FileUp
 } from 'lucide-react';
 import { notificar, confirmar } from '../../lib/feedback';
 import { nomeSuite } from '../../utils/nomeSuite';
@@ -46,6 +48,7 @@ const ProgramacaoCamararia: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingRegistro, setEditingRegistro] = useState<RegistroProgramado | null>(null);
   const [showLote, setShowLote] = useState(false);
+  const [showPms, setShowPms] = useState(false);
 
   useEffect(() => {
     carregarDados();
@@ -347,6 +350,13 @@ const ProgramacaoCamararia: React.FC = () => {
           <span>Uma suíte</span>
         </button>
         <button
+          onClick={() => setShowPms(true)}
+          className="px-4 py-2 rounded-lg border border-green-300 text-green-700 bg-white hover:bg-green-50 flex items-center justify-center gap-2 transition-colors duration-200"
+        >
+          <FileUp className="w-4 h-4" />
+          <span>Importar do PMS</span>
+        </button>
+        <button
           onClick={() => setShowLote(true)}
           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 transition-colors duration-200"
         >
@@ -362,6 +372,17 @@ const ProgramacaoCamararia: React.FC = () => {
           jaProgramadas={suitesProgramadasNaData}
           usuarioId={user.id}
           onFechar={() => setShowLote(false)}
+          onSalvo={carregarRegistrosProgramados}
+        />
+      )}
+
+      {showPms && user && (
+        <ImportarPms
+          suites={suites}
+          servicos={servicosParaLote}
+          jaProgramadas={suitesProgramadasNaData}
+          usuarioId={user.id}
+          onFechar={() => setShowPms(false)}
           onSalvo={carregarRegistrosProgramados}
         />
       )}
