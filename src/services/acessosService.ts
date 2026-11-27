@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { decryptPassword } from './encryptionService';
+import { todasPaginas } from '../lib/paginacao';
 
 export type AreaVinculada =
   | 'recepcao'
@@ -298,19 +299,16 @@ export const acessosService = {
   },
 
   async getLogsByDateRange(empresaId: string, startDate: string, endDate: string): Promise<LogAcesso[]> {
-    const { data, error } = await supabase
+    // período longo passa de 1.000 linhas: busca todas as páginas
+    return todasPaginas<LogAcesso>((de, ate) => supabase
       .from('logs_acesso')
       .select('*')
       .eq('empresa_id', empresaId)
       .gte('data_hora', startDate)
       .lte('data_hora', endDate)
-      .order('data_hora', { ascending: false });
-
-    if (error) {
-      throw error;
-    }
-
-    return data || [];
+      .order('data_hora', { ascending: false })
+      .order('id')
+      .range(de, ate));
   },
 
   async getLogsByAction(empresaId: string, acao: string, limit = 100): Promise<LogAcesso[]> {
@@ -360,14 +358,13 @@ export const acessosService = {
   },
 
   async countLogsByAction(empresaId: string): Promise<Record<string, number>> {
-    const { data, error } = await supabase
+    // contagem no cliente: precisa de todas as linhas, não só as 1.000 primeiras
+    const data = await todasPaginas<{ acao: string }>((de, ate) => supabase
       .from('logs_acesso')
       .select('acao')
-      .eq('empresa_id', empresaId);
-
-    if (error) {
-      throw error;
-    }
+      .eq('empresa_id', empresaId)
+      .order('id')
+      .range(de, ate));
 
     const counts: Record<string, number> = {};
     data?.forEach((log) => {

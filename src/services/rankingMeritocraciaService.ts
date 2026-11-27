@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { todasPaginas } from '../lib/paginacao';
 
 interface AtividadeRegistro {
   status: string;
@@ -247,16 +248,15 @@ export const rankingMeritocraciaService = {
     const ultimoDia = new Date(ano, mes, 0).getDate();
     const dataFim = `${ano}-${String(mes).padStart(2, '0')}-${ultimoDia}`;
 
-    const { data: performancesDiarias, error: errorDiarias } = await supabase
+    // pessoas × dias do mês passa fácil de 1.000 linhas: busca todas as páginas
+    const performancesDiarias = await todasPaginas<any>((de, ate) => supabase
       .from('performance_diaria')
       .select('*')
       .eq('empresa_id', empresaId)
       .gte('data', dataInicio)
-      .lte('data', dataFim);
-
-    if (errorDiarias) {
-      throw errorDiarias;
-    }
+      .lte('data', dataFim)
+      .order('id')
+      .range(de, ate));
 
     if (!performancesDiarias || performancesDiarias.length === 0) {
       return [];

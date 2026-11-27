@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import { fcmPushService } from './fcmPushService';
 import { logger } from './loggerService';
+import { todasPaginas } from '../lib/paginacao';
 
 export interface BroadcastMessage {
   id: string;
@@ -51,17 +52,20 @@ export class BroadcastMessageService {
         return [];
       }
 
-      // Get all active messages
-      const { data: messages, error: messagesError } = await supabase
-        .from('mensagens_broadcast')
-        .select(`
-          *,
-          autor:usuarios!mensagens_broadcast_autor_id_fkey(name)
-        `)
-        .eq('ativa', true)
-        .order('created_at', { ascending: false });
-
-      if (messagesError) {
+      // Get all active messages (todas as páginas: o Supabase corta em 1.000)
+      let messages: BroadcastMessage[];
+      try {
+        messages = await todasPaginas<BroadcastMessage>((de, ate) => supabase
+          .from('mensagens_broadcast')
+          .select(`
+            *,
+            autor:usuarios!mensagens_broadcast_autor_id_fkey(name)
+          `)
+          .eq('ativa', true)
+          .order('created_at', { ascending: false })
+          .order('id')
+          .range(de, ate));
+      } catch (messagesError) {
         logger.error('Error fetching messages', messagesError, 'BroadcastMessageService');
         return [];
       }
@@ -70,17 +74,21 @@ export class BroadcastMessageService {
         return [];
       }
 
-      const { data: readMessages, error: readError } = await supabase
-        .from('mensagens_broadcast_lidas')
-        .select('mensagem_id')
-        .eq('usuario_id', user.id);
-
-      if (readError) {
+      // leituras acumulam com o tempo: cortar em 1.000 faria mensagem lida reaparecer
+      let readMessages: { mensagem_id: string }[];
+      try {
+        readMessages = await todasPaginas<{ mensagem_id: string }>((de, ate) => supabase
+          .from('mensagens_broadcast_lidas')
+          .select('mensagem_id')
+          .eq('usuario_id', user.id)
+          .order('id')
+          .range(de, ate));
+      } catch (readError) {
         logger.error('Error fetching read messages', readError, 'BroadcastMessageService');
         return messages;
       }
 
-      const readMessageIds = new Set(readMessages?.map(rm => rm.mensagem_id) || []);
+      const readMessageIds = new Set(readMessages.map(rm => rm.mensagem_id));
 
       return messages.filter(message => !readMessageIds.has(message.id));
     } catch (error) {
