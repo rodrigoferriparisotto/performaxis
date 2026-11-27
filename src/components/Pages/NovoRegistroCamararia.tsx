@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { atividadeService, registroCamarariaService, suiteService, cancelamentoService, usuarioService, obterContextoUsuario } from '../../services/supabaseService';
 import { supabase } from '../../lib/supabase';
+import { todasPaginas } from '../../lib/paginacao';
 import { activityMarkingService } from '../../services/activityMarkingService';
 import { getDataAtual, getDataHoraAtual } from '../../utils/dateUtils';
 import { formatarData } from '../../utils/dateUtils';
@@ -239,19 +240,18 @@ const NovoRegistroCamararia: React.FC = () => {
 
     try {
       const dataHoje = getDataAtual();
-      const { data, error } = await supabase
-        .from('registros_camararia')
-        .select('*')
-        .eq('data', dataHoje)
-        .eq('status', 'programado')
-        .order('hora_inicio');
-
-      if (error) {
-        console.error('Erro ao carregar registros programados:', error);
-        setRegistrosProgramados([]);
-      } else {
-        setRegistrosProgramados(data || []);
-      }
+      // programação do dia de hotel grande chega perto de 1.000: busca todas as páginas
+      const data = await todasPaginas((de, ate) =>
+        supabase
+          .from('registros_camararia')
+          .select('*')
+          .eq('data', dataHoje)
+          .eq('status', 'programado')
+          .order('hora_inicio')
+          .order('id')
+          .range(de, ate)
+      );
+      setRegistrosProgramados(data);
     } catch (error) {
       console.error('Erro ao carregar registros programados:', error);
       setRegistrosProgramados([]);

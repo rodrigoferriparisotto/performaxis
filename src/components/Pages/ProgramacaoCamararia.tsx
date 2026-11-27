@@ -3,6 +3,7 @@ import ProgramacaoEmLote from './ProgramacaoEmLote';
 import ImportarPms from './ImportarPms';
 import ResumoProgramacao from './ResumoProgramacao';
 import { supabase } from '../../lib/supabase';
+import { todasPaginas } from '../../lib/paginacao';
 import { useAuth } from '../../contexts/AuthContext';
 import { suiteService, obterContextoUsuario } from '../../services/supabaseService';
 import { getDataAtual, formatarData } from '../../utils/dateUtils';
@@ -101,38 +102,42 @@ const ProgramacaoCamararia: React.FC = () => {
 
       if (userError || !userData?.empresa_id) return;
 
-      // Buscar registros programados da empresa
-      const { data, error } = await supabase
-        .from('registros_camararia')
-        .select(`
-          *,
-          suites(name, type),
-          usuarios!registros_camararia_usuario_id_fkey(name)
-        `)
-        .eq('empresa_id', userData.empresa_id)
-        .eq('status', 'programado')
-        .gte('data', getDataAtual());
+      // Buscar registros programados da empresa (vários dias × centenas de suítes passa de 1.000)
+      const hoje = getDataAtual();
+      const data = await todasPaginas((de, ate) =>
+        supabase
+          .from('registros_camararia')
+          .select(`
+            *,
+            suites(name, type),
+            usuarios!registros_camararia_usuario_id_fkey(name)
+          `)
+          .eq('empresa_id', userData.empresa_id)
+          .eq('status', 'programado')
+          .gte('data', hoje)
+          .order('data')
+          .order('id')
+          .range(de, ate)
+      );
 
-      if (!error && data) {
-        // Ordenar por nome da suíte alfabeticamente
-        const registrosOrdenados = data.sort((a, b) => {
-          if (a.data !== b.data) return a.data < b.data ? -1 : 1;
-          const nomeA = a.suites?.name || '';
-          const nomeB = b.suites?.name || '';
+      // Ordenar por nome da suíte alfabeticamente
+      const registrosOrdenados = data.sort((a, b) => {
+        if (a.data !== b.data) return a.data < b.data ? -1 : 1;
+        const nomeA = a.suites?.name || '';
+        const nomeB = b.suites?.name || '';
 
-          // Converter para números se forem numéricos, senão comparar como string
-          const numA = parseFloat(nomeA);
-          const numB = parseFloat(nomeB);
+        // Converter para números se forem numéricos, senão comparar como string
+        const numA = parseFloat(nomeA);
+        const numB = parseFloat(nomeB);
 
-          if (!isNaN(numA) && !isNaN(numB)) {
-            return numA - numB;
-          }
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB;
+        }
 
-          return nomeA.localeCompare(nomeB, 'pt-BR', { numeric: true, sensitivity: 'base' });
-        });
+        return nomeA.localeCompare(nomeB, 'pt-BR', { numeric: true, sensitivity: 'base' });
+      });
 
-        setRegistrosProgramados(registrosOrdenados);
-      }
+      setRegistrosProgramados(registrosOrdenados);
     } catch (error) {
 
     }

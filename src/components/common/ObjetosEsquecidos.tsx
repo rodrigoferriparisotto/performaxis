@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Camera, Image as ImageIcon, PackageSearch, X, Check, Trash2, RotateCcw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { emLotes } from '../../lib/paginacao';
 import { notificar, confirmar } from '../../lib/feedback';
 import { fotoUploadService } from '../../services/fotoUploadService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -177,8 +178,9 @@ export function ListaObjetosEsquecidos() {
     setLista(itens);
     const ids = [...new Set(itens.flatMap((o) => [o.registrado_por, o.resolvido_por]).filter(Boolean))] as string[];
     if (ids.length) {
-      const { data: us } = await supabase.from('usuarios').select('id, name').in('id', ids);
-      setNomes(Object.fromEntries(((us as { id: string; name: string }[]) || []).map((u) => [u.id, u.name])));
+      // em lotes: até 400 ids iriam numa URL só
+      const us = await emLotes(ids, (lote) => supabase.from('usuarios').select('id, name').in('id', lote)).catch(() => []);
+      setNomes(Object.fromEntries((us as { id: string; name: string }[]).map((u) => [u.id, u.name])));
     }
     setCarregando(false);
   };

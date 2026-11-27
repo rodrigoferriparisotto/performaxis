@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { CalendarDays, Check, Eraser, Layers, Save, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { emLotes } from '../../lib/paginacao';
 import { obterContextoUsuario } from '../../services/supabaseService';
 import { getDataAtual, formatarData } from '../../utils/dateUtils';
 import { nomeSuite } from '../../utils/nomeSuite';
@@ -93,15 +94,17 @@ export default function ProgramacaoEmLote({ suites, servicos, jaProgramadas, usu
       }
 
       // confere no banco (outra pessoa pode ter programado enquanto o lote era montado)
-      const { data: existentes, error: erroBusca } = await supabase
-        .from('registros_camararia')
-        .select('suite_id')
-        .eq('empresa_id', userData.empresa_id)
-        .eq('status', 'programado')
-        .eq('data', data)
-        .in('suite_id', Object.keys(plano));
-      if (erroBusca) throw erroBusca;
-      const repetidas = new Set((existentes || []).map((r) => r.suite_id));
+      // em lotes: centenas de suítes não cabem numa URL só (lança o erro)
+      const existentes = await emLotes(Object.keys(plano), (lote) =>
+        supabase
+          .from('registros_camararia')
+          .select('suite_id')
+          .eq('empresa_id', userData.empresa_id)
+          .eq('status', 'programado')
+          .eq('data', data)
+          .in('suite_id', lote)
+      );
+      const repetidas = new Set(existentes.map((r) => r.suite_id));
 
       const linhas = Object.entries(plano)
         .filter(([suiteId]) => !repetidas.has(suiteId))

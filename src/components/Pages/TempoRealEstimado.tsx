@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Timer } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { todasPaginas } from '../../lib/paginacao';
 import { getDataAtual, subtractDaysBrazil } from '../../utils/dateUtils';
 import { PageHeader } from '../ui/PageHeader';
 import { EmptyState, LoadingState } from '../ui/Estados';
@@ -67,16 +68,28 @@ export default function TempoRealEstimado() {
     }
     (async () => {
       setCarregando(true);
-      const { data, error } = await supabase.rpc('tempo_real_vs_estimado', {
-        p_inicio: periodo.inicio,
-        p_fim: periodo.fim,
-      });
+      // uma linha por módulo × tipo × pessoa: equipe grande passa de 1.000.
+      // Mesma ordem da função (média desc) + usuario_id para desempatar.
+      let data: Linha[] | null = null;
+      try {
+        data = await todasPaginas<Linha>((de, ate) =>
+          supabase
+            .rpc('tempo_real_vs_estimado', { p_inicio: periodo.inicio, p_fim: periodo.fim })
+            .order('modulo')
+            .order('tipo')
+            .order('media_real_min', { ascending: false })
+            .order('usuario_id')
+            .range(de, ate)
+        );
+      } catch {
+        data = null;
+      }
       if (!ativo) return;
-      if (error) {
+      if (!data) {
         notificar('Não foi possível carregar o relatório de tempos.', 'erro');
         setLinhas([]);
       } else {
-        setLinhas((data as Linha[]) || []);
+        setLinhas(data);
       }
       setCarregando(false);
     })();

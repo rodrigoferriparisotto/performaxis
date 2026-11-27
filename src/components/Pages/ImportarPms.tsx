@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FileUp, X, Save, AlertTriangle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { emLotes } from '../../lib/paginacao';
 import { obterContextoUsuario } from '../../services/supabaseService';
 import { formatarData, getDataAtual } from '../../utils/dateUtils';
 import { nomeSuite } from '../../utils/nomeSuite';
@@ -99,15 +100,17 @@ export default function ImportarPms({ suites, servicos, jaProgramadas, usuarioId
       }
       const data = relatorio.dia;
       // confere no banco (alguém pode ter programado enquanto a prévia estava aberta)
-      const { data: existentes, error: erroBusca } = await supabase
-        .from('registros_camararia')
-        .select('suite_id')
-        .eq('empresa_id', userData.empresa_id)
-        .eq('status', 'programado')
-        .eq('data', data)
-        .in('suite_id', aProgramar.map((l) => l.suiteId));
-      if (erroBusca) throw erroBusca;
-      const repetidas = new Set((existentes || []).map((r) => r.suite_id));
+      // em lotes: centenas de suítes não cabem numa URL só (lança o erro)
+      const existentes = await emLotes(aProgramar.map((l) => l.suiteId), (lote) =>
+        supabase
+          .from('registros_camararia')
+          .select('suite_id')
+          .eq('empresa_id', userData.empresa_id)
+          .eq('status', 'programado')
+          .eq('data', data)
+          .in('suite_id', lote)
+      );
+      const repetidas = new Set(existentes.map((r) => r.suite_id));
       const novas = aProgramar
         .filter((l) => !repetidas.has(l.suiteId))
         .map((l) => ({
