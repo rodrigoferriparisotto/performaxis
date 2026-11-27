@@ -1,6 +1,7 @@
 import { supabase, Database } from '../lib/supabase';
 import { AuthUser } from '../types';
 import { notificar } from '../lib/feedback';
+import { todasPaginas, emLotes } from '../lib/paginacao';
 
 // ---------------------------------------------------------------------------
 // Contexto do usuário logado (id + empresa) com cache.
@@ -756,24 +757,21 @@ export const registroRecepcaoService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_recepcao')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim);
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_recepcao')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim);
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
@@ -966,25 +964,22 @@ export const registroCamarariaService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_camararia')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim)
-        .not('status', 'in', '(programado,nao_executado)');
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_camararia')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim)
+          .not('status', 'in', '(programado,nao_executado)');
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
@@ -1232,24 +1227,21 @@ export const registroRevisaoService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_revisao')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim);
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_revisao')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim);
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
@@ -1412,24 +1404,21 @@ export const registroAreasComunsService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_areas_comuns')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim);
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_areas_comuns')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim);
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
@@ -1592,24 +1581,21 @@ export const registroGestaoService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_gestao')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim);
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_gestao')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim);
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
@@ -1772,24 +1758,21 @@ export const registroAtividadesExtrasService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_atividades_extras')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim);
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_atividades_extras')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim);
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
@@ -1965,24 +1948,21 @@ export const registroAtividadesDiariasService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_atividades_diarias')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim);
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_atividades_diarias')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim);
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
@@ -2455,24 +2435,21 @@ export const registroCozinhaService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_cozinha')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim);
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_cozinha')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim);
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
@@ -2630,24 +2607,21 @@ export const registroVendasService = {
         return [];
       }
 
-      let query = supabase
-        .from('registros_vendas')
-        .select('*')
-        .eq('empresa_id', userData.empresa_id)
-        .gte('data', dataInicio)
-        .lte('data', dataFim);
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => {
+        let query = supabase
+          .from('registros_vendas')
+          .select('*')
+          .eq('empresa_id', userData.empresa_id)
+          .gte('data', dataInicio)
+          .lte('data', dataFim);
 
-      if (usuarioId) {
-        query = query.eq('usuario_id', usuarioId);
-      }
+        if (usuarioId) {
+          query = query.eq('usuario_id', usuarioId);
+        }
 
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        return query.order('created_at', { ascending: false }).order('id').range(de, ate);
+      });
     } catch (error) {
       return [];
     }
