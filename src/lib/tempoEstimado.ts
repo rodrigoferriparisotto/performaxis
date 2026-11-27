@@ -19,6 +19,7 @@ export function lerTempoEstimado(valor: FormDataEntryValue | null | undefined): 
 // Para a equipe as consultas voltam vazias e os campos nem aparecem.
 // ---------------------------------------------------------------------------
 import { supabase } from './supabase';
+import { emLotes } from './paginacao';
 import { obterContextoUsuario } from '../services/supabaseService';
 
 export type OrigemTempo =
@@ -32,12 +33,18 @@ export type OrigemTempo =
 /** Junta os tempos estimados aos itens (campos tempo_estimado_min / tempo_estimado_revisao_min). */
 export async function juntarTemposEstimados<T extends { id: string }>(origem: OrigemTempo, itens: T[]) {
   if (itens.length === 0) return itens;
-  const { data, error } = await supabase
-    .from('tempos_estimados')
-    .select('referencia_id, minutos, minutos_revisao')
-    .eq('origem', origem)
-    .in('referencia_id', itens.map((i) => i.id));
-  if (error || !data?.length) return itens;
+  // cadastro grande: ids em lotes (URL longa falha no .in())
+  let data: { referencia_id: string; minutos: number | null; minutos_revisao: number | null }[];
+  try {
+    data = await emLotes(itens.map((i) => i.id), (lote) => supabase
+      .from('tempos_estimados')
+      .select('referencia_id, minutos, minutos_revisao')
+      .eq('origem', origem)
+      .in('referencia_id', lote));
+  } catch {
+    return itens;
+  }
+  if (!data.length) return itens;
   const mapa = new Map(data.map((d) => [d.referencia_id, d]));
   return itens.map((i) => {
     const t = mapa.get(i.id);

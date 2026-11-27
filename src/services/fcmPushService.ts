@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { logger } from './loggerService';
+import { todasPaginas } from '../lib/paginacao';
 
 interface PushToken {
   id: string;
@@ -79,15 +80,16 @@ class FCMPushService {
 
   private async getActiveTokensForCompany(empresaId: string): Promise<string[]> {
     try {
-      const { data, error } = await supabase
+      // empresa grande (vários aparelhos por pessoa) passa de 1.000 tokens
+      const data = await todasPaginas<{ token: string }>((de, ate) => supabase
         .from('push_tokens')
         .select('token, usuarios!inner(empresa_id)')
         .eq('usuarios.empresa_id', empresaId)
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('id')
+        .range(de, ate));
 
-      if (error) throw error;
-
-      return data?.map((t) => t.token) || [];
+      return data.map((t) => t.token);
     } catch (error) {
       logger.error('Error fetching company tokens', error, 'FCMPushService');
       return [];
@@ -96,14 +98,14 @@ class FCMPushService {
 
   private async getAllActiveTokens(): Promise<string[]> {
     try {
-      const { data, error } = await supabase
+      const data = await todasPaginas<{ token: string }>((de, ate) => supabase
         .from('push_tokens')
         .select('token')
-        .eq('is_active', true);
+        .eq('is_active', true)
+        .order('id')
+        .range(de, ate));
 
-      if (error) throw error;
-
-      return data?.map((t) => t.token) || [];
+      return data.map((t) => t.token);
     } catch (error) {
       logger.error('Error fetching all tokens', error, 'FCMPushService');
       return [];
@@ -582,18 +584,22 @@ class FCMPushService {
         if (empresaId) q = q.eq('empresa_id', empresaId);
         return q;
       };
-      let taxaQuery = supabase
-        .from('push_notifications_log')
-        .select('sucesso_count, falha_count')
-        .gte('enviado_em', weekAgo.toISOString());
-      if (empresaId) taxaQuery = taxaQuery.eq('empresa_id', empresaId);
+      // uma semana de envios passa de 1.000 linhas: soma com todas as páginas
+      const taxaQuery = todasPaginas<{ sucesso_count: number | null; falha_count: number | null }>((de, ate) => {
+        let q = supabase
+          .from('push_notifications_log')
+          .select('sucesso_count, falha_count')
+          .gte('enviado_em', weekAgo.toISOString());
+        if (empresaId) q = q.eq('empresa_id', empresaId);
+        return q.order('id').range(de, ate);
+      });
 
       const [
         { count: totalTokens },
         { count: activeTokens },
         { count: todayNotifications },
         { count: weekNotifications },
-        { data: successRateData },
+        successRateData,
       ] = await Promise.all([
         contarTokens(false),
         contarTokens(true),
