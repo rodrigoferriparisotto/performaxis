@@ -110,6 +110,9 @@ const Premios = lazyComRecarga(() => import('./Pages/Premios'));
 const PremiosGestao = lazyComRecarga(() => import('./Pages/PremiosGestao'));
 const PainelGrupo = lazyComRecarga(() => import('./Pages/PainelGrupo'));
 const GruposHoteis = lazyComRecarga(() => import('./Pages/GruposHoteis'));
+const Concierge = lazyComRecarga(() => import('./Pages/Concierge'));
+const ConciergeGestao = lazyComRecarga(() => import('./Pages/ConciergeGestao'));
+const ConciergeQRCodes = lazyComRecarga(() => import('./Pages/ConciergeQRCodes'));
 const PublicarVersao = lazyComRecarga(() => import('./Pages/PublicarVersao').then((m) => ({ default: m.PublicarVersao })));
 const EnviarMensagem = lazyComRecarga(() => import('./Pages/EnviarMensagem').then((m) => ({ default: m.EnviarMensagem })));
 const ConfiguracoesLembretes = lazyComRecarga(() => import('./Pages/ConfiguracoesLembretes'));
@@ -644,6 +647,12 @@ const MainAppContent: React.FC = () => {
         return user?.profile === 'admin' || user?.profile === 'gestor' || empresa?.premios_visivel_equipe === true
           ? <Premios />
           : <div className="p-6 text-sm text-gray-600">O programa de prêmios ainda não está disponível.</div>;
+      case 'concierge':
+        return <Concierge />;
+      case 'concierge-gestao':
+        return <ConciergeGestao />;
+      case 'concierge-qrcodes':
+        return <ConciergeQRCodes />;
       case 'painel-grupo':
         return <PainelGrupo />;
       case 'grupos-hoteis':
@@ -676,7 +685,7 @@ const MainAppContent: React.FC = () => {
 
   return (
     <SidebarProvider>
-      <div className="flex h-full bg-gray-100 relative overflow-x-hidden">
+      <div className="flex h-full bg-gray-100 relative overflow-x-hidden print:block print:h-auto print:bg-white">
         <Sidebar
           currentPage={currentPage}
           onPageChange={navigateToPage}
@@ -684,9 +693,9 @@ const MainAppContent: React.FC = () => {
           onToggle={() => setSidebarOpen(!sidebarOpen)}
         />
 
-        <main className="flex-1 flex flex-col overflow-hidden overflow-x-hidden lg:ml-0">
+        <main className="flex-1 flex flex-col overflow-hidden overflow-x-hidden lg:ml-0 print:overflow-visible">
           {/* Mobile Header */}
-          <div className="lg:hidden fixed top-0 left-0 right-0 z-[60] bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <div className="lg:hidden print:hidden fixed top-0 left-0 right-0 z-[60] bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
             <button
               onClick={() => setSidebarOpen(true)}
               className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
@@ -703,7 +712,7 @@ const MainAppContent: React.FC = () => {
             <PendingRecordsBadge userId={user?.id || null} />
           </div>
 
-          <div ref={conteudoRef} onScroll={guardarPosicao} className="flex-1 overflow-y-auto p-4 lg:p-6 pt-[60px] lg:pt-6">
+          <div ref={conteudoRef} onScroll={guardarPosicao} className="flex-1 overflow-y-auto p-4 lg:p-6 pt-[60px] lg:pt-6 print:overflow-visible print:p-0">
             <Suspense fallback={<LoadingState />}>{renderPage()}</Suspense>
           </div>
         </main>

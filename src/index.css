@@ -173,3 +173,8 @@
     outline-offset: 2px;
   }
 }
+
+/* impressão (ex.: QR Codes do Concierge): solta as alturas fixas do layout */
+@media print {
+  html, body, #root { height: auto !important; overflow: visible !important; background: #fff !important; }
+}

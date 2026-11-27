@@ -40,6 +40,7 @@ import {
   ClipboardCheck,
   Hotel,
   Network,
+  ConciergeBell,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -107,6 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
     window.location.reload();
   };
   const painelGrupoItem: ItemMenu = { id: 'painel-grupo', label: 'Painel do grupo', icon: Network, access: temGrupo };
+  const conciergeItem: ItemMenu = { id: 'concierge', label: 'Concierge', icon: ConciergeBell, access: !!user?.empresaId };
 
   // pedidos de troca aguardando entrega (aviso no menu da gestão)
   const [pedidosPendentes, setPedidosPendentes] = React.useState(0);
@@ -180,6 +182,8 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
 
   const adminItems: ItemMenu[] = [
     { id: 'implantacao', label: 'Configuração inicial', icon: Rocket, access: hasAccess('usuarios') && hasAccess('cadastros') },
+    { id: 'concierge-gestao', label: 'Concierge (fichas)', icon: ConciergeBell, access: ehGestao && !!user?.empresaId },
+    { id: 'concierge-qrcodes', label: 'Concierge (QR Codes)', icon: ConciergeBell, access: ehGestao && !!user?.empresaId },
     { id: 'usuarios', label: 'Usuários', icon: Users, access: hasAccess('usuarios') },
     { id: 'empresa', label: 'Empresa', icon: Building, access: hasAccess('empresa') },
     { id: 'perfis', label: 'Perfis', icon: Users, access: hasAccess('perfis') },
@@ -353,6 +357,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
       {premiosItem.access && renderItem(premiosItem)}
       {premiosGestaoItem.access && renderItem(premiosGestaoItem, pedidosPendentes)}
       {painelGrupoItem.access && renderItem(painelGrupoItem)}
+      {conciergeItem.access && renderItem(conciergeItem)}
 
       {verAcessos.access && renderItem(verAcessos)}
 
@@ -402,7 +407,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
 
       {/* Sidebar */}
       <div className={`
-        fixed lg:static inset-y-0 left-0 z-[70] lg:z-auto
+        fixed lg:static inset-y-0 left-0 z-[70] lg:z-auto print:hidden
         bg-white shadow-lg flex flex-col h-full
         transform transition-all duration-300 ease-in-out lg:transform-none
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
