@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { todasPaginas } from '../../lib/paginacao';
 import { useAuth } from '../../contexts/AuthContext';
 import { getDataAtual } from '../../utils/dateUtils';
 
@@ -25,13 +26,19 @@ export function ResumoSuitesDia({ atualizar = 0 }: { atualizar?: number }) {
 
   const carregar = async () => {
     if (!user?.empresaId) return;
-    const { data } = await supabase
-      .from('registros_camararia')
-      .select('tipo_servico, status, quarto_liberado_em')
-      .eq('empresa_id', user.empresaId)
-      .eq('data', getDataAtual())
-      .in('status', ['programado', 'em_andamento', 'concluido']);
-    const regs = (data as { tipo_servico: string; status: string; quarto_liberado_em: string | null }[]) || [];
+    // um dia de hotel grande chega perto de 1.000 registros: busca todas as páginas
+    const hoje = getDataAtual();
+    const data = await todasPaginas((de, ate) =>
+      supabase
+        .from('registros_camararia')
+        .select('tipo_servico, status, quarto_liberado_em')
+        .eq('empresa_id', user.empresaId)
+        .eq('data', hoje)
+        .in('status', ['programado', 'em_andamento', 'concluido'])
+        .order('id')
+        .range(de, ate)
+    ).catch(() => []);
+    const regs = data as { tipo_servico: string; status: string; quarto_liberado_em: string | null }[];
     const n = { ...VAZIO, total: regs.length };
     for (const r of regs) {
       if (r.tipo_servico in n) (n as any)[r.tipo_servico] += 1;

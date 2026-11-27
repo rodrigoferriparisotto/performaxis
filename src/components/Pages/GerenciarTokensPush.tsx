@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Smartphone, Activity, X, Check, TestTube, RefreshCw, Search, Filter } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { todasPaginas } from '../../lib/paginacao';
 import { fcmPushService } from '../../services/fcmPushService';
 import type { PushToken } from '../../services/fcmPushService';
 import { parseDeviceInfo } from '../../utils/deviceInfoParser';
@@ -27,21 +28,24 @@ export default function GerenciarTokensPush() {
   const loadTokens = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('push_tokens')
-        .select(`
-          *,
-          usuario:usuarios(
-            name,
-            login,
-            empresa:empresas(nome)
-          )
-        `)
-        .order('created_at', { ascending: false });
+      // todos os aparelhos de todas as empresas: passa de 1.000 fácil
+      const data = await todasPaginas((de, ate) =>
+        supabase
+          .from('push_tokens')
+          .select(`
+            *,
+            usuario:usuarios(
+              name,
+              login,
+              empresa:empresas(nome)
+            )
+          `)
+          .order('created_at', { ascending: false })
+          .order('id')
+          .range(de, ate)
+      );
 
-      if (error) throw error;
-
-      setTokens(data || []);
+      setTokens(data);
     } catch (error) {
       console.error('Error loading tokens:', error);
       setMessage({ type: 'error', text: 'Erro ao carregar dispositivos' });

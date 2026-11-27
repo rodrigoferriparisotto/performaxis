@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
+import { emLotes } from '../../lib/paginacao';
 import { confirmar, notificar } from '../../lib/feedback';
 import { PageHeader } from '../ui/PageHeader';
 import { EmptyState, LoadingState } from '../ui/Estados';
@@ -1691,10 +1692,13 @@ const PremiosGestao: React.FC = () => {
       [r.usuario_id, r.solicitado_por, r.resolvido_por].forEach((u) => u && ids.add(u));
     });
     if (ids.size > 0) {
-      const { data: us, error: errUs } = await supabase.from('usuarios').select('id, name').in('id', Array.from(ids));
-      if (errUs) console.error('Erro ao carregar nomes:', errUs);
+      // em lotes: com equipe grande os ids não cabem numa URL só
+      const us = await emLotes(Array.from(ids), (lote) => supabase.from('usuarios').select('id, name').in('id', lote)).catch((errUs) => {
+        console.error('Erro ao carregar nomes:', errUs);
+        return [];
+      });
       const mapa: Record<string, string> = {};
-      ((us as { id: string; name: string }[]) || []).forEach((u) => (mapa[u.id] = u.name));
+      (us as { id: string; name: string }[]).forEach((u) => (mapa[u.id] = u.name));
       setNomes(mapa);
     }
     setPendentes(listaPend);
