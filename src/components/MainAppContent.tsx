@@ -108,6 +108,8 @@ const ConfiguracaoMetas = lazyComRecarga(() => import('./Pages/ConfiguracaoMetas
 const RankingPorMeritocracia = lazyComRecarga(() => import('./Pages/RankingPorMeritocracia'));
 const Premios = lazyComRecarga(() => import('./Pages/Premios'));
 const PremiosGestao = lazyComRecarga(() => import('./Pages/PremiosGestao'));
+const PainelGrupo = lazyComRecarga(() => import('./Pages/PainelGrupo'));
+const GruposHoteis = lazyComRecarga(() => import('./Pages/GruposHoteis'));
 const PublicarVersao = lazyComRecarga(() => import('./Pages/PublicarVersao').then((m) => ({ default: m.PublicarVersao })));
 const EnviarMensagem = lazyComRecarga(() => import('./Pages/EnviarMensagem').then((m) => ({ default: m.EnviarMensagem })));
 const ConfiguracoesLembretes = lazyComRecarga(() => import('./Pages/ConfiguracoesLembretes'));
@@ -642,6 +644,10 @@ const MainAppContent: React.FC = () => {
         return user?.profile === 'admin' || user?.profile === 'gestor' || empresa?.premios_visivel_equipe === true
           ? <Premios />
           : <div className="p-6 text-sm text-gray-600">O programa de prêmios ainda não está disponível.</div>;
+      case 'painel-grupo':
+        return <PainelGrupo />;
+      case 'grupos-hoteis':
+        return <GruposHoteis />;
       case 'premios-gestao':
         // só a gestão; os demais caem nos próprios prêmios
         return user?.profile === 'admin' || user?.profile === 'gestor' ? <PremiosGestao /> : <Premios />;

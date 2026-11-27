@@ -38,6 +38,8 @@ import {
   SlidersHorizontal,
   Gift,
   ClipboardCheck,
+  Hotel,
+  Network,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSidebar } from '../../contexts/SidebarContext';
@@ -89,6 +91,22 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
   // a equipe só vê os prêmios quando a empresa liberou (cadastro da empresa)
   const premiosItem: ItemMenu = { id: 'premios', label: 'Prêmios', icon: Gift, access: ehGestao || empresa?.premios_visivel_equipe === true };
   const premiosGestaoItem: ItemMenu = { id: 'premios-gestao', label: 'Gestão de prêmios', icon: ClipboardCheck, access: ehGestao };
+
+  // grupo de hotéis: corporativo troca o hotel ativo e vê o painel consolidado
+  const [hoteis, setHoteis] = React.useState<{ empresa_id: string; nome: string; ativa: boolean }[]>([]);
+  const [temGrupo, setTemGrupo] = React.useState(false);
+  React.useEffect(() => {
+    if (!user?.id) return;
+    supabase.rpc('minhas_empresas').then(({ data }) => setHoteis((data as any[]) || []));
+    supabase.rpc('meus_grupos').then(({ data }) => setTemGrupo(((data as any[]) || []).length > 0));
+  }, [user?.id]);
+  const trocarHotel = async (empresaId: string) => {
+    const { error } = await supabase.rpc('trocar_empresa_ativa', { p_empresa: empresaId });
+    if (error) return;
+    window.location.hash = 'dashboard';
+    window.location.reload();
+  };
+  const painelGrupoItem: ItemMenu = { id: 'painel-grupo', label: 'Painel do grupo', icon: Network, access: temGrupo };
 
   // pedidos de troca aguardando entrega (aviso no menu da gestão)
   const [pedidosPendentes, setPedidosPendentes] = React.useState(0);
@@ -177,6 +195,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
     { id: 'enviar-mensagem', label: 'Enviar Mensagem', icon: MessageSquare, access: user?.profile === 'gestor' },
     { id: 'teste-notificacoes', label: 'Teste de notificações push', icon: Bell, access: user?.profile === 'admin' },
     { id: 'blog-admin', label: 'Gerenciar Blog', icon: FileText, access: user?.profile === 'admin' },
+    { id: 'grupos-hoteis', label: 'Grupos de hotéis', icon: Network, access: user?.profile === 'admin' && !user?.empresaId },
   ].filter((i) => i.access);
 
   // quem configura o hotel tem dois menus: Operação (dia a dia) e Configurações
@@ -333,6 +352,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
 
       {premiosItem.access && renderItem(premiosItem)}
       {premiosGestaoItem.access && renderItem(premiosGestaoItem, pedidosPendentes)}
+      {painelGrupoItem.access && renderItem(painelGrupoItem)}
 
       {verAcessos.access && renderItem(verAcessos)}
 
@@ -441,6 +461,21 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, onPageChange, isOpen, on
             <div className={`min-w-0 flex-1 ${isCollapsed ? 'lg:hidden' : ''}`}>
               <p className="font-medium text-gray-800 text-sm truncate">{user?.name}</p>
               <p className="text-xs text-gray-500 capitalize">{user?.profile}</p>
+              {hoteis.length > 1 && (
+                <label className="mt-1.5 flex items-center gap-1.5">
+                  <Hotel className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                  <select
+                    value={hoteis.find((h) => h.ativa)?.empresa_id || ''}
+                    onChange={(e) => trocarHotel(e.target.value)}
+                    aria-label="Hotel ativo"
+                    className="w-full min-w-0 text-xs border border-gray-300 rounded-md px-1.5 py-1 bg-white text-gray-700"
+                  >
+                    {hoteis.map((h) => (
+                      <option key={h.empresa_id} value={h.empresa_id}>{h.nome}</option>
+                    ))}
+                  </select>
+                </label>
+              )}
             </div>
           </div>
 
