@@ -282,19 +282,16 @@ export const usuarioService = {
       const isSuperAdmin = userData?.profile === 'admin' && userData?.empresa_id === null;
 
       if (isSuperAdmin) {
-        const { data, error } = await supabase
+        // todas as empresas juntas passam de 1.000 usuários
+        return await todasPaginas((de, ate) => supabase
           .from('usuarios')
           .select(`
             *,
             empresa:empresas(id, nome, endereco, numero_usuarios, ativo)
           `)
-          .order('name');
-
-        if (error) {
-          return [];
-        }
-
-        return data || [];
+          .order('name')
+          .order('id')
+          .range(de, ate));
       }
 
       if (!userData?.empresa_id) {
@@ -368,17 +365,14 @@ export const suiteService = {
         return [];
       }
 
-      const { data, error } = await supabase
+      // hotel grande chega perto de 1.000 suítes
+      return await todasPaginas((de, ate) => supabase
         .from('suites')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
-        .order('name');
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        .order('name')
+        .order('id')
+        .range(de, ate));
     } catch (error) {
       return [];
     }
@@ -460,18 +454,15 @@ export const atividadeService = {
         return [];
       }
 
-      const { data, error } = await supabase
+      // todas as atividades ativas de todos os setores: pagina por segurança
+      return await todasPaginas((de, ate) => supabase
         .from('atividades')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .eq('active', true)
-        .order('order_position');
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        .order('order_position')
+        .order('id')
+        .range(de, ate));
     } catch (error) {
       return [];
     }
@@ -486,19 +477,15 @@ export const atividadeService = {
         return [];
       }
 
-      const { data, error } = await supabase
+      return await todasPaginas((de, ate) => supabase
         .from('atividades')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .eq('type', type)
         .eq('active', true)
-        .order('order_position');
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        .order('order_position')
+        .order('id')
+        .range(de, ate));
     } catch (error) {
       return [];
     }
@@ -1117,31 +1104,27 @@ export const registroRevisaoService = {
         return [];
       }
 
-      const { data: registrosCamararia, error } = await supabase
+      // hotel grande: centenas de suítes no dia → pagina e busca as revisões
+      // em lotes (erro cai no catch abaixo e devolve [])
+      const registrosCamararia = await todasPaginas((de, ate) => supabase
         .from('registros_camararia')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .eq('data', data)
         .eq('status', 'concluido')
-        .order('hora_fim', { ascending: false });
-
-      if (error) {
-        return [];
-      }
+        .order('hora_fim', { ascending: false })
+        .order('id')
+        .range(de, ate));
 
       if (!registrosCamararia || registrosCamararia.length === 0) {
         return [];
       }
 
-      const { data: revisoesExistentes, error: revisaoError } = await supabase
+      const revisoesExistentes = await emLotes(registrosCamararia.map(r => r.id), (lote) => supabase
         .from('registros_revisao')
         .select('registro_camararia_id')
         .eq('empresa_id', userData.empresa_id)
-        .in('registro_camararia_id', registrosCamararia.map(r => r.id));
-
-      if (revisaoError) {
-        return [];
-      }
+        .in('registro_camararia_id', lote));
 
       const idsJaRevisados = new Set((revisoesExistentes || []).map(r => r.registro_camararia_id));
 
@@ -1985,7 +1968,7 @@ export const manutencaoService = {
         return [];
       }
 
-      let query = supabase
+      const montar = () => supabase
         .from('manutencoes')
         .select(`
           *,
@@ -1996,12 +1979,13 @@ export const manutencaoService = {
         .order('order_position')
         .order('created_at', { ascending: false });
 
-      if (currentPage !== undefined && pageSize !== undefined) {
-        const offset = currentPage * pageSize;
-        query = query.range(offset, offset + pageSize - 1);
+      // sem paginação de tela: busca tudo (concluídas de um ano passam de 1.000)
+      if (currentPage === undefined || pageSize === undefined) {
+        return await todasPaginas((de, ate) => montar().order('id').range(de, ate));
       }
 
-      const { data, error } = await query;
+      const offset = currentPage * pageSize;
+      const { data, error } = await montar().range(offset, offset + pageSize - 1);
 
       if (error) {
         return [];
@@ -2155,19 +2139,16 @@ export const manutencaoService = {
         return [];
       }
 
-      const { data, error } = await supabase
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => supabase
         .from('manutencoes')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .gte('data', dataInicio)
         .lte('data', dataFim)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        .order('created_at', { ascending: false })
+        .order('id')
+        .range(de, ate));
     } catch (error) {
       return [];
     }
@@ -2235,19 +2216,16 @@ export const cancelamentoService = {
         return [];
       }
 
-      const { data, error } = await supabase
+      // pagina: um período longo passa de 1.000 linhas
+      return await todasPaginas((de, ate) => supabase
         .from('cancelamentos')
         .select('*')
         .eq('empresa_id', userData.empresa_id)
         .gte('data_hora', dataInicio)
         .lte('data_hora', dataFim)
-        .order('data_hora', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        .order('data_hora', { ascending: false })
+        .order('id')
+        .range(de, ate));
     } catch (error) {
       return [];
     }
@@ -2264,20 +2242,16 @@ export const cancelamentoService = {
         return [];
       }
 
-      const { data, error } = await supabase
+      return await todasPaginas((de, ate) => supabase
         .from('cancelamentos')
         .select('id, tipo, usuario_id, data_hora, motivo')
         .eq('empresa_id', userData.empresa_id)
         .eq('usuario_id', usuarioId)
         .gte('data_hora', dataInicio)
         .lte('data_hora', dataFim)
-        .order('data_hora', { ascending: false });
-
-      if (error) {
-        return [];
-      }
-
-      return data || [];
+        .order('data_hora', { ascending: false })
+        .order('id')
+        .range(de, ate));
     } catch (error) {
       return [];
     }
