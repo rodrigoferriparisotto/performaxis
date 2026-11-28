@@ -9,6 +9,7 @@ import {
   EyeOff,
   HelpCircle,
   Image as ImageIcon,
+  List,
   MapPin,
   Pencil,
   Plus,
@@ -26,6 +27,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { PageHeader } from '../ui/PageHeader';
 import { ModuleTabs, AbaModulo } from '../ui/ModuleTabs';
 import { LoadingState, EmptyState } from '../ui/Estados';
+import { TextoFormatado, semFormatacao } from '../common/TextoFormatado';
 import {
   CATEGORIAS_CONCIERGE,
   CategoriaConcierge,
@@ -57,7 +59,7 @@ const ID_RASCUNHO = '__rascunho__';
 const dataBR = (iso: string) =>
   new Date(iso).toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric' });
 
-const primeiraLinha = (texto: string) => texto.split('\n').map((l) => l.trim()).find(Boolean) || '';
+const primeiraLinha = (texto: string) => semFormatacao(texto).split('\n').map((l) => l.trim()).find(Boolean) || '';
 
 /** Ficha modelo ainda sem o conteúdo completo (vazia ou com os "__" para preencher). */
 const aCompletar = (f: FichaConcierge) =>
@@ -453,6 +455,48 @@ function FormFicha({
   const [fotosNovas, setFotosNovas] = useState<FotoNova[]>([]);
   const [teste, setTeste] = useState('');
   const [salvando, setSalvando] = useState(false);
+  const [verPrevia, setVerPrevia] = useState(false);
+  const conteudoRef = useRef<HTMLTextAreaElement>(null);
+
+  // Negrito: envolve a seleção com **. Tópicos: põe/tira "* " no começo das linhas selecionadas.
+  const formatar = (tipo: 'negrito' | 'topico') => {
+    const el = conteudoRef.current;
+    if (!el) return;
+    const texto = r.conteudo;
+    let ini = el.selectionStart;
+    let fim = el.selectionEnd;
+    let novo: string;
+    let selIni: number;
+    let selFim: number;
+    if (tipo === 'negrito') {
+      const sel = texto.slice(ini, fim);
+      const miolo = sel || 'texto';
+      novo = texto.slice(0, ini) + `**${miolo}**` + texto.slice(fim);
+      selIni = ini + 2;
+      selFim = selIni + miolo.length;
+    } else {
+      ini = texto.lastIndexOf('\n', ini - 1) + 1;
+      const quebra = texto.indexOf('\n', fim > ini && texto[fim - 1] === '\n' ? fim - 1 : fim);
+      fim = quebra === -1 ? texto.length : quebra;
+      const linhas = texto.slice(ini, fim).split('\n');
+      const comConteudo = linhas.filter((l) => l.trim());
+      const todasTopico = comConteudo.length > 0 && comConteudo.every((l) => /^\s*[*•-]\s+/.test(l));
+      const trocadas = linhas.map((l) => (!l.trim() ? l : todasTopico ? l.replace(/^\s*[*•-]\s+/, '') : `* ${l.replace(/^\s*[*•-]\s+/, '')}`));
+      const bloco = trocadas.join('\n');
+      novo = texto.slice(0, ini) + bloco + texto.slice(fim);
+      selIni = ini;
+      selFim = ini + bloco.length;
+    }
+    if (novo.length > MAX_CONTEUDO) {
+      notificar(`O conteúdo pode ter no máximo ${MAX_CONTEUDO} caracteres.`, 'aviso');
+      return;
+    }
+    mudar('conteudo', novo);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(selIni, selFim);
+    });
+  };
 
   // libera as prévias ao fechar
   const fotosRef = useRef<FotoNova[]>([]);
@@ -623,22 +667,65 @@ function FormFicha({
             </label>
           </div>
 
-          <label className="block">
-            <span className="text-sm font-medium text-gray-700">Conteúdo</span>
-            <textarea
-              value={r.conteudo}
-              onChange={(e) => mudar('conteudo', e.target.value.slice(0, MAX_CONTEUDO))}
-              rows={7}
-              placeholder={'Ex.:\nServido das 7h às 10h30, no restaurante do térreo.\nAos domingos, até as 11h.'}
-              className={campo}
-            />
-            <span className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>Use uma linha por item. Troque os __ pela informação do hotel.</span>
+          <div>
+            <div className="flex items-end justify-between gap-2">
+              <span className="text-sm font-medium text-gray-700">Conteúdo</span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => formatar('negrito')}
+                  className="px-2.5 py-1 rounded-md border border-gray-300 text-sm font-bold text-gray-800 hover:bg-gray-100"
+                  title="Negrito: selecione o texto e toque aqui"
+                >
+                  B
+                </button>
+                <button
+                  type="button"
+                  onClick={() => formatar('topico')}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-gray-300 text-sm text-gray-800 hover:bg-gray-100"
+                  title="Tópicos: selecione as linhas e toque aqui"
+                >
+                  <List className="w-4 h-4" /> Tópicos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVerPrevia((v) => !v)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-sm ${
+                    verPrevia ? 'border-purple-400 bg-purple-50 text-purple-800' : 'border-gray-300 text-gray-800 hover:bg-gray-100'
+                  }`}
+                >
+                  <Eye className="w-4 h-4" /> {verPrevia ? 'Editar' : 'Ver como fica'}
+                </button>
+              </div>
+            </div>
+            {verPrevia ? (
+              <div className="mt-1 min-h-[10rem] max-h-80 overflow-y-auto rounded-md border border-purple-200 bg-slate-50 px-4 py-3">
+                {r.conteudo.trim() ? (
+                  <TextoFormatado texto={r.conteudo} className="text-sm leading-relaxed text-gray-700" />
+                ) : (
+                  <p className="text-sm italic text-gray-400">Sem conteúdo.</p>
+                )}
+              </div>
+            ) : (
+              <textarea
+                ref={conteudoRef}
+                value={r.conteudo}
+                onChange={(e) => mudar('conteudo', e.target.value.slice(0, MAX_CONTEUDO))}
+                rows={7}
+                placeholder={'Ex.:\n**Para beber**\n* Café passado\n* Sucos: laranja e uva'}
+                className={campo}
+                aria-label="Conteúdo"
+              />
+            )}
+            <span className="flex justify-between gap-2 text-xs text-gray-500 mt-1">
+              <span>
+                <strong>**texto**</strong> fica em negrito · linha começando com <strong>*</strong> vira tópico. Troque os __ pela informação do hotel.
+              </span>
               <span className="tabular-nums">
                 {r.conteudo.length}/{MAX_CONTEUDO}
               </span>
             </span>
-          </label>
+          </div>
 
           <div>
             <span className="text-sm font-medium text-gray-700">Jeitos de perguntar</span>

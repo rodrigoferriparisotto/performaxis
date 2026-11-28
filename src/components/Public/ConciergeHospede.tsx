@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ConciergeBell, Send, KeyRound, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { buscarFichas, CATEGORIAS_CONCIERGE, FichaConcierge } from '../../lib/conciergeBusca';
+import { TextoFormatado } from '../common/TextoFormatado';
 
 // Concierge do hóspede (sem login): abre por performaxis.com.br/c/CODIGO
 // (QR Code no quarto) ou digitando o código impresso embaixo do QR.
@@ -212,7 +213,7 @@ export default function ConciergeHospede() {
                 aberta === f.id || (j === 0 && m.fichas!.length === 1) ? (
                   <div key={f.id} className="rounded-2xl rounded-bl-sm bg-white border border-slate-200 px-4 py-3">
                     <p className="font-semibold text-slate-900">{f.titulo}</p>
-                    <p className="mt-1 text-sm text-slate-700 whitespace-pre-line">{f.conteudo}</p>
+                    <TextoFormatado texto={f.conteudo} className="mt-1 text-sm leading-relaxed text-slate-700" />
                     {f.fotos.length > 0 && (
                       <div className="flex gap-2 mt-2 overflow-x-auto">
                         {f.fotos.map((url) => (

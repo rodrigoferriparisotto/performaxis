@@ -5,6 +5,7 @@ import { notificar } from '../../lib/feedback';
 import { useAuth } from '../../contexts/AuthContext';
 import { PageHeader } from '../ui/PageHeader';
 import { EmptyState, LoadingState } from '../ui/Estados';
+import { TextoFormatado } from '../common/TextoFormatado';
 import {
   CATEGORIAS_CONCIERGE,
   buscarFichas,
@@ -71,7 +72,7 @@ function ConteudoFicha({ ficha, onAbrirFoto }: { ficha: FichaConcierge; onAbrirF
   return (
     <>
       {ficha.conteudo?.trim() ? (
-        <p className="mt-2 whitespace-pre-line break-words text-sm leading-relaxed text-gray-700">{ficha.conteudo.trim()}</p>
+        <TextoFormatado texto={ficha.conteudo} className="mt-2 text-sm leading-relaxed text-gray-700" />
       ) : (
         <p className="mt-2 text-sm italic text-gray-400">Esta ficha ainda está sem conteúdo.</p>
       )}
