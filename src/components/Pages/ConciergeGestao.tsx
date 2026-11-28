@@ -457,14 +457,22 @@ function FormFicha({
   const [salvando, setSalvando] = useState(false);
   const [verPrevia, setVerPrevia] = useState(false);
   const conteudoRef = useRef<HTMLTextAreaElement>(null);
+  // no celular, ao tocar no botão a caixa perde o foco e a seleção volta para o fim:
+  // guarda a última seleção enquanto a caixa está em foco
+  const selecaoRef = useRef({ ini: -1, fim: -1 }); // -1 = ainda não tocou na caixa (vai para o fim)
+  const guardarSelecao = () => {
+    const el = conteudoRef.current;
+    if (el && document.activeElement === el) selecaoRef.current = { ini: el.selectionStart, fim: el.selectionEnd };
+  };
 
   // Negrito: envolve a seleção com **. Tópicos: põe/tira "* " no começo das linhas selecionadas.
   const formatar = (tipo: 'negrito' | 'topico') => {
     const el = conteudoRef.current;
     if (!el) return;
     const texto = r.conteudo;
-    let ini = el.selectionStart;
-    let fim = el.selectionEnd;
+    const guardada = selecaoRef.current.ini < 0 ? { ini: texto.length, fim: texto.length } : selecaoRef.current;
+    let ini = Math.min(guardada.ini, texto.length);
+    let fim = Math.min(Math.max(guardada.fim, ini), texto.length);
     let novo: string;
     let selIni: number;
     let selFim: number;
@@ -495,6 +503,7 @@ function FormFicha({
     requestAnimationFrame(() => {
       el.focus();
       el.setSelectionRange(selIni, selFim);
+      selecaoRef.current = { ini: selIni, fim: selFim };
     });
   };
 
@@ -673,6 +682,7 @@ function FormFicha({
               <div className="flex items-center gap-1">
                 <button
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => formatar('negrito')}
                   className="px-2.5 py-1 rounded-md border border-gray-300 text-sm font-bold text-gray-800 hover:bg-gray-100"
                   title="Negrito: selecione o texto e toque aqui"
@@ -681,6 +691,7 @@ function FormFicha({
                 </button>
                 <button
                   type="button"
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={() => formatar('topico')}
                   className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md border border-gray-300 text-sm text-gray-800 hover:bg-gray-100"
                   title="Tópicos: selecione as linhas e toque aqui"
@@ -709,6 +720,10 @@ function FormFicha({
             ) : (
               <textarea
                 ref={conteudoRef}
+                onSelect={guardarSelecao}
+                onKeyUp={guardarSelecao}
+                onMouseUp={guardarSelecao}
+                onTouchEnd={() => setTimeout(guardarSelecao, 0)}
                 value={r.conteudo}
                 onChange={(e) => mudar('conteudo', e.target.value.slice(0, MAX_CONTEUDO))}
                 rows={7}
