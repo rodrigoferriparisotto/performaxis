@@ -734,7 +734,7 @@ function FormFicha({
             )}
             <span className="flex justify-between gap-2 text-xs text-gray-500 mt-1">
               <span>
-                <strong>**texto**</strong> fica em negrito · linha começando com <strong>*</strong> vira tópico. Troque os __ pela informação do hotel.
+                <strong>**texto**</strong> fica em negrito · linha começando com <strong>*</strong> vira tópico · link sozinho na linha vira botão (mapa do Google aparece na tela). Troque os __ pela informação do hotel.
               </span>
               <span className="tabular-nums">
                 {r.conteudo.length}/{MAX_CONTEUDO}
